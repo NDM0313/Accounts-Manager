@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reports Hub | FX Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#bbf7d0",
+                        "on-tertiary": "#001a12",
+                        "on-primary": "#0a0012",
+                        "secondary": "#71717a",
+                        "on-primary-fixed-variant": "#5b21b6",
+                        "on-secondary-fixed-variant": "#3f3f46",
+                        "on-secondary": "#09090b",
+                        "on-secondary-fixed": "#18181b",
+                        "inverse-surface": "#fafafa",
+                        "outline": "#52525b",
+                        "on-background": "#fafafa",
+                        "on-error": "#1a0000",
+                        "background": "#09090b",
+                        "inverse-on-surface": "#09090b",
+                        "primary-container": "#7c3aed",
+                        "surface-container-high": "#18181b",
+                        "on-surface": "#fafafa",
+                        "primary-fixed": "#ede9fe",
+                        "on-tertiary-fixed": "#003318",
+                        "surface-container": "#121215",
+                        "surface-variant": "#18181b",
+                        "surface": "#0c0c0f",
+                        "secondary-container": "#27272a",
+                        "tertiary": "#34d399",
+                        "error": "#ef4444",
+                        "outline-variant": "#27272a",
+                        "surface-container-low": "#0f0f12",
+                        "primary": "#a78bfa",
+                        "secondary-fixed": "#a1a1aa",
+                        "error-container": "#3b1111",
+                        "tertiary-fixed-dim": "#6ee7b7",
+                        "on-tertiary-container": "#bbf7d0",
+                        "on-primary-fixed": "#2e1065",
+                        "surface-tint": "#a78bfa",
+                        "on-secondary-container": "#a1a1aa",
+                        "surface-container-highest": "#1e1e22",
+                        "secondary-fixed-dim": "#71717a",
+                        "on-surface-variant": "#a1a1aa",
+                        "on-error-container": "#fca5a5",
+                        "tertiary-container": "#065f46",
+                        "on-tertiary-fixed-variant": "#047857",
+                        "on-primary-container": "#ede9fe",
+                        "surface-dim": "#0c0c0f",
+                        "inverse-primary": "#5b21b6",
+                        "primary-fixed-dim": "#c4b5fd",
+                        "surface-bright": "#18181b",
+                        "surface-container-lowest": "#09090b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "base": "4px",
+                        "gutter": "20px",
+                        "margin-desktop": "32px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Geist"],
+                        "display": ["Geist"],
+                        "body": ["Geist"],
+                        "label": ["Geist"],
+                        "label-mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #09090b;
+            color: #fafafa;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Geist', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .obsidian-card {
+            background: #0c0c0f;
+            border: 1px solid #27272a;
+            transition: all 0.2s ease-in-out;
+        }
+        .obsidian-card:hover {
+            border-color: #52525b;
+            background: #0f0f12;
+        }
+    </style>
+</head>
+<body class="font-body overflow-x-hidden min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant px-margin-mobile md:px-margin-desktop py-4 flex justify-between items-center">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<h1 class="font-display text-xl font-bold text-on-background tracking-tight">FX Ledger</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs ml-2">
+                FA
+            </div>
+</div>
+</header>
+<!-- Navigation Drawer (Desktop) -->
+<aside class="hidden md:flex fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-surface-container-lowest border-r border-outline-variant flex-col py-6">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</div>
+<div>
+<p class="font-bold text-sm text-on-surface">Finance Admin</p>
+<p class="text-xs text-secondary">FX Specialist</p>
+</div>
+</div>
+<nav class="flex flex-col space-y-1 px-3">
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">list_alt</span>
+<span class="text-sm font-medium">All Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">pending_actions</span>
+<span class="text-sm font-medium">Pending Approvals</span>
+</a>
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container px-4 py-2.5 rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px]">summarize</span>
+<span class="text-sm font-medium">Closing Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">currency_exchange</span>
+<span class="text-sm font-medium">Currency Rates</span>
+</a>
+</nav>
+<div class="mt-auto px-6 py-4 border-t border-outline-variant">
+<p class="font-label-mono text-[10px] text-outline uppercase tracking-widest">VER 2.4.0</p>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="mt-20 mb-32 md:ml-64 px-margin-mobile md:px-margin-desktop max-w-5xl">
+<!-- Welcome Header -->
+<section class="mb-10">
+<h2 class="font-display text-3xl font-bold text-on-background mb-3 tracking-tight">Reports Hub</h2>
+<p class="text-secondary text-base leading-relaxed max-w-2xl">Access analytical summaries, financial compliance documentation, and export historical ledger data for external auditing.</p>
+</section>
+<!-- Bento Grid for Report Types -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-12">
+<!-- Daily Closing Reports -->
+<div class="md:col-span-8 obsidian-card rounded-xl p-6 relative overflow-hidden group cursor-pointer">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-10">
+<div class="p-2.5 bg-surface-container rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-2xl">event_available</span>
+</div>
+<span class="text-[10px] font-bold tracking-widest uppercase bg-tertiary-container/30 text-tertiary-fixed border border-tertiary-container px-3 py-1 rounded-full">Automated 23:59 UTC</span>
+</div>
+<h3 class="text-xl font-bold mb-2 text-on-background">Daily Closing Reports</h3>
+<p class="text-secondary text-sm mb-6 max-w-md leading-relaxed">Comprehensive reconciliation of all currency accounts, liquidity provider positions, and physical cash counts.</p>
+<button class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-primary group-hover:gap-4 transition-all">
+                        GENERATE NOW <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Currency Exposure -->
+<div class="md:col-span-4 obsidian-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer">
+<div>
+<div class="p-2.5 bg-surface-container w-fit rounded-lg mb-6 border border-outline-variant">
+<span class="material-symbols-outlined text-tertiary text-2xl">currency_exchange</span>
+</div>
+<h3 class="text-xl font-bold mb-2 text-on-background">Currency Exposure</h3>
+<p class="text-secondary text-sm leading-relaxed">Real-time risk analysis across G10 and Emerging Market pairs.</p>
+</div>
+<div class="mt-8 flex items-end justify-between">
+<div class="flex -space-x-1.5">
+<div class="w-7 h-7 rounded-full border border-background bg-emerald-600 flex items-center justify-center text-[9px] font-bold">USD</div>
+<div class="w-7 h-7 rounded-full border border-background bg-blue-600 flex items-center justify-center text-[9px] font-bold">EUR</div>
+<div class="w-7 h-7 rounded-full border border-background bg-amber-600 flex items-center justify-center text-[9px] font-bold">GBP</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">open_in_new</span>
+</div>
+</div>
+<!-- Audit Summary -->
+<div class="md:col-span-4 obsidian-card rounded-xl p-6 group cursor-pointer">
+<div class="p-2.5 bg-surface-container w-fit rounded-lg mb-6 border border-outline-variant">
+<span class="material-symbols-outlined text-primary-fixed-dim text-2xl">history_edu</span>
+</div>
+<h3 class="text-xl font-bold mb-2 text-on-background">Audit Summary</h3>
+<p class="text-secondary text-sm mb-6 leading-relaxed">Review system logs and administrative overrides for current fiscal period.</p>
+<div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-3/4 bg-primary transition-all duration-1000"></div>
+</div>
+<p class="text-[9px] font-bold tracking-widest uppercase mt-3 text-outline">SYSTEM STATUS: 99.9% ACCURACY</p>
+</div>
+<!-- Balance Sheets -->
+<div class="md:col-span-8 obsidian-card rounded-xl p-6 flex items-center gap-8 group cursor-pointer">
+<div class="flex-shrink-0 hidden sm:block">
+<div class="p-5 bg-surface-container rounded-xl border border-outline-variant">
+<span class="material-symbols-outlined text-secondary-fixed text-4xl">account_tree</span>
+</div>
+</div>
+<div>
+<h3 class="text-xl font-bold mb-2 text-on-background">Balance Sheets</h3>
+<p class="text-secondary text-sm mb-4 leading-relaxed">Export multi-currency statement of financial position in IFRS or GAAP formats.</p>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-surface-container-highest border border-outline-variant rounded text-[10px] font-bold tracking-tighter text-on-surface">PDF</span>
+<span class="px-2 py-0.5 bg-surface-container-highest border border-outline-variant rounded text-[10px] font-bold tracking-tighter text-on-surface">XLSX</span>
+<span class="px-2 py-0.5 bg-surface-container-highest border border-outline-variant rounded text-[10px] font-bold tracking-tighter text-on-surface">CSV</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Generated Documents Section -->
+<section>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-on-background tracking-tight">Generated Documents</h2>
+<button class="text-xs font-bold tracking-widest uppercase text-primary hover:underline flex items-center gap-1.5">
+                    View Archive <span class="material-symbols-outlined text-base">archive</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container/50">
+<th class="px-6 py-4 text-[10px] font-bold tracking-widest uppercase text-outline">Document Name</th>
+<th class="px-6 py-4 text-[10px] font-bold tracking-widest uppercase text-outline">Timestamp</th>
+<th class="px-6 py-4 text-[10px] font-bold tracking-widest uppercase text-outline text-right">Size</th>
+<th class="px-6 py-4 text-[10px] font-bold tracking-widest uppercase text-outline text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error text-lg">picture_as_pdf</span>
+<span class="text-sm font-medium text-on-background group-hover:text-primary transition-colors">Q3_FY24_Consolidated_Ledger.pdf</span>
+</div>
+</td>
+<td class="px-6 py-4 text-secondary text-xs">Oct 24, 2023 · 14:22</td>
+<td class="px-6 py-4 text-right font-label-mono text-xs text-on-surface">4.2 MB</td>
+<td class="px-6 py-4">
+<div class="flex justify-center gap-3">
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Download"><span class="material-symbols-outlined text-xl">download</span></button>
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Share"><span class="material-symbols-outlined text-xl">share</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error text-lg">picture_as_pdf</span>
+<span class="text-sm font-medium text-on-background group-hover:text-primary transition-colors">Daily_Close_AUD_Liquidity_20231023.pdf</span>
+</div>
+</td>
+<td class="px-6 py-4 text-secondary text-xs">Oct 23, 2023 · 23:59</td>
+<td class="px-6 py-4 text-right font-label-mono text-xs text-on-surface">840 KB</td>
+<td class="px-6 py-4">
+<div class="flex justify-center gap-3">
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Download"><span class="material-symbols-outlined text-xl">download</span></button>
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Share"><span class="material-symbols-outlined text-xl">share</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg">description</span>
+<span class="text-sm font-medium text-on-background group-hover:text-primary transition-colors">Audit_Trail_User_FA_Override_Logs.xlsx</span>
+</div>
+</td>
+<td class="px-6 py-4 text-secondary text-xs">Oct 22, 2023 · 11:05</td>
+<td class="px-6 py-4 text-right font-label-mono text-xs text-on-surface">1.1 MB</td>
+<td class="px-6 py-4">
+<div class="flex justify-center gap-3">
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Download"><span class="material-symbols-outlined text-xl">download</span></button>
+<button class="p-1.5 text-secondary hover:text-on-background transition-colors" title="Share"><span class="material-symbols-outlined text-xl">share</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-secondary px-3 py-1" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-[10px] font-bold tracking-tight mt-0.5">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-3 py-1" href="#">
+<span class="material-symbols-outlined text-xl">receipt_long</span>
+<span class="text-[10px] font-bold tracking-tight mt-0.5">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-4 py-1" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="text-[10px] font-bold tracking-tight mt-0.5">Audit</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary px-3 py-1" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-[10px] font-bold tracking-tight mt-0.5">Settings</span>
+</a>
+</nav>
+<script>
+        // Hover effects are handled via CSS classes for performance
+    </script>
+</body></html>

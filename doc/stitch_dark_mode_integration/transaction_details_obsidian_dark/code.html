@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction Detail - FX Cash Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "tertiary-fixed": "#bbf7d0",
+                "on-tertiary": "#001a12",
+                "on-primary": "#0a0012",
+                "secondary": "#71717a",
+                "on-primary-fixed-variant": "#5b21b6",
+                "on-secondary-fixed-variant": "#3f3f46",
+                "on-secondary": "#09090b",
+                "on-secondary-fixed": "#18181b",
+                "inverse-surface": "#fafafa",
+                "outline": "#27272a",
+                "on-background": "#fafafa",
+                "on-error": "#1a0000",
+                "background": "#09090b",
+                "inverse-on-surface": "#09090b",
+                "primary-container": "#7c3aed",
+                "surface-container-high": "#18181b",
+                "on-surface": "#fafafa",
+                "primary-fixed": "#ede9fe",
+                "on-tertiary-fixed": "#003318",
+                "surface-container": "#121215",
+                "surface-variant": "#18181b",
+                "surface": "#0c0c0f",
+                "secondary-container": "#27272a",
+                "tertiary": "#10b981",
+                "error": "#ef4444",
+                "outline-variant": "#1e1e22",
+                "surface-container-low": "#0f0f12",
+                "primary": "#a78bfa",
+                "secondary-fixed": "#a1a1aa",
+                "error-container": "#3b1111",
+                "tertiary-fixed-dim": "#6ee7b7",
+                "on-tertiary-container": "#bbf7d0",
+                "on-primary-fixed": "#2e1065",
+                "surface-tint": "#a78bfa",
+                "on-secondary-container": "#a1a1aa",
+                "surface-container-highest": "#1e1e22",
+                "secondary-fixed-dim": "#71717a",
+                "on-surface-variant": "#a1a1aa",
+                "on-error-container": "#fca5a5",
+                "tertiary-container": "#065f46",
+                "on-tertiary-fixed-variant": "#047857",
+                "on-primary-container": "#ede9fe",
+                "surface-dim": "#0c0c0f",
+                "inverse-primary": "#5b21b6",
+                "primary-fixed-dim": "#c4b5fd",
+                "surface-bright": "#18181b",
+                "surface-container-lowest": "#09090b"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "stack-md": "16px",
+                "stack-lg": "24px",
+                "stack-sm": "8px",
+                "container-max": "1280px",
+                "gutter": "20px",
+                "margin-mobile": "16px",
+                "margin-desktop": "32px",
+                "base": "4px"
+        },
+        "fontFamily": {
+                "headline": ["Geist"],
+                "display": ["Geist"],
+                "body": ["Geist"],
+                "label": ["Geist"]
+        },
+        "fontSize": {
+                "currency-display-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                "currency-display": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "label-mono": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+        }
+},
+    },
+  }
+</script>
+<style>
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: 'Geist', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body antialiased">
+<!-- TopAppBar -->
+<header class="bg-surface-container border-b border-outline-variant flex justify-between items-center w-full px-margin-desktop py-stack-md hidden md:flex">
+<div class="flex items-center gap-4">
+<button aria-label="Menu" class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">account_balance_wallet</span>
+</button>
+<span class="font-headline text-headline-lg font-bold text-on-background">FX Ledger</span>
+</div>
+<nav class="flex gap-8">
+<a class="text-on-surface-variant font-label text-label-caps hover:text-on-surface transition-colors" href="#">DASHBOARD</a>
+<a class="text-primary font-label text-label-caps" href="#">LEDGER</a>
+<a class="text-on-surface-variant font-label text-label-caps hover:text-on-surface transition-colors" href="#">AUDIT</a>
+<a class="text-on-surface-variant font-label text-label-caps hover:text-on-surface transition-colors" href="#">SETTINGS</a>
+</nav>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">notifications</span>
+</button>
+</div>
+</header>
+<!-- Mobile Header -->
+<header class="bg-background border-b border-outline-variant flex justify-between items-center w-full px-margin-mobile py-stack-md md:hidden">
+<div class="flex items-center gap-2">
+<button aria-label="Back" class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface text-[24px]">arrow_back</span>
+</button>
+<span class="font-headline text-headline-md font-bold text-on-background">Transaction Detail</span>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow flex flex-col md:flex-row w-full max-w-container-max mx-auto md:px-margin-desktop py-stack-lg gap-gutter">
+<!-- Detail Section -->
+<div class="flex-grow flex flex-col gap-stack-lg w-full px-margin-mobile md:px-0">
+<!-- Header Info -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-sm pb-stack-md border-b border-outline-variant">
+<div>
+<p class="font-label text-label-caps text-on-surface-variant mb-1 uppercase">Transaction ID</p>
+<h1 class="font-headline text-headline-lg text-on-background">#TXN-98234</h1>
+<p class="font-body text-body-md text-on-surface-variant mt-1">12 Oct 2023 • 14:32 PST</p>
+</div>
+<div class="flex gap-2 mt-4 md:mt-0">
+<button aria-label="Print" class="flex items-center justify-center p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">print</span>
+</button>
+<button aria-label="Share" class="flex items-center justify-center p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Main Amount Card -->
+<div class="bg-surface-container-low rounded-xl p-stack-lg border border-outline-variant relative overflow-hidden">
+<p class="font-label text-label-caps text-on-surface-variant mb-2 uppercase">Net Amount</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-currency-display text-on-background">75,500.00</span>
+<span class="font-headline text-headline-md text-on-surface-variant">PKR</span>
+</div>
+<div class="mt-4 inline-flex items-center gap-1.5 bg-tertiary/10 text-tertiary px-3 py-1 rounded-full font-label text-label-mono border border-tertiary/20">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Completed
+            </div>
+</div>
+<!-- Details Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Source -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant flex flex-col justify-between">
+<p class="font-label text-label-caps text-on-surface-variant mb-1 uppercase">From Account</p>
+<p class="font-headline text-headline-md text-on-background">Cash Vault A</p>
+<p class="font-body text-body-md text-on-surface-variant mt-1">Terminal 42</p>
+</div>
+<!-- Destination -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant flex flex-col justify-between">
+<p class="font-label text-label-caps text-on-surface-variant mb-1 uppercase">To Account</p>
+<p class="font-headline text-headline-md text-on-background">Meezan Bank Ltd</p>
+<p class="font-body text-body-md text-on-surface-variant mt-1">AC: ****8892</p>
+</div>
+<!-- Currency Info -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant flex flex-col justify-between">
+<p class="font-label text-label-caps text-on-surface-variant mb-1 uppercase">Currency</p>
+<p class="font-headline text-headline-md text-on-background">PKR</p>
+<p class="font-body text-body-md text-on-surface-variant mt-1">Pakistani Rupee</p>
+</div>
+<!-- Exchange Rate -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant flex flex-col justify-between">
+<p class="font-label text-label-caps text-on-surface-variant mb-1 uppercase">Exchange Rate</p>
+<p class="font-headline text-headline-md text-on-background">1.0000</p>
+<p class="font-body text-body-md text-on-surface-variant mt-1">Base Currency</p>
+</div>
+</div>
+<!-- Notes Section -->
+<div class="bg-surface-container-low rounded-xl p-stack-md border border-outline-variant">
+<p class="font-label text-label-caps text-on-surface-variant mb-2 uppercase">Internal Notes</p>
+<p class="font-body text-body-lg text-on-background">Daily cash sweep to main bank account as per EOD protocol.</p>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col sm:flex-row gap-stack-sm mt-stack-md">
+<button class="flex-1 bg-surface-container-high text-on-background border border-outline-variant hover:bg-surface-container-highest font-body text-body-md py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                Edit Transaction
+            </button>
+<button class="flex-1 bg-error-container/20 text-error border border-error/30 hover:bg-error/10 font-body text-body-md py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                Delete
+            </button>
+<button class="flex-1 border border-outline-variant text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body text-body-md py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                View Audit
+            </button>
+</div>
+</div>
+</main>
+</body></html>

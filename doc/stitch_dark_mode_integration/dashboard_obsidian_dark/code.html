@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FX Ledger - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-fixed": "#bbf7d0",
+                "on-tertiary": "#001a12",
+                "on-primary": "#0a0012",
+                "secondary": "#71717a",
+                "on-primary-fixed-variant": "#5b21b6",
+                "on-secondary-fixed-variant": "#3f3f46",
+                "on-secondary": "#09090b",
+                "on-secondary-fixed": "#18181b",
+                "inverse-surface": "#fafafa",
+                "outline": "#52525b",
+                "on-background": "#fafafa",
+                "on-error": "#1a0000",
+                "background": "#09090b",
+                "inverse-on-surface": "#09090b",
+                "primary-container": "#7c3aed",
+                "surface-container-high": "#18181b",
+                "on-surface": "#fafafa",
+                "primary-fixed": "#ede9fe",
+                "on-tertiary-fixed": "#003318",
+                "surface-container": "#121215",
+                "surface-variant": "#18181b",
+                "surface": "#0c0c0f",
+                "secondary-container": "#27272a",
+                "tertiary": "#34d399",
+                "error": "#ef4444",
+                "outline-variant": "#27272a",
+                "surface-container-low": "#0f0f12",
+                "primary": "#a78bfa",
+                "secondary-fixed": "#a1a1aa",
+                "error-container": "#3b1111",
+                "tertiary-fixed-dim": "#6ee7b7",
+                "on-tertiary-container": "#bbf7d0",
+                "on-primary-fixed": "#2e1065",
+                "surface-tint": "#a78bfa",
+                "on-secondary-container": "#a1a1aa",
+                "surface-container-highest": "#1e1e22",
+                "secondary-fixed-dim": "#71717a",
+                "on-surface-variant": "#a1a1aa",
+                "on-error-container": "#fca5a5",
+                "tertiary-container": "#065f46",
+                "on-tertiary-fixed-variant": "#047857",
+                "on-primary-container": "#ede9fe",
+                "surface-dim": "#0c0c0f",
+                "inverse-primary": "#5b21b6",
+                "primary-fixed-dim": "#c4b5fd",
+                "surface-bright": "#18181b",
+                "surface-container-lowest": "#09090b"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Geist"],
+                "display": ["Geist"],
+                "body": ["Geist"],
+                "label": ["Geist"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #09090b;
+        }
+    </style>
+</head>
+<body class="text-on-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="bg-surface sticky top-0 z-40 border-b border-outline-variant flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<h1 class="text-xl font-bold tracking-tight text-on-surface">FX Ledger</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-6">
+<span class="text-xs font-bold tracking-widest text-on-surface cursor-pointer">DASHBOARD</span>
+<span class="text-xs font-bold tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface transition-colors">LEDGER</span>
+<span class="text-xs font-bold tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface transition-colors">AUDIT</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHNJlpzmNhz_NKwAtbm5Pj74mVtFO99owEdynE0n31ksrl76IaobJ19_lwryFsovoSITwrVZ4wYWVxteTOoj1d_unhADye4BRZ7DWEqjK5Wu81rVTHY8Huwov9l-RD_BFc7MMxeCRzZa46SuUsJqxvm1MIAmKIGjFOSAQwqdC6hm0ADWLgfnmWead8bTBU8rcvNe6vlPn8-ioDNLaxoo63rZUdndDgKA8avAOeyPDUnh_mnkOCzS2gWilxD4t6xrXEUBNEyFrFYXs"/>
+</div>
+</div>
+</header>
+<main class="flex-grow container mx-auto max-w-7xl px-6 py-8">
+<!-- Hero Section: Total Balance -->
+<section class="mb-8">
+<div class="bg-surface-container border border-outline-variant p-8 rounded-xl relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant mb-2 uppercase">Total Net Balance (Estimated)</p>
+<div class="flex items-baseline gap-3">
+<span class="text-4xl md:text-5xl font-black text-on-surface tracking-tighter">PKR 14,280,450</span>
+<span class="text-sm font-semibold text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> 2.4%
+                        </span>
+</div>
+<div class="mt-8 flex gap-3">
+<button class="bg-on-surface text-surface px-6 py-2.5 rounded-lg text-xs font-bold tracking-widest flex items-center gap-2 hover:bg-on-surface/90 transition-all">
+<span class="material-symbols-outlined text-sm">add</span> QUICK ADD
+                        </button>
+<button class="border border-outline-variant text-on-surface px-6 py-2.5 rounded-lg text-xs font-bold tracking-widest flex items-center gap-2 hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined text-sm">ios_share</span> EXPORT
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Daily Closing Status (Col 1-4) -->
+<div class="md:col-span-4 bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-6">
+<h3 class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Daily Closing Status</h3>
+<span class="bg-tertiary-container/20 text-tertiary-fixed-dim px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">LIVE SESSION</span>
+</div>
+<div class="flex items-center gap-3 mb-3">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse"></div>
+<span class="text-xl font-bold text-on-surface">Today is Open</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">Last synchronization performed at 14:20 PM today. Audit trails are active.</p>
+</div>
+<div class="mt-8">
+<button class="w-full py-3 bg-surface-container-highest text-on-surface font-bold text-xs tracking-widest border border-outline-variant rounded-lg hover:bg-outline-variant/20 transition-all uppercase">
+                        Close Daily Ledger
+                    </button>
+</div>
+</div>
+<!-- Currency Breakdown (Col 5-12) -->
+<div class="md:col-span-8 flex flex-col gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+<!-- USD Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant hover:border-on-surface-variant/50 transition-all cursor-pointer group">
+<div class="flex justify-between items-center mb-4">
+<span class="text-2xl">🇺🇸</span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors">USD/PKR 278.50</span>
+</div>
+<p class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-1">US Dollar</p>
+<p class="text-xl font-bold text-on-surface">$ 42,000.00</p>
+</div>
+<!-- EUR Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant hover:border-on-surface-variant/50 transition-all cursor-pointer group">
+<div class="flex justify-between items-center mb-4">
+<span class="text-2xl">🇪🇺</span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors">EUR/PKR 302.15</span>
+</div>
+<p class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-1">Euro</p>
+<p class="text-xl font-bold text-on-surface">€ 12,450.00</p>
+</div>
+<!-- AED Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant hover:border-on-surface-variant/50 transition-all cursor-pointer group">
+<div class="flex justify-between items-center mb-4">
+<span class="text-2xl">🇦🇪</span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors">AED/PKR 75.80</span>
+</div>
+<p class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-1">UAE Dirham</p>
+<p class="text-xl font-bold text-on-surface">د.إ 85,200.00</p>
+</div>
+</div>
+</div>
+<!-- Recent Transactions (Col 1-12) -->
+<div class="md:col-span-12 bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
+<div class="px-6 py-5 border-b border-outline-variant flex justify-between items-center">
+<h3 class="text-lg font-bold text-on-surface">Recent Transactions</h3>
+<button class="text-on-surface-variant text-xs font-bold tracking-widest hover:text-on-surface transition-colors uppercase">View All</button>
+</div>
+<div class="overflow-x-auto hide-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-outline-variant">
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Timestamp</th>
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Type</th>
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Currency</th>
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Amount</th>
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Rate</th>
+<th class="px-6 py-3 text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-on-surface/[0.02] transition-colors cursor-default">
+<td class="px-6 py-5 text-sm font-medium text-on-surface">14:02:15</td>
+<td class="px-6 py-5">
+<span class="text-tertiary font-bold text-xs tracking-widest">BUY</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-xs">🇺🇸</span> <span class="font-bold text-sm">USD</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">5,000.00</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">278.45</td>
+<td class="px-6 py-5">
+<span class="bg-tertiary-container/10 text-tertiary border border-tertiary/20 px-2.5 py-0.5 rounded text-[10px] font-black uppercase">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-on-surface/[0.02] transition-colors cursor-default">
+<td class="px-6 py-5 text-sm font-medium text-on-surface">13:45:00</td>
+<td class="px-6 py-5">
+<span class="text-error font-bold text-xs tracking-widest">SELL</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-xs">🇪🇺</span> <span class="font-bold text-sm">EUR</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">1,200.00</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">302.20</td>
+<td class="px-6 py-5">
+<span class="bg-tertiary-container/10 text-tertiary border border-tertiary/20 px-2.5 py-0.5 rounded text-[10px] font-black uppercase">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-on-surface/[0.02] transition-colors cursor-default">
+<td class="px-6 py-5 text-sm font-medium text-on-surface">13:10:55</td>
+<td class="px-6 py-5">
+<span class="text-tertiary font-bold text-xs tracking-widest">BUY</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-xs">🇦🇪</span> <span class="font-bold text-sm">AED</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-bold text-on-surface">10,000.00</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">75.75</td>
+<td class="px-6 py-5">
+<span class="bg-secondary-container text-on-surface-variant border border-outline-variant px-2.5 py-0.5 rounded text-[10px] font-black uppercase">Pending</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface-container-lowest border-t border-outline-variant pb-safe">
+<div class="flex flex-col items-center justify-center text-on-surface scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold tracking-widest mt-1 uppercase">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-bold tracking-widest mt-1 uppercase">Ledger</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-bold tracking-widest mt-1 uppercase">Audit</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-on-surface transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold tracking-widest mt-1 uppercase">Settings</span>
+</div>
+</nav>
+<script>
+        // Micro-interactions and subtle effects
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Dashboard specific logic: simulated status update
+        const statusDot = document.querySelector('.animate-pulse');
+        setInterval(() => {
+            if (statusDot) {
+                statusDot.style.opacity = statusDot.style.opacity === '0.5' ? '1' : '0.5';
+            }
+        }, 1000);
+    </script>
+</body></html>

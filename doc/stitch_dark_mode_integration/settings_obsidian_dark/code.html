@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - FX Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#bbf7d0",
+                        "on-tertiary": "#001a12",
+                        "on-primary": "#0a0012",
+                        "secondary": "#71717a",
+                        "on-primary-fixed-variant": "#5b21b6",
+                        "on-secondary-fixed-variant": "#3f3f46",
+                        "on-secondary": "#09090b",
+                        "on-secondary-fixed": "#18181b",
+                        "inverse-surface": "#fafafa",
+                        "outline": "#52525b",
+                        "on-background": "#fafafa",
+                        "on-error": "#1a0000",
+                        "background": "#09090b",
+                        "inverse-on-surface": "#09090b",
+                        "primary-container": "#7c3aed",
+                        "surface-container-high": "#18181b",
+                        "on-surface": "#fafafa",
+                        "primary-fixed": "#ede9fe",
+                        "on-tertiary-fixed": "#003318",
+                        "surface-container": "#121215",
+                        "surface-variant": "#18181b",
+                        "surface": "#0c0c0f",
+                        "secondary-container": "#27272a",
+                        "tertiary": "#34d399",
+                        "error": "#ef4444",
+                        "outline-variant": "#27272a",
+                        "surface-container-low": "#0f0f12",
+                        "primary": "#a78bfa",
+                        "secondary-fixed": "#a1a1aa",
+                        "error-container": "#3b1111",
+                        "tertiary-fixed-dim": "#6ee7b7",
+                        "on-tertiary-container": "#bbf7d0",
+                        "on-primary-fixed": "#2e1065",
+                        "surface-tint": "#a78bfa",
+                        "on-secondary-container": "#a1a1aa",
+                        "surface-container-highest": "#1e1e22",
+                        "secondary-fixed-dim": "#71717a",
+                        "on-surface-variant": "#a1a1aa",
+                        "on-error-container": "#fca5a5",
+                        "tertiary-container": "#065f46",
+                        "on-tertiary-fixed-variant": "#047857",
+                        "on-primary-container": "#ede9fe",
+                        "surface-dim": "#0c0c0f",
+                        "inverse-primary": "#5b21b6",
+                        "primary-fixed-dim": "#c4b5fd",
+                        "surface-bright": "#18181b",
+                        "surface-container-lowest": "#09090b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "20px",
+                        "stack-lg": "24px",
+                        "base": "4px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Geist"],
+                        "display": ["Geist"],
+                        "body": ["Geist"],
+                        "label": ["Geist"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        /* Custom scrollbar for deep black aesthetic */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="bg-background/80 backdrop-blur-md text-on-surface border-b border-outline-variant docked full-width top-0 z-40 sticky">
+<div class="flex justify-between items-center w-full px-margin-mobile py-stack-md max-w-container-max mx-auto">
+<div class="flex items-center gap-stack-sm">
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h1 class="font-headline text-xl font-bold tracking-tight">FX Ledger</h1>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors duration-200 p-2 rounded-full" data-icon="notifications">notifications</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 max-w-container-max w-full mx-auto px-margin-mobile pt-stack-lg pb-32">
+<!-- Profile Header Section -->
+<section class="mb-stack-lg flex flex-col items-center text-center py-stack-lg">
+<div class="relative w-24 h-24 mb-stack-md">
+<img alt="Finance Admin" class="w-full h-full rounded-full object-cover border border-outline-variant grayscale hover:grayscale-0 transition-all duration-500" data-alt="A professional portrait of a finance executive in a sharp dark suit, positioned against a blurred high-end corporate office background. The lighting is dramatic and low-key, emphasizing a dark-mode aesthetic with cool blue and deep navy tones. The image conveys authority, precision, and mathematical expertise, fitting for a financial ledger software admin." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxJTgGe9xUL24bf-f6yAfR5NR6a3cn5zKRct-NWCrEkFr_uQ9vPNemtS2Eivik7hkUCO4rf_6OAXqb4aGlKO1UaYlifyCBFeJK8dvyt2cWZ8HB6U80mf60T-EX4C2w61Pzpp_5uK7hHh_mYKusUYHcJ6MD-0W2deBoINe6pV_3DWP7RFlf6-7A3PcbeCo5BDvCxPpTh76TEphbYyvSG3rh2unCJ5h9uoOBGDns0PgavBLtrDZFnhASnKX16z1bkUJUI7U7vABpD1g"/>
+<div class="absolute bottom-0 right-0 bg-primary text-on-primary p-1 rounded-full shadow-xl">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<h2 class="font-headline text-2xl font-bold text-on-surface">Finance Admin</h2>
+<p class="font-body text-on-surface-variant text-sm mt-1">FX Specialist • V2.4.0</p>
+</section>
+<!-- Settings List -->
+<div class="space-y-2">
+<!-- Section Label -->
+<p class="font-label text-[10px] uppercase tracking-[0.15em] text-on-surface-variant px-4 mb-3">General Configuration</p>
+<!-- Currency Rates Item -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container border border-outline-variant/30 hover:border-outline-variant rounded-xl transition-all duration-200 group">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface">
+<span class="material-symbols-outlined" data-icon="currency_exchange">currency_exchange</span>
+</div>
+<span class="font-body text-on-surface font-medium">Currency Rates</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Account Management Item -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container border border-outline-variant/30 hover:border-outline-variant rounded-xl transition-all duration-200 group">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</div>
+<span class="font-body text-on-surface font-medium">Account Management</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- User Permissions Item -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container border border-outline-variant/30 hover:border-outline-variant rounded-xl transition-all duration-200 group">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<span class="font-body text-on-surface font-medium">User Permissions</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Section Label -->
+<p class="font-label text-[10px] uppercase tracking-[0.15em] text-on-surface-variant px-4 mb-3 mt-stack-lg">Operations &amp; System</p>
+<!-- Daily Closing Toggle -->
+<div class="w-full flex items-center justify-between p-4 bg-surface-container border border-outline-variant/30 rounded-xl">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+</div>
+<div class="text-left">
+<span class="font-body text-on-surface font-medium block">Daily Closing Toggle</span>
+<span class="text-[11px] text-on-surface-variant">Automated ledger finalization at 00:00 GMT</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Notification Settings Item -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container border border-outline-variant/30 hover:border-outline-variant rounded-xl transition-all duration-200 group">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+</div>
+<span class="font-body text-on-surface font-medium">Notification Settings</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Logout Button (Danger Zone) -->
+<div class="mt-stack-lg pt-stack-md">
+<button class="w-full flex items-center gap-stack-md p-4 text-error hover:bg-error-container/20 rounded-xl border border-transparent hover:border-error/30 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body font-medium">Sign Out of Ledger</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Fixed) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-background/95 backdrop-blur-lg border-t border-outline-variant flex justify-around items-center px-4 py-3 pb-safe">
+<!-- Dashboard -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="dashboard">dashboard</span>
+<span class="font-label text-[10px] mt-1 uppercase tracking-wider">Dashboard</span>
+</a>
+<!-- Ledger -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="receipt_long">receipt_long</span>
+<span class="font-label text-[10px] mt-1 uppercase tracking-wider">Ledger</span>
+</a>
+<!-- Audit -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="history">history</span>
+<span class="font-label text-[10px] mt-1 uppercase tracking-wider">Audit</span>
+</a>
+<!-- Settings (Active State) -->
+<a class="flex flex-col items-center justify-center text-primary px-3 py-1 relative" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label text-[10px] mt-1 uppercase tracking-wider">Settings</span>
+<div class="absolute -bottom-3 w-1.5 h-1.5 bg-primary rounded-full"></div>
+</a>
+</nav>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('button, a').forEach(elem => {
+            elem.addEventListener('mousedown', () => {
+                elem.style.transform = 'scale(0.97)';
+            });
+            elem.addEventListener('mouseup', () => {
+                elem.style.transform = '';
+            });
+            elem.addEventListener('mouseleave', () => {
+                elem.style.transform = '';
+            });
+        });
+
+        // Toggle border animation simulation
+        const toggle = document.querySelector('input[type="checkbox"]');
+        toggle.addEventListener('change', (e) => {
+            const container = e.target.closest('div.bg-surface-container');
+            if(e.target.checked) {
+                container.style.borderLeft = '2px solid #a78bfa';
+            } else {
+                container.style.borderLeft = '1px solid rgba(39, 39, 42, 0.3)';
+            }
+        });
+        
+        // Set initial state
+        if(toggle.checked) toggle.closest('div.bg-surface-container').style.borderLeft = '2px solid #a78bfa';
+    </script>
+</body></html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Transaction - FX Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#bbf7d0",
+                        "on-tertiary": "#001a12",
+                        "on-primary": "#0a0012",
+                        "secondary": "#71717a",
+                        "on-primary-fixed-variant": "#5b21b6",
+                        "on-secondary-fixed-variant": "#3f3f46",
+                        "on-secondary": "#09090b",
+                        "on-secondary-fixed": "#18181b",
+                        "inverse-surface": "#fafafa",
+                        "outline": "#52525b",
+                        "on-background": "#fafafa",
+                        "on-error": "#1a0000",
+                        "background": "#09090b",
+                        "inverse-on-surface": "#09090b",
+                        "primary-container": "#7c3aed",
+                        "surface-container-high": "#18181b",
+                        "on-surface": "#fafafa",
+                        "primary-fixed": "#ede9fe",
+                        "on-tertiary-fixed": "#003318",
+                        "surface-container": "#121215",
+                        "surface-variant": "#18181b",
+                        "surface": "#0c0c0f",
+                        "secondary-container": "#27272a",
+                        "tertiary": "#34d399",
+                        "error": "#ef4444",
+                        "outline-variant": "#27272a",
+                        "surface-container-low": "#0f0f12",
+                        "primary": "#a78bfa",
+                        "secondary-fixed": "#a1a1aa",
+                        "error-container": "#3b1111",
+                        "tertiary-fixed-dim": "#6ee7b7",
+                        "on-tertiary-container": "#bbf7d0",
+                        "on-primary-fixed": "#2e1065",
+                        "surface-tint": "#a78bfa",
+                        "on-secondary-container": "#a1a1aa",
+                        "surface-container-highest": "#1e1e22",
+                        "secondary-fixed-dim": "#71717a",
+                        "on-surface-variant": "#a1a1aa",
+                        "on-error-container": "#fca5a5",
+                        "tertiary-container": "#065f46",
+                        "on-tertiary-fixed-variant": "#047857",
+                        "on-primary-container": "#ede9fe",
+                        "surface-dim": "#0c0c0f",
+                        "inverse-primary": "#5b21b6",
+                        "primary-fixed-dim": "#c4b5fd",
+                        "surface-bright": "#18181b",
+                        "surface-container-lowest": "#09090b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Geist", "sans-serif"],
+                        "display": ["Geist", "sans-serif"],
+                        "body": ["Geist", "sans-serif"],
+                        "label": ["Geist", "sans-serif"]
+                    },
+                }
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            min-height: 100dvh;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-4 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<button class="text-on-surface hover:bg-surface-container transition-colors duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="font-headline text-xl font-semibold text-on-surface">Edit Transaction</h1>
+</div>
+<button class="text-on-surface hover:bg-surface-container transition-colors duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow overflow-y-auto px-4 py-8 max-w-2xl mx-auto w-full">
+<div class="space-y-6 pb-28">
+<!-- Warning Banner -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-4 flex gap-3 items-start">
+<span class="material-symbols-outlined text-tertiary" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div>
+<h3 class="font-bold text-on-surface">Completed Transaction</h3>
+<p class="text-sm text-on-surface-variant mt-1">This change will update ledger and reports. Reason is required.</p>
+</div>
+</div>
+<!-- Transaction Form Grid -->
+<form class="space-y-6 bg-surface border border-outline-variant rounded-xl p-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Date Picker -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Date</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" type="date" value="2023-10-24"/>
+</div>
+</div>
+<!-- Party / Customer -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Party / Customer</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" type="text" value="Agent X"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- From Account -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">From Account</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors appearance-none">
+<option selected="">PKR Cash</option>
+<option>USD Cash</option>
+<option>EUR Cash</option>
+</select>
+</div>
+<!-- To Account -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">To Account</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2.5 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors appearance-none">
+<option selected="">PKR Bank</option>
+<option>USD Bank</option>
+<option>Supplier A</option>
+</select>
+</div>
+</div>
+<!-- Financial Data -->
+<div class="border-t border-outline-variant pt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Amount -->
+<div class="flex flex-col gap-1.5 md:col-span-2">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center justify-between">
+                        Amount
+                        <span class="bg-tertiary-container text-on-tertiary-container text-[10px] px-2 py-0.5 rounded font-mono">PKR</span>
+</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-4 py-4 text-3xl md:text-4xl font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors text-right" type="text" value="75,500.00"/>
+</div>
+<div class="flex flex-col gap-6">
+<!-- Rate -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Rate</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors text-right" step="0.01" type="number" value="1.00"/>
+</div>
+<!-- Fee -->
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Fee</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-sm font-mono text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors text-right" type="number" value="0.00"/>
+</div>
+</div>
+</div>
+<!-- Notes -->
+<div class="flex flex-col gap-1.5 border-t border-outline-variant pt-6">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Notes</label>
+<textarea class="w-full bg-surface-container-low border border-outline-variant rounded-md px-3 py-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors resize-none" rows="2">Monthly settlement</textarea>
+</div>
+<!-- Reason for Edit (Required) -->
+<div class="flex flex-col gap-3 border-t border-outline-variant pt-6">
+<label class="text-xs font-bold text-on-surface uppercase tracking-wider">Attachment / Proof</label>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant rounded-md py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">file_upload</span>
+            Upload File
+        </button>
+<button class="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant rounded-md py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">photo_camera</span>
+            Take Photo
+        </button>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-low border border-dashed border-outline-variant rounded-md">
+<span class="material-symbols-outlined text-on-surface-variant">description</span>
+<span class="text-sm text-on-surface-variant">No file attached</span>
+</div>
+</div><div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-tertiary uppercase tracking-wider flex items-center gap-1">
+                    Reason for Edit *
+                </label>
+<textarea class="w-full bg-surface-container-low border border-tertiary/30 rounded-md px-3 py-2 text-on-surface focus:border-tertiary focus:ring-1 focus:ring-tertiary outline-none transition-colors resize-none" placeholder="e.g., Correction of entry error in amount" required="" rows="3"></textarea>
+</div>
+</form>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 w-full z-40 bg-surface border-t border-outline-variant px-4 py-4 flex justify-end items-center gap-4">
+<button class="px-6 py-2.5 rounded border border-outline text-on-surface-variant hover:bg-surface-container-high transition-colors text-sm font-bold" type="button">
+        Cancel
+    </button>
+<button class="px-6 py-2.5 rounded bg-primary text-on-primary hover:opacity-90 transition-opacity text-sm font-bold shadow-lg" type="button">
+        Save Changes
+    </button>
+</div>
+</body></html>

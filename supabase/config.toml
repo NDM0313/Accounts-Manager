@@ -1,0 +1,16 @@
+# FX Cash Ledger — Supabase local config
+# Target: NEW Supabase Cloud project only (NOT old ERP VPS/database)
+
+project_id = "ygidlcqhupmxvsdjmvnf"
+
+[db]
+major_version = 15
+
+[api]
+enabled = true
+
+[auth]
+enabled = true
+
+[storage]
+enabled = true

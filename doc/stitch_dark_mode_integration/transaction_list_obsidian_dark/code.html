@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>FX Ledger - Transaction History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "tertiary-fixed": "#bbf7d0",
+                "on-tertiary": "#001a12",
+                "on-primary": "#0a0012",
+                "secondary": "#71717a",
+                "on-primary-fixed-variant": "#5b21b6",
+                "on-secondary-fixed-variant": "#3f3f46",
+                "on-secondary": "#09090b",
+                "on-secondary-fixed": "#18181b",
+                "inverse-surface": "#fafafa",
+                "outline": "#52525b",
+                "on-background": "#fafafa",
+                "on-error": "#1a0000",
+                "background": "#09090b",
+                "inverse-on-surface": "#09090b",
+                "primary-container": "#7c3aed",
+                "surface-container-high": "#18181b",
+                "on-surface": "#fafafa",
+                "primary-fixed": "#ede9fe",
+                "on-tertiary-fixed": "#003318",
+                "surface-container": "#121215",
+                "surface-variant": "#18181b",
+                "surface": "#0c0c0f",
+                "secondary-container": "#27272a",
+                "tertiary": "#34d399",
+                "error": "#ef4444",
+                "outline-variant": "#27272a",
+                "surface-container-low": "#0f0f12",
+                "primary": "#a78bfa",
+                "secondary-fixed": "#a1a1aa",
+                "error-container": "#3b1111",
+                "tertiary-fixed-dim": "#6ee7b7",
+                "on-tertiary-container": "#bbf7d0",
+                "on-primary-fixed": "#2e1065",
+                "surface-tint": "#a78bfa",
+                "on-secondary-container": "#a1a1aa",
+                "surface-container-highest": "#1e1e22",
+                "secondary-fixed-dim": "#71717a",
+                "on-surface-variant": "#a1a1aa",
+                "on-error-container": "#fca5a5",
+                "tertiary-container": "#065f46",
+                "on-tertiary-fixed-variant": "#047857",
+                "on-primary-container": "#ede9fe",
+                "surface-dim": "#0c0c0f",
+                "inverse-primary": "#5b21b6",
+                "primary-fixed-dim": "#c4b5fd",
+                "surface-bright": "#18181b",
+                "surface-container-lowest": "#09090b"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-mobile": "16px",
+                "stack-md": "16px",
+                "container-max": "1280px"
+        },
+        "fontFamily": {
+                "headline": ["Geist"],
+                "display": ["Geist"],
+                "body": ["Geist"],
+                "label": ["Geist"]
+        }
+      },
+    },
+  }
+</script>
+<style>
+        body {
+            background-color: #09090b;
+            color: #fafafa;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Geist', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-margin-mobile py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+<h1 class="text-xl font-bold tracking-tight text-on-background">FX Ledger</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 transition-colors duration-200 hover:bg-surface-container rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+<button class="p-2 transition-colors duration-200 hover:bg-surface-container rounded-full relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-24 px-4 max-w-container-max mx-auto h-screen flex flex-col overflow-hidden">
+<!-- Search and Filters Section -->
+<section class="mb-6 space-y-4 flex-shrink-0">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-primary transition-all text-sm placeholder:text-outline" placeholder="Search by Party or Reference..." type="text"/>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-tertiary text-on-tertiary text-xs font-bold whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px] fill-current">check_circle</span>
+                    ACTIVE ONLY
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                    LAST 30 DAYS
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px]">payments</span>
+                    CURRENCY
+                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+                    MORE
+                </button>
+</div>
+</section>
+<!-- Ledger List -->
+<div class="flex-grow overflow-y-auto custom-scrollbar pr-1">
+<div class="space-y-4 pb-8">
+<!-- Date Header -->
+<div class="sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
+<p class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold">Today — Oct 24, 2023</p>
+</div>
+<!-- Card: Completed Transaction -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex justify-between items-center active:bg-surface-container transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center border border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary">arrow_outward</span>
+</div>
+<div>
+<h3 class="font-bold text-on-background">Global Trade Corp</h3>
+<p class="text-[10px] font-mono text-outline uppercase tracking-wider">TXN-902341 • 14:20 PM</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end gap-1">
+<p class="text-xl font-bold text-on-background tracking-tight">€12,450.00</p>
+<span class="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[9px] font-bold uppercase tracking-wider border border-tertiary/20">Completed</span>
+</div>
+</div>
+<!-- Card: Draft Transaction -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex justify-between items-center active:bg-surface-container transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-on-tertiary-fixed-variant/10 flex items-center justify-center border border-on-tertiary-fixed-variant/20">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant">edit_document</span>
+</div>
+<div>
+<h3 class="font-bold text-on-background">PetroLogistics Ltd</h3>
+<p class="text-[10px] font-mono text-outline uppercase tracking-wider">TXN-902345 • 11:45 AM</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end gap-1">
+<p class="text-xl font-bold text-on-background tracking-tight">$8,200.00</p>
+<span class="px-2 py-0.5 rounded-full bg-on-tertiary-fixed-variant/10 text-on-tertiary-fixed-variant text-[9px] font-bold uppercase tracking-wider border border-on-tertiary-fixed-variant/20">Draft</span>
+</div>
+</div>
+<!-- Date Header -->
+<div class="sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10 mt-6">
+<p class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold">Yesterday — Oct 23, 2023</p>
+</div>
+<!-- Card: Completed Transaction -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex justify-between items-center active:bg-surface-container transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center border border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary">call_received</span>
+</div>
+<div>
+<h3 class="font-bold text-on-background">Alpine Ventures</h3>
+<p class="text-[10px] font-mono text-outline uppercase tracking-wider">TXN-901882 • 17:05 PM</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end gap-1">
+<p class="text-xl font-bold text-on-background tracking-tight">£4,320.50</p>
+<span class="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[9px] font-bold uppercase tracking-wider border border-tertiary/20">Completed</span>
+</div>
+</div>
+<!-- Card: Voided Transaction -->
+<div class="bg-surface-container-lowest border border-outline-variant border-dashed rounded-xl p-4 flex justify-between items-center opacity-50">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-error/10 flex items-center justify-center border border-error/20">
+<span class="material-symbols-outlined text-error">block</span>
+</div>
+<div>
+<h3 class="font-bold text-on-background line-through">Maritime Freight SA</h3>
+<p class="text-[10px] font-mono text-outline uppercase tracking-wider">TXN-899221 • 09:12 AM</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end gap-1">
+<p class="text-xl font-bold text-outline tracking-tight line-through">$1,200.00</p>
+<span class="px-2 py-0.5 rounded-full bg-error/10 text-error text-[9px] font-bold uppercase tracking-wider border border-error/20 flex items-center gap-1">
+                            Voided
+                        </span>
+</div>
+</div>
+<!-- Card: Completed Transaction -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex justify-between items-center active:bg-surface-container transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center border border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary">arrow_outward</span>
+</div>
+<div>
+<h3 class="font-bold text-on-background">Vertex Solutions</h3>
+<p class="text-[10px] font-mono text-outline uppercase tracking-wider">TXN-899110 • 08:30 AM</p>
+</div>
+</div>
+<div class="text-right flex flex-col items-end gap-1">
+<p class="text-xl font-bold text-on-background tracking-tight">¥1,450,000</p>
+<span class="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[9px] font-bold uppercase tracking-wider border border-tertiary/20">Completed</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB: Create Transaction -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-tertiary text-on-tertiary rounded-2xl shadow-2xl flex items-center justify-center transition-transform active:scale-95 z-50">
+<span class="material-symbols-outlined text-[28px] font-bold">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-background/95 backdrop-blur-lg border-t border-outline-variant flex justify-around items-center px-4 py-2 pb-safe">
+<!-- Dashboard -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold mt-1">Dashboard</span>
+</a>
+<!-- Ledger (Active) -->
+<a class="flex flex-col items-center justify-center text-primary px-3 py-1 bg-primary/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="text-[10px] font-bold mt-1">Ledger</span>
+</a>
+<!-- Audit -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-bold mt-1">Audit</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold mt-1">Settings</span>
+</a>
+</nav>
+<script>
+    // Visual feedback for mobile taps
+    document.querySelectorAll('.active\\:bg-surface-container').forEach(item => {
+        item.addEventListener('touchstart', () => {
+            item.classList.add('bg-surface-container');
+        });
+        item.addEventListener('touchend', () => {
+            setTimeout(() => item.classList.remove('bg-surface-container'), 100);
+        });
+    });
+</script>
+</body></html>

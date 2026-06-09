@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction Complete | FX Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-sans/Geist-Bold.woff2') format('woff2');
+            font-weight: 700;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #09090b;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-glow {
+            box-shadow: 0 0 40px -10px rgba(52, 211, 153, 0.2);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#bbf7d0",
+                      "on-background": "#fafafa",
+                      "error": "#ef4444",
+                      "on-error-container": "#fca5a5",
+                      "on-secondary-container": "#a1a1aa",
+                      "surface-bright": "#18181b",
+                      "primary-fixed-dim": "#c4b5fd",
+                      "primary": "#a78bfa",
+                      "on-primary-container": "#ede9fe",
+                      "primary-fixed": "#ede9fe",
+                      "secondary-container": "#27272a",
+                      "surface": "#0c0c0f",
+                      "secondary-fixed-dim": "#71717a",
+                      "secondary": "#71717a",
+                      "inverse-primary": "#5b21b6",
+                      "surface-variant": "#18181b",
+                      "outline": "#52525b",
+                      "inverse-surface": "#fafafa",
+                      "on-primary-fixed": "#2e1065",
+                      "error-container": "#3b1111",
+                      "outline-variant": "#27272a",
+                      "on-error": "#1a0000",
+                      "tertiary": "#34d399",
+                      "secondary-fixed": "#a1a1aa",
+                      "on-secondary": "#09090b",
+                      "on-secondary-fixed": "#18181b",
+                      "primary-container": "#7c3aed",
+                      "tertiary-container": "#065f46",
+                      "surface-tint": "#a78bfa",
+                      "surface-container-highest": "#1e1e22",
+                      "on-surface": "#fafafa",
+                      "on-secondary-fixed-variant": "#3f3f46",
+                      "on-primary-fixed-variant": "#5b21b6",
+                      "surface-container-high": "#18181b",
+                      "surface-container": "#121215",
+                      "background": "#09090b",
+                      "on-primary": "#0a0012",
+                      "surface-container-low": "#0f0f12",
+                      "on-tertiary-container": "#bbf7d0",
+                      "on-tertiary-fixed-variant": "#047857",
+                      "tertiary-fixed-dim": "#6ee7b7",
+                      "on-tertiary": "#001a12",
+                      "inverse-on-surface": "#09090b",
+                      "surface-dim": "#0c0c0f",
+                      "on-tertiary-fixed": "#003318",
+                      "on-surface-variant": "#a1a1aa"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              }
+            }
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center justify-center p-4">
+<!-- Top Navigation (Shell suppressed for success state, but branding maintained) -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 bg-surface/50 backdrop-blur-md z-10 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+<span class="font-headline font-bold text-lg tracking-tight">FX Ledger</span>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<!-- Main Content Area: Success Card -->
+<main class="w-full max-w-md animate-in fade-in zoom-in duration-500">
+<!-- Success Animation/Icon Container -->
+<div class="flex flex-col items-center text-center mb-8">
+<div class="relative mb-6">
+<!-- Decorative pulse circles -->
+<div class="absolute inset-0 bg-tertiary/20 rounded-full animate-ping scale-150 opacity-20"></div>
+<div class="w-24 h-24 bg-tertiary-container/30 rounded-full flex items-center justify-center border-2 border-tertiary/50 success-glow">
+<span class="material-symbols-outlined text-tertiary text-6xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h1 class="text-3xl font-headline font-bold tracking-tight mb-2">Transaction Complete</h1>
+<p class="text-on-surface-variant font-mono text-sm tracking-widest">ID: #TXN-98234</p>
+</div>
+<!-- Transaction Details Card -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-6 mb-8 overflow-hidden relative">
+<!-- Subtle background texture -->
+<div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-9xl">receipt_long</span>
+</div>
+<div class="relative z-10">
+<div class="text-center mb-6">
+<span class="text-on-surface-variant text-sm block mb-1">Amount Sent</span>
+<h2 class="text-4xl font-headline font-black text-on-surface">75,500.00 <span class="text-xl text-primary">PKR</span></h2>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center py-3 border-b border-outline-variant/50">
+<span class="text-on-surface-variant text-sm">Recipient</span>
+<div class="text-right">
+<p class="font-bold text-on-surface">Meezan Bank Ltd</p>
+<p class="text-xs text-on-surface-variant">Corporate Treasury Account</p>
+</div>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-outline-variant/50">
+<span class="text-on-surface-variant text-sm">Date &amp; Time</span>
+<p class="font-medium text-on-surface">Oct 24, 2023 • 14:32:01</p>
+</div>
+<div class="flex justify-between items-center py-3">
+<span class="text-on-surface-variant text-sm">Status</span>
+<span class="flex items-center gap-1.5 px-3 py-1 bg-tertiary-container/20 text-tertiary rounded-full text-xs font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-tertiary rounded-full"></span>
+                            Settled
+                        </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-xl">share</span>
+                Share Receipt
+            </button>
+<button class="w-full bg-transparent border border-outline-variant hover:bg-surface-container-high text-on-surface font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]">
+<span class="material-symbols-outlined text-xl">home</span>
+                Go to Home
+            </button>
+</div>
+<!-- Meta Info -->
+<p class="text-center mt-12 text-on-surface-variant text-xs opacity-50 font-mono italic">
+            Reference updated in FX Ledger Ledger V2.4.0
+        </p>
+</main>
+<!-- Background Decorative Elements -->
+<div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-1/4 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-tertiary/10 rounded-full blur-[100px]"></div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple confetti or success burst simulation
+        document.addEventListener('DOMContentLoaded', () => {
+            const button = document.querySelector('button.bg-primary');
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'translateY(-2px)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>
