@@ -22,9 +22,11 @@ class FxLedgerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final fmt = NumberFormat('#,##0.00');
     final isVoided = transaction.isVoided;
-    final party = transaction.description?.isNotEmpty == true
-        ? transaction.description!
-        : transaction.transactionType.label;
+    final title = transaction.partyName?.isNotEmpty == true
+        ? transaction.partyName!
+        : (transaction.description?.isNotEmpty == true
+            ? transaction.description!
+            : transaction.transactionType.label);
     final ref = transaction.transactionNo ??
         (transaction.id.length >= 8 ? transaction.id.substring(0, 8) : transaction.id).toUpperCase();
     final timeSource = transaction.postedAt ?? transaction.createdAt ?? transaction.transactionDate;
@@ -52,7 +54,7 @@ class FxLedgerCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      party,
+                      title,
                       style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(
                         fontWeight: FontWeight.w600,
                         decoration: isVoided ? TextDecoration.lineThrough : null,

@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/utils/transaction_date.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_audit_log.dart';
@@ -8,12 +9,10 @@ import 'package:accounts_manager/domain/services/draft_line_builder.dart';
 class TransactionRepository {
   static const _txSelect =
       'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, '
-      'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at';
+      'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
+      'fx_parties(code, name)';
 
-  static String _localDateIso([DateTime? date]) {
-    final n = date ?? DateTime.now();
-    return DateTime(n.year, n.month, n.day).toIso8601String().split('T').first;
-  }
+  static String _localDateIso([DateTime? date]) => localTransactionDateIso(date ?? DateTime.now());
 
   List<FxTransactionLineInput> _buildLines({
     required FxTransactionType type,
@@ -63,6 +62,7 @@ class TransactionRepository {
     String? toAccountCode,
     String? expenseAccountCode,
     String? partyId,
+    DateTime? transactionDate,
     String? settlementAccountCode,
     String? toCurrencyCode,
     double? toForeignAmount,
@@ -95,7 +95,7 @@ class TransactionRepository {
           'branch_id': branchId,
           'transaction_type': type.dbValue,
           'status': 'draft',
-          'transaction_date': _localDateIso(),
+          'transaction_date': _localDateIso(transactionDate),
           'currency_code': currencyCode,
           'party_id': partyId,
           'total_foreign_amount': foreignAmount,
@@ -128,6 +128,7 @@ class TransactionRepository {
     String? toAccountCode,
     String? expenseAccountCode,
     String? partyId,
+    DateTime? transactionDate,
     String? settlementAccountCode,
     String? toCurrencyCode,
     double? toForeignAmount,
@@ -158,6 +159,7 @@ class TransactionRepository {
         .update({
           'currency_code': currencyCode,
           'party_id': partyId,
+          if (transactionDate != null) 'transaction_date': _localDateIso(transactionDate),
           'total_foreign_amount': foreignAmount,
           'rate_used': rateUsed,
           'total_base_amount_pkr': baseAmountPkr,
@@ -178,10 +180,6 @@ class TransactionRepository {
   }
 
   Future<FxTransaction> postTransaction(String transactionId) async {
-    await supabase.from('fx_transactions').update({
-      'transaction_date': _localDateIso(),
-    }).eq('id', transactionId).eq('status', 'draft');
-
     final row = await supabase.rpc(
       'fx_post_transaction',
       params: {'p_transaction_id': transactionId},

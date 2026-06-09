@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/main_shell.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/accounts/chart_of_accounts_screen.dart';
+import 'package:accounts_manager/features/accounts/general_hub_screen.dart';
 import 'package:accounts_manager/features/auth/branch_select_screen.dart';
 import 'package:accounts_manager/features/auth/login_screen.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -79,6 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               type: type,
               initialCurrency: currency,
               suggestedRate: rate,
+              initialPartyId: q['partyId'],
             ),
           );
         },
@@ -220,6 +222,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(path: '/ledger', builder: (context, state) => const LedgerHubScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/accounts-hub', builder: (context, state) => const GeneralHubScreen()),
             ],
           ),
           StatefulShellBranch(

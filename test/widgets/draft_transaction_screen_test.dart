@@ -45,6 +45,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('New Currency Buy'), findsOneWidget);
     expect(find.text('Save draft'), findsOneWidget);
+    expect(find.text('TRANSACTION DATE'), findsOneWidget);
   });
 
   testWidgets('Draft screen shows opening balance title', (tester) async {

@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/utils/transaction_receipt.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_settings_row.dart';
+import 'package:accounts_manager/features/accounts/general_hub_entries.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,42 +90,13 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           _SettingsGroup(
             children: [
-              FxSettingsRow(
-                icon: Icons.people_outline,
-                title: 'Parties',
-                subtitle: 'Customers, agents, settlements',
-                onTap: () => context.push('/parties'),
-              ),
-              FxSettingsRow(
-                icon: Icons.support_agent_outlined,
-                title: 'Agent Ledger',
-                subtitle: 'Settlement agents',
-                onTap: () => context.push('/parties/agents'),
-              ),
-              FxSettingsRow(
-                icon: Icons.edit_note_outlined,
-                title: 'Manual Journal',
-                subtitle: 'Post balanced journal entry',
-                onTap: () => context.push('/journal/new'),
-              ),
-              FxSettingsRow(
-                icon: Icons.currency_exchange,
-                title: 'Currency Rates',
-                subtitle: 'Manage buy/sell rates',
-                onTap: () => context.push('/rates'),
-              ),
-              FxSettingsRow(
-                icon: Icons.account_tree_outlined,
-                title: 'Account Management',
-                subtitle: 'Chart of accounts',
-                onTap: () => context.push('/accounts'),
-              ),
-              FxSettingsRow(
-                icon: Icons.assessment_outlined,
-                title: 'Reports',
-                subtitle: 'Trial balance, P&L, and more',
-                onTap: () => context.push('/reports'),
-              ),
+              for (var i = 0; i < generalHubEntries.length; i++)
+                FxSettingsRow(
+                  icon: generalHubEntries[i].icon,
+                  title: generalHubEntries[i].title,
+                  subtitle: generalHubEntries[i].subtitle,
+                  onTap: () => context.push(generalHubEntries[i].route),
+                ),
             ],
           ),
           const SizedBox(height: 24),

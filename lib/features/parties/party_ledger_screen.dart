@@ -3,6 +3,7 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +30,33 @@ class PartyLedgerScreen extends ConsumerWidget {
           error: (_, __) => const Text('Party Ledger'),
         ),
         backgroundColor: context.fx.background,
+      ),
+      floatingActionButton: partyAsync.whenOrNull(
+        data: (party) => party == null
+            ? null
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  FloatingActionButton.extended(
+                    heroTag: 'party_settlement_receive',
+                    onPressed: () => context.push(
+                      '/transactions/new?type=${FxTransactionType.settlementReceive.dbValue}&partyId=$partyId',
+                    ),
+                    icon: const Icon(Icons.call_received),
+                    label: const Text('Receive'),
+                  ),
+                  const SizedBox(height: 12),
+                  FloatingActionButton.extended(
+                    heroTag: 'party_settlement_send',
+                    onPressed: () => context.push(
+                      '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=$partyId',
+                    ),
+                    icon: const Icon(Icons.send_outlined),
+                    label: const Text('Send'),
+                  ),
+                ],
+              ),
       ),
       body: FxObsidianPage(
         child: partyAsync.when(
@@ -64,9 +92,40 @@ class PartyLedgerScreen extends ConsumerWidget {
                     data: (txs) {
                       if (txs.isEmpty) {
                         return Center(
-                          child: Text(
-                            'No settlement transactions linked to this party.',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'No settlement transactions linked to this party.',
+                                  textAlign: TextAlign.center,
+                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Create Settlement Send or Receive and select this party on the draft form.',
+                                  textAlign: TextAlign.center,
+                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                ),
+                                const SizedBox(height: 24),
+                                FilledButton.icon(
+                                  onPressed: () => context.push(
+                                    '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=$partyId',
+                                  ),
+                                  icon: const Icon(Icons.send_outlined),
+                                  label: const Text('Settlement Send'),
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton.icon(
+                                  onPressed: () => context.push(
+                                    '/transactions/new?type=${FxTransactionType.settlementReceive.dbValue}&partyId=$partyId',
+                                  ),
+                                  icon: const Icon(Icons.call_received),
+                                  label: const Text('Settlement Receive'),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }

@@ -7,6 +7,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart'
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
+import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -21,12 +22,14 @@ class DraftTransactionScreen extends ConsumerStatefulWidget {
     this.type = FxTransactionType.currencyBuy,
     this.initialCurrency,
     this.suggestedRate,
+    this.initialPartyId,
     this.editDraftId,
   });
 
   final FxTransactionType type;
   final String? initialCurrency;
   final double? suggestedRate;
+  final String? initialPartyId;
   final String? editDraftId;
 
   @override
@@ -62,6 +65,11 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   @override
   void initState() {
     super.initState();
+    _partyId = widget.initialPartyId;
+    if (widget.editDraftId == null) {
+      final now = DateTime.now();
+      _transactionDate = DateTime(now.year, now.month, now.day);
+    }
     if (widget.editDraftId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditDraft());
     }
@@ -136,6 +144,46 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
     final type = _editType ?? widget.type;
     return type == FxTransactionType.dailyClosingAdjustment ||
         type == FxTransactionType.revaluation;
+  }
+
+  bool _ensureTransactionDate(BuildContext context) {
+    if (_transactionDate != null) return true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Select transaction date.')),
+    );
+    return false;
+  }
+
+  Widget _buildTransactionDateField() {
+    final dateLabel = _transactionDate != null
+        ? DateFormat('d MMM yyyy').format(_transactionDate!)
+        : 'Select date';
+
+    return InkWell(
+      onTap: _busy
+          ? null
+          : () async {
+              final picked = await FxObsidianPickers.showDate(
+                context,
+                initialDate: _transactionDate ?? DateTime.now(),
+              );
+              if (picked != null) setState(() => _transactionDate = picked);
+            },
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FxSectionLabel(label: 'Transaction date'),
+                Text(dateLabel, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+              ],
+            ),
+          ),
+          Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
+        ],
+      ),
+    );
   }
 
   void _applySuggestedRate(List<dynamic> rates) {
@@ -239,10 +287,6 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   }
 
   Widget _buildPostedEditScaffold(BuildContext context) {
-    final dateLabel = _transactionDate != null
-        ? DateFormat('d MMM yyyy').format(_transactionDate!)
-        : 'Select date';
-
     return Scaffold(
       backgroundColor: context.fx.background,
       appBar: AppBar(
@@ -275,29 +319,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        InkWell(
-                          onTap: _busy ? null : () async {
-                            final picked = await FxObsidianPickers.showDate(
-                              context,
-                              initialDate: _transactionDate ?? DateTime.now(),
-                            );
-                            if (picked != null) setState(() => _transactionDate = picked);
-                          },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FxSectionLabel(label: 'Date'),
-                                    Text(dateLabel, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                                  ],
-                                ),
-                              ),
-                              Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
-                            ],
-                          ),
-                        ),
+                        _buildTransactionDateField(),
                         const SizedBox(height: 20),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -464,6 +486,8 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      _buildTransactionDateField(),
+                      const SizedBox(height: 16),
                       FxSectionLabel(label: 'Amount & rate'),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
@@ -582,16 +606,42 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                               loading: () => const LinearProgressIndicator(),
                               error: (_, __) => const SizedBox.shrink(),
                               data: (parties) {
-                                if (parties.isEmpty) return const SizedBox.shrink();
-                                return DropdownButtonFormField<String>(
-                                  key: ValueKey(_partyId),
-                                  initialValue: _partyId,
-                                  decoration: const InputDecoration(labelText: 'Party (optional)'),
-                                  items: [
-                                    const DropdownMenuItem<String>(value: null, child: Text('—')),
-                                    ...parties.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.code} · ${p.name}'))),
+                                if (parties.isEmpty) {
+                                  return Text(
+                                    'No parties yet. Create one under Reports → Parties.',
+                                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                  );
+                                }
+                                final sorted = [...parties]
+                                  ..sort((a, b) {
+                                    int rank(FxPartyType t) => switch (t) {
+                                          FxPartyType.agent => 0,
+                                          FxPartyType.settlement => 1,
+                                          FxPartyType.customer => 2,
+                                        };
+                                    final r = rank(a.partyType).compareTo(rank(b.partyType));
+                                    if (r != 0) return r;
+                                    return a.name.compareTo(b.name);
+                                  });
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      key: ValueKey(_partyId),
+                                      initialValue: _partyId,
+                                      decoration: const InputDecoration(labelText: 'Party (recommended)'),
+                                      items: [
+                                        const DropdownMenuItem<String>(value: null, child: Text('—')),
+                                        ...sorted.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.code} · ${p.name}'))),
+                                      ],
+                                      onChanged: _busy ? null : (v) => setState(() => _partyId = v),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Select a party to show this transaction on the party ledger.',
+                                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                    ),
                                   ],
-                                  onChanged: _busy ? null : (v) => setState(() => _partyId = v),
                                 );
                               },
                             );
@@ -815,6 +865,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
 
   Future<void> _saveDraft(FxUserProfile profile, List<FxAccount> accounts) async {
     if (!_formKey.currentState!.validate()) return;
+    if (!_ensureTransactionDate(context)) return;
     setState(() => _busy = true);
     try {
       final type = _editType ?? widget.type;
@@ -841,6 +892,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           baseAmountPkr: basePkr,
           accounts: accounts,
           description: description,
+          transactionDate: _transactionDate,
           fromAccountCode: _fromAccountCode,
           toAccountCode: _toAccountCode,
           expenseAccountCode: _expenseAccountCode,
@@ -862,6 +914,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           baseAmountPkr: basePkr,
           accounts: accounts,
           description: description,
+          transactionDate: _transactionDate,
           fromAccountCode: _fromAccountCode,
           toAccountCode: _toAccountCode,
           expenseAccountCode: _expenseAccountCode,
@@ -894,6 +947,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   }
 
   Future<void> _postDraft() async {
+    if (!_ensureTransactionDate(context)) return;
     setState(() => _busy = true);
     try {
       await ref.read(transactionRepositoryProvider).postTransaction(_draftId!);

@@ -55,6 +55,8 @@ class FxTransaction {
     required this.totalBaseAmountPkr,
     this.description,
     this.partyId,
+    this.partyName,
+    this.partyCode,
     this.createdAt,
     this.postedAt,
     this.lines = const [],
@@ -71,6 +73,8 @@ class FxTransaction {
   final double totalBaseAmountPkr;
   final String? description;
   final String? partyId;
+  final String? partyName;
+  final String? partyCode;
   final DateTime? createdAt;
   final DateTime? postedAt;
   final List<FxTransactionLine> lines;
@@ -87,6 +91,14 @@ class FxTransaction {
             : rawLines.cast<Map<String, dynamic>>().map(FxTransactionLine.fromJson).toList()
               ..sort((a, b) => a.lineNo.compareTo(b.lineNo)));
 
+    final partyJson = json['fx_parties'];
+    String? partyName;
+    String? partyCode;
+    if (partyJson is Map<String, dynamic>) {
+      partyName = partyJson['name'] as String?;
+      partyCode = partyJson['code'] as String?;
+    }
+
     return FxTransaction(
       id: json['id'] as String,
       transactionType: FxTransactionType.fromDb(json['transaction_type'] as String)!,
@@ -99,6 +111,8 @@ class FxTransaction {
       totalBaseAmountPkr: (json['total_base_amount_pkr'] as num).toDouble(),
       description: json['description'] as String?,
       partyId: json['party_id'] as String?,
+      partyName: partyName,
+      partyCode: partyCode,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
       postedAt: json['posted_at'] != null ? DateTime.parse(json['posted_at'] as String) : null,
       lines: parsedLines,

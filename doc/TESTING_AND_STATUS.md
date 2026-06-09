@@ -3,7 +3,7 @@
 Living checklist for manual QA, backend deploy, and Stitch UX gaps. Update this file when something is missing or fixed.
 
 **Project:** `ygidlcqhupmxvsdjmvnf`  
-**Last updated:** 2026-06-10 (QA screenshot bug fixes — journal balance + attachment hardening)
+**Last updated:** 2026-06-10 (Transaction date + Accounts nav + settlement post fix)
 
 ---
 
@@ -16,6 +16,25 @@ Living checklist for manual QA, backend deploy, and Stitch UX gaps. Update this 
 | 2026-06-10 | Agent | Attachment InvalidKey fix (`storage_path.dart`); manual journal Dr/Cr exclusivity |
 | 2026-06-10 | Agent | Reports hub: COA entry; CSV Share on COA, TB, BS, P&L |
 | 2026-06-10 | Agent | Journal balance math fix (invalid dual-side lines); attachment sanitize at picker + path segments |
+| 2026-06-10 | Agent | Parties linked to Settlement Send/Receive; party name on ledger/detail/search |
+| 2026-06-10 | Agent | Mandatory transaction date on drafts; Accounts nav tab; migration `202606150001` for all txn post types |
+
+**Transaction date + settlement (manual re-test after migration + full restart):**
+
+1. Apply `./scripts/apply_migrations.sh` (includes `202606150001`)
+2. New draft → **Transaction date** visible and editable → save → post keeps selected date
+3. Settlement Send with party → post succeeds (no Phase 3 error)
+4. **Accounts** tab (bottom nav) → Chart of Accounts opens
+5. Transaction detail shows **Date** row
+
+**Parties + transactions (manual re-test):**
+
+1. Reports → Parties → create party (e.g. Agent)
+2. Ledger → + → **Settlement Send** → select party → post
+3. Reports → Parties → tap party → **Party Ledger** shows txn
+4. Transaction detail shows **Party** (tap → party ledger); ledger search finds party name
+
+**Note:** Currency Buy/Sell do **not** link to parties — only Settlement Send/Receive.
 
 **Re-test after full restart (stop `flutter run`, then `flutter run -d chrome`):**
 
@@ -52,7 +71,8 @@ Hot reload (`r`) / hot restart (`R`) alone may not pick up `storage_path.dart` c
 | Transactions | Void / restore | Done | Reason required |
 | Transactions | Attachments | Done | Sanitized at picker + storage path segments |
 | Transactions | Share / print receipt | Done | Plain text via Share |
-| Parties | List, ledger, CRUD | Done | FAB → new party |
+| Parties | List, ledger, CRUD | Done | Settlement Send/Receive links party; Accounts nav tab |
+| Navigation | Accounts tab | Done | COA, Parties, Rates, Reports hub links |
 | Journal | Manual journal | Done | Invalid dual-side lines blocked; strict post payload |
 | Reports | COA, TB, P&L, BS, GL | Done | Hub + CSV Share export |
 | Closing | Daily closing | Done | Locked-day banner on detail |
@@ -74,7 +94,7 @@ Hot reload (`r`) / hot restart (`R`) alone may not pick up `storage_path.dart` c
 - [ ] Detail: Share receipt, Edit (repost), View Audit, Void
 - [ ] Voided txn: Restore with reason
 - [ ] Reports hub: Manual Journal, Parties, Trial Balance
-- [ ] Parties: create, edit, agent ledger filter
+- [ ] Parties: create → Settlement Send with party → party ledger shows txn; search by party name
 - [ ] Closed day: banner + disabled edit/delete
 - [ ] Manual journal: balanced lines post (900 Dr line 1, 900 Cr line 2)
   - Failed: both Dr and Cr on same line showed false “Balanced” — **fixed** balance math + invalid UI; re-test pending

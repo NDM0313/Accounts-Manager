@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-enum ObsidianNav { home, ledger, audit, settings }
+enum ObsidianNav { home, ledger, accounts, audit, settings }
 
 class FxObsidianShell extends ConsumerWidget {
   const FxObsidianShell({
@@ -18,6 +18,7 @@ class FxObsidianShell extends ConsumerWidget {
   static const _tabs = [
     (Icons.dashboard_outlined, Icons.dashboard, 'Home'),
     (Icons.receipt_long_outlined, Icons.receipt_long, 'Ledger'),
+    (Icons.account_balance_outlined, Icons.account_balance, 'Accounts'),
     (Icons.history_outlined, Icons.history, 'Audit'),
     (Icons.settings_outlined, Icons.settings, 'Settings'),
   ];
@@ -63,6 +64,8 @@ class FxObsidianShell extends ConsumerWidget {
                       _navLink(context, ObsidianNav.home, 'DASHBOARD'),
                       const SizedBox(width: 24),
                       _navLink(context, ObsidianNav.ledger, 'LEDGER'),
+                      const SizedBox(width: 24),
+                      _navLink(context, ObsidianNav.accounts, 'ACCOUNTS'),
                       const SizedBox(width: 24),
                       _navLink(context, ObsidianNav.audit, 'AUDIT'),
                       const SizedBox(width: 24),

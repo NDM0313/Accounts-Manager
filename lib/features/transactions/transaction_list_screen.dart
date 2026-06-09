@@ -47,7 +47,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   bool _matchesSearch(FxTransaction tx, String q) {
     if (q.isEmpty) return true;
-    final hay = '${tx.transactionNo} ${tx.description} ${tx.currencyCode} ${tx.transactionType.label}'.toLowerCase();
+    final hay =
+        '${tx.transactionNo} ${tx.description} ${tx.currencyCode} ${tx.transactionType.label} ${tx.partyName ?? ''} ${tx.partyCode ?? ''}'
+            .toLowerCase();
     return hay.contains(q.toLowerCase());
   }
 

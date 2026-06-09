@@ -62,6 +62,11 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                   ),
               ],
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap a party to view settlement history. Link parties when creating Settlement Send/Receive.',
+              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: partiesAsync.when(

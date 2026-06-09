@@ -133,6 +133,13 @@ class TransactionDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     _DetailGrid(
                       items: [
+                        _DetailItem('Date', DateFormat('d MMM yyyy').format(tx.transactionDate)),
+                        if (tx.partyId != null)
+                          _DetailItem(
+                            'Party',
+                            _partyLabel(tx),
+                            onTap: () => context.push('/parties/${tx.partyId}/ledger'),
+                          ),
                         _DetailItem('From', fromLine != null ? '${fromLine.accountCode ?? ''}\n${fromLine.accountName ?? ''}'.trim() : '—'),
                         _DetailItem('To', toLine != null ? '${toLine.accountCode ?? ''}\n${toLine.accountName ?? ''}'.trim() : '—'),
                         _DetailItem('Currency', tx.currencyCode),
@@ -230,6 +237,15 @@ class TransactionDetailScreen extends ConsumerWidget {
   void _stub(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
+
+  static String _partyLabel(FxTransaction tx) {
+    final name = tx.partyName ?? 'Party';
+    if (tx.partyCode != null && tx.partyCode!.isNotEmpty) {
+      return '$name (${tx.partyCode})';
+    }
+    return name;
+  }
+
   Future<void> _restoreTransaction(BuildContext context, WidgetRef ref) async {
     final reason = await showDialog<String>(
       context: context,
@@ -375,9 +391,10 @@ class _CompletedPill extends StatelessWidget {
 }
 
 class _DetailItem {
-  const _DetailItem(this.label, this.value);
+  const _DetailItem(this.label, this.value, {this.onTap});
   final String label;
   final String value;
+  final VoidCallback? onTap;
 }
 
 class _DetailGrid extends StatelessWidget {
@@ -401,7 +418,7 @@ class _DetailGrid extends StatelessWidget {
           itemCount: items.length,
           itemBuilder: (context, i) {
             final item = items[i];
-            return Container(
+            final tile = Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: context.fx.surfaceContainerLowest,
@@ -416,11 +433,23 @@ class _DetailGrid extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     item.value,
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                    style: AppTypography.bodyMd(
+                      item.onTap != null ? context.fx.primary : context.fx.onSurface,
+                      context: context,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+              ),
+            );
+            if (item.onTap == null) return tile;
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: item.onTap,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                child: tile,
               ),
             );
           },
