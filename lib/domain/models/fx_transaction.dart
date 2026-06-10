@@ -57,6 +57,7 @@ class FxTransaction {
     this.partyId,
     this.partyName,
     this.partyCode,
+    this.exchangeGroupId,
     this.createdAt,
     this.postedAt,
     this.lines = const [],
@@ -75,6 +76,7 @@ class FxTransaction {
   final String? partyId;
   final String? partyName;
   final String? partyCode;
+  final String? exchangeGroupId;
   final DateTime? createdAt;
   final DateTime? postedAt;
   final List<FxTransactionLine> lines;
@@ -113,6 +115,7 @@ class FxTransaction {
       partyId: json['party_id'] as String?,
       partyName: partyName,
       partyCode: partyCode,
+      exchangeGroupId: json['exchange_group_id'] as String?,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
       postedAt: json['posted_at'] != null ? DateTime.parse(json['posted_at'] as String) : null,
       lines: parsedLines,

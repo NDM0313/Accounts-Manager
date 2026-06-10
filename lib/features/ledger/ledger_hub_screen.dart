@@ -16,6 +16,7 @@ class LedgerHubScreen extends StatefulWidget {
 
 class _LedgerHubScreenState extends State<LedgerHubScreen> {
   LedgerHubTab _tab = LedgerHubTab.transactions;
+  bool _fxHelpExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +46,10 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _segmentedControl(),
+                  if (_tab == LedgerHubTab.transactions) ...[
+                    const SizedBox(height: 12),
+                    _fxHelpPanel(),
+                  ],
                   const SizedBox(height: 16),
                   Expanded(
                     child: _tab == LedgerHubTab.transactions
@@ -58,6 +63,49 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
         ),
         if (fab != null) Positioned(right: 16, bottom: 88, child: fab),
       ],
+    );
+  }
+
+  Widget _fxHelpPanel() {
+    return Material(
+      color: context.fx.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _fxHelpExpanded = !_fxHelpExpanded),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.help_outline, size: 18, color: context.fx.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'How FX works',
+                      style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Icon(_fxHelpExpanded ? Icons.expand_less : Icons.expand_more, color: context.fx.onSurfaceVariant),
+                ],
+              ),
+              if (_fxHelpExpanded) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '• Buy = foreign cash in; PKR or payable out (agent purchase on credit).\n'
+                  '• Sell = foreign cash out; PKR or receivable in (customer sale on credit).\n'
+                  '• Customer FX Deal = order first, source from agents later (+ menu or Accounts → FX Deals).\n'
+                  '• PKR → USD → AED: use Chained Exchange (+ menu).\n'
+                  '• Add currencies in Settings → Currencies.',
+                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12, height: 1.5),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 

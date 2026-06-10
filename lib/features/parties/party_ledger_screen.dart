@@ -1,62 +1,68 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_party_statement_row.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/core/config/feature_flags.dart';
+import 'package:accounts_manager/domain/models/party_statement.dart';
+import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
+import 'package:accounts_manager/domain/services/party_statement_builder.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
-class PartyLedgerScreen extends ConsumerWidget {
+class PartyLedgerScreen extends ConsumerStatefulWidget {
   const PartyLedgerScreen({super.key, required this.partyId});
 
   final String partyId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final partyAsync = ref.watch(partyDetailProvider(partyId));
-    final txAsync = ref.watch(partyTransactionsProvider(partyId));
+  ConsumerState<PartyLedgerScreen> createState() => _PartyLedgerScreenState();
+}
+
+class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
+  bool _filtersExpanded = false;
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final partyAsync = ref.watch(partyDetailProvider(widget.partyId));
+    final statementAsync = ref.watch(partyStatementProvider(widget.partyId));
+    final openDealsAsync = FeatureFlags.dealsWorkflowEnabled
+        ? ref.watch(partyDealOpenItemsProvider(widget.partyId))
+        : const AsyncValue<List<PartyDealOpenItem>>.data([]);
     final fmt = NumberFormat('#,##0.00');
 
     return Scaffold(
       backgroundColor: context.fx.background,
       appBar: AppBar(
         title: partyAsync.when(
-          data: (p) => Text(p?.name ?? 'Party Ledger'),
-          loading: () => const Text('Party Ledger'),
-          error: (_, __) => const Text('Party Ledger'),
+          data: (p) => Text(p?.name ?? 'Party Statement'),
+          loading: () => const Text('Party Statement'),
+          error: (_, __) => const Text('Party Statement'),
         ),
         backgroundColor: context.fx.background,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () => _shareStatement(context, customerCopy: false),
+          ),
+        ],
       ),
       floatingActionButton: partyAsync.whenOrNull(
-        data: (party) => party == null
-            ? null
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  FloatingActionButton.extended(
-                    heroTag: 'party_settlement_receive',
-                    onPressed: () => context.push(
-                      '/transactions/new?type=${FxTransactionType.settlementReceive.dbValue}&partyId=$partyId',
-                    ),
-                    icon: const Icon(Icons.call_received),
-                    label: const Text('Receive'),
-                  ),
-                  const SizedBox(height: 12),
-                  FloatingActionButton.extended(
-                    heroTag: 'party_settlement_send',
-                    onPressed: () => context.push(
-                      '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=$partyId',
-                    ),
-                    icon: const Icon(Icons.send_outlined),
-                    label: const Text('Send'),
-                  ),
-                ],
-              ),
+        data: (party) => party == null ? null : _buildFab(context, party),
       ),
       body: FxObsidianPage(
         child: partyAsync.when(
@@ -67,108 +73,27 @@ class PartyLedgerScreen extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.fx.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                    border: Border.all(color: context.fx.outlineVariant),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FxSectionLabel(label: party.partyType.label),
-                      Text(party.name, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-                      if (party.phone != null)
-                        Text(party.phone!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                _partyHeader(context, party, statementAsync, fmt),
+                _openDealsSection(context, openDealsAsync, fmt),
+                _filtersSection(context),
                 Expanded(
-                  child: txAsync.when(
+                  child: statementAsync.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(child: Text('Error: $e')),
-                    data: (txs) {
-                      if (txs.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'No settlement transactions linked to this party.',
-                                  textAlign: TextAlign.center,
-                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Create Settlement Send or Receive and select this party on the draft form.',
-                                  textAlign: TextAlign.center,
-                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
-                                ),
-                                const SizedBox(height: 24),
-                                FilledButton.icon(
-                                  onPressed: () => context.push(
-                                    '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=$partyId',
-                                  ),
-                                  icon: const Icon(Icons.send_outlined),
-                                  label: const Text('Settlement Send'),
-                                ),
-                                const SizedBox(height: 12),
-                                OutlinedButton.icon(
-                                  onPressed: () => context.push(
-                                    '/transactions/new?type=${FxTransactionType.settlementReceive.dbValue}&partyId=$partyId',
-                                  ),
-                                  icon: const Icon(Icons.call_received),
-                                  label: const Text('Settlement Receive'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                    data: (view) {
+                      if (view == null) return const Center(child: Text('Unable to load statement.'));
+                      if (view.lines.isEmpty) {
+                        return _emptyState(context, party);
                       }
                       return ListView.separated(
-                        itemCount: txs.length,
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: view.lines.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, i) {
-                          final tx = txs[i];
-                          return Material(
-                            color: context.fx.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                              onTap: () => context.push('/transactions/${tx.id}'),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  children: [
-                                    FxTypeBadge(type: tx.transactionType, compact: true),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            tx.transactionNo ?? tx.id.substring(0, 8),
-                                            style: AppTypography.bodyMd(context.fx.onSurface, context: context),
-                                          ),
-                                          Text(
-                                            DateFormat('d MMM yyyy').format(tx.transactionDate),
-                                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      '${fmt.format(tx.totalForeignAmount)} ${tx.currencyCode}',
-                                      style: AppTypography.labelMono(context.fx.onSurface, context: context),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                          final line = view.lines[i];
+                          return FxPartyStatementRow(
+                            line: line,
+                            onTap: () => context.push('/transactions/${line.transactionId}'),
                           );
                         },
                       );
@@ -181,5 +106,331 @@ class PartyLedgerScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _partyHeader(
+    BuildContext context,
+    FxParty party,
+    AsyncValue<PartyStatementView?> statementAsync,
+    NumberFormat fmt,
+  ) {
+    final view = statementAsync.whenOrNull(data: (v) => v);
+    final summary = view?.summary;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: context.fx.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: context.fx.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: context.fx.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  party.partyType.label.toUpperCase(),
+                  style: AppTypography.labelCaps(context.fx.primary, context: context).copyWith(fontSize: 9),
+                ),
+              ),
+              const Spacer(),
+              if (summary != null)
+                Text(
+                  'Net PKR ${fmt.format(summary.netBalancePkr)}',
+                  style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(party.name, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+          if (party.phone != null)
+            Text(party.phone!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+          if (summary != null && view != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 72,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  FxPartySummaryCard(label: 'Opening', value: fmt.format(view.openingBalancePkr)),
+                  const SizedBox(width: 8),
+                  FxPartySummaryCard(label: 'Total Debit', value: fmt.format(summary.totalDebitPkr)),
+                  const SizedBox(width: 8),
+                  FxPartySummaryCard(label: 'Total Credit', value: fmt.format(summary.totalCreditPkr)),
+                  const SizedBox(width: 8),
+                  FxPartySummaryCard(label: 'Net Balance', value: fmt.format(summary.netBalancePkr)),
+                  const SizedBox(width: 8),
+                  FxPartySummaryCard(label: 'Pending', value: '${summary.pendingDraftCount}'),
+                  if (summary.lastTransactionDate != null) ...[
+                    const SizedBox(width: 8),
+                    FxPartySummaryCard(
+                      label: 'Last txn',
+                      value: DateFormat('d MMM yy').format(summary.lastTransactionDate!),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _openDealsSection(BuildContext context, AsyncValue<List<PartyDealOpenItem>> openDealsAsync, NumberFormat fmt) {
+    return openDealsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (items) {
+        if (items.isEmpty) return const SizedBox.shrink();
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.fx.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            border: Border.all(color: context.fx.outlineVariant),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('OPEN FX DEALS', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+              const SizedBox(height: 8),
+              ...items.map((item) {
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(item.dealNo ?? item.dealId.substring(0, 8), style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                  subtitle: Text(
+                    '${item.role} · ${item.dealStatus.label} · recv PKR ${fmt.format(item.receivablePkr)}',
+                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  onTap: () => context.push('/deals/${item.dealId}'),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _filtersSection(BuildContext context) {
+    final filters = ref.watch(partyStatementFiltersProvider);
+    final fromLabel = DateFormat('d MMM yy').format(filters.from);
+    final toLabel = DateFormat('d MMM yy').format(filters.to);
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => setState(() => _filtersExpanded = !_filtersExpanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.filter_list, size: 18, color: context.fx.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$fromLabel → $toLabel · ${filters.status.name}',
+                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                  ),
+                ),
+                Icon(_filtersExpanded ? Icons.expand_less : Icons.expand_more, color: context.fx.onSurfaceVariant),
+              ],
+            ),
+          ),
+        ),
+        if (_filtersExpanded) ...[
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pickDateRange(context),
+                  icon: const Icon(Icons.date_range, size: 16),
+                  label: Text('Dates', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _pickStatus(context),
+                  icon: const Icon(Icons.flag_outlined, size: 16),
+                  label: Text(filters.status.name, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              hintText: 'Search txn no, reference…',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+            ),
+            onSubmitted: (v) {
+              ref.read(partyStatementFiltersProvider.notifier).setSearch(v);
+              ref.invalidate(partyStatementProvider(widget.partyId));
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+        const SizedBox(height: 4),
+        const FxSectionLabel(label: 'Statement'),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _emptyState(BuildContext context, FxParty party) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'No transactions in this period.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => _showActions(context, party),
+              icon: const Icon(Icons.add),
+              label: const Text('New transaction'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFab(BuildContext context, FxParty party) {
+    return FloatingActionButton(
+      onPressed: () => _showActions(context, party),
+      backgroundColor: context.fx.tertiary,
+      foregroundColor: context.fx.onTertiary,
+      child: const Icon(Icons.add),
+    );
+  }
+
+  Future<void> _pickDateRange(BuildContext context) async {
+    final filters = ref.read(partyStatementFiltersProvider);
+    final from = await FxObsidianPickers.showDate(context, initialDate: filters.from);
+    if (from == null || !context.mounted) return;
+    final to = await FxObsidianPickers.showDate(context, initialDate: filters.to);
+    if (to == null) return;
+    ref.read(partyStatementFiltersProvider.notifier).setDateRange(from, to);
+    ref.invalidate(partyStatementProvider(widget.partyId));
+  }
+
+  Future<void> _pickStatus(BuildContext context) async {
+    final picked = await showModalBottomSheet<PartyStatementStatusFilter>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: PartyStatementStatusFilter.values
+              .map(
+                (s) => ListTile(
+                  title: Text(s.name),
+                  onTap: () => Navigator.pop(ctx, s),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
+    if (picked != null) {
+      ref.read(partyStatementFiltersProvider.notifier).setStatus(picked);
+      ref.invalidate(partyStatementProvider(widget.partyId));
+    }
+  }
+
+  void _showActions(BuildContext context, FxParty party) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.call_received),
+              title: const Text('Receive Payment'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push(
+                  '/transactions/new?type=${FxTransactionType.settlementReceive.dbValue}&partyId=${widget.partyId}',
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.send_outlined),
+              title: const Text('Send Payment'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push(
+                  '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=${widget.partyId}',
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.handshake_outlined),
+              title: const Text('New Deal'),
+              onTap: () {
+                Navigator.pop(ctx);
+                final type = party.partyType == FxPartyType.customer
+                    ? FxTransactionType.currencySell
+                    : FxTransactionType.currencyBuy;
+                context.push(
+                  '/transactions/new?type=${type.dbValue}&partyId=${widget.partyId}',
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share_outlined),
+              title: const Text('Share Statement'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _shareStatement(context, customerCopy: true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf_outlined),
+              title: const Text('Export PDF'),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('PDF export coming soon. Use Share for text/CSV.')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareStatement(BuildContext context, {required bool customerCopy}) async {
+    final view = ref.read(partyStatementProvider(widget.partyId)).whenOrNull(data: (v) => v);
+    if (view == null || view.lines.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No statement data to share.')),
+      );
+      return;
+    }
+    final text = PartyStatementBuilder.formatShareText(view, internal: !customerCopy);
+    await SharePlus.instance.share(ShareParams(text: text, subject: 'Party Statement — ${view.party.name}'));
   }
 }

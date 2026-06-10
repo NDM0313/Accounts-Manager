@@ -1,14 +1,17 @@
+import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/utils/transaction_date.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_audit_log.dart';
 import 'package:accounts_manager/domain/models/fx_journal_entry.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/domain/models/party_statement.dart';
+import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/domain/services/draft_line_builder.dart';
 
 class TransactionRepository {
   static const _txSelect =
-      'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, '
+      'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, exchange_group_id, '
       'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
       'fx_parties(code, name)';
 
@@ -29,6 +32,7 @@ class TransactionRepository {
     double? toForeignAmount,
     double? toRateUsed,
     double? revaluationDeltaPkr,
+    bool onCredit = false,
   }) {
     return DraftLineBuilder.build(
       type: type,
@@ -45,6 +49,7 @@ class TransactionRepository {
       toForeignAmount: toForeignAmount,
       toRateUsed: toRateUsed,
       revaluationDeltaPkr: revaluationDeltaPkr,
+      onCredit: onCredit,
     );
   }
 
@@ -68,6 +73,9 @@ class TransactionRepository {
     double? toForeignAmount,
     double? toRateUsed,
     double? revaluationDeltaPkr,
+    bool onCredit = false,
+    String? exchangeGroupId,
+    RateReferenceSnapshot? rateSnapshot,
   }) async {
     final lines = _buildLines(
       type: type,
@@ -84,13 +92,12 @@ class TransactionRepository {
       toForeignAmount: toForeignAmount,
       toRateUsed: toRateUsed,
       revaluationDeltaPkr: revaluationDeltaPkr,
+      onCredit: onCredit,
     );
 
     _assertBalanced(lines);
 
-    final txRow = await supabase
-        .from('fx_transactions')
-        .insert({
+    final txInsert = <String, dynamic>{
           'company_id': companyId,
           'branch_id': branchId,
           'transaction_type': type.dbValue,
@@ -98,12 +105,20 @@ class TransactionRepository {
           'transaction_date': _localDateIso(transactionDate),
           'currency_code': currencyCode,
           'party_id': partyId,
+          if (exchangeGroupId != null) 'exchange_group_id': exchangeGroupId,
           'total_foreign_amount': foreignAmount,
           'rate_used': rateUsed,
           'total_base_amount_pkr': baseAmountPkr,
           'description': description,
           'created_by': supabase.auth.currentUser?.id,
-        })
+        };
+    if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
+      txInsert.addAll(rateSnapshot.toJson());
+    }
+
+    final txRow = await supabase
+        .from('fx_transactions')
+        .insert(txInsert)
         .select(_txSelect)
         .single();
 
@@ -134,6 +149,9 @@ class TransactionRepository {
     double? toForeignAmount,
     double? toRateUsed,
     double? revaluationDeltaPkr,
+    bool onCredit = false,
+    String? exchangeGroupId,
+    RateReferenceSnapshot? rateSnapshot,
   }) async {
     final lines = _buildLines(
       type: type,
@@ -150,22 +168,29 @@ class TransactionRepository {
       toForeignAmount: toForeignAmount,
       toRateUsed: toRateUsed,
       revaluationDeltaPkr: revaluationDeltaPkr,
+      onCredit: onCredit,
     );
 
     _assertBalanced(lines);
 
-    final txRow = await supabase
-        .from('fx_transactions')
-        .update({
+    final txUpdate = <String, dynamic>{
           'currency_code': currencyCode,
           'party_id': partyId,
+          if (exchangeGroupId != null) 'exchange_group_id': exchangeGroupId,
           if (transactionDate != null) 'transaction_date': _localDateIso(transactionDate),
           'total_foreign_amount': foreignAmount,
           'rate_used': rateUsed,
           'total_base_amount_pkr': baseAmountPkr,
           'description': description,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
+        };
+    if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
+      txUpdate.addAll(rateSnapshot.toJson());
+    }
+
+    final txRow = await supabase
+        .from('fx_transactions')
+        .update(txUpdate)
         .eq('id', transactionId)
         .eq('status', 'draft')
         .select(_txSelect)
@@ -255,6 +280,7 @@ class TransactionRepository {
     double? toForeignAmount,
     double? toRateUsed,
     double? revaluationDeltaPkr,
+    bool onCredit = false,
   }) async {
     final lines = _buildLines(
       type: type,
@@ -271,6 +297,7 @@ class TransactionRepository {
       toForeignAmount: toForeignAmount,
       toRateUsed: toRateUsed,
       revaluationDeltaPkr: revaluationDeltaPkr,
+      onCredit: onCredit,
     );
     _assertBalanced(lines);
 
@@ -290,6 +317,18 @@ class TransactionRepository {
     return FxTransaction.fromJson(row as Map<String, dynamic>);
   }
 
+  Future<List<FxTransaction>> fetchByExchangeGroup(String branchId, String groupId) async {
+    final rows = await supabase
+        .from('fx_transactions')
+        .select(_txSelect)
+        .eq('branch_id', branchId)
+        .eq('exchange_group_id', groupId)
+        .eq('is_deleted', false)
+        .order('created_at');
+
+    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+  }
+
   Future<List<FxTransaction>> fetchByParty(String branchId, String partyId, {int limit = 100}) async {
     final rows = await supabase
         .from('fx_transactions')
@@ -300,6 +339,99 @@ class TransactionRepository {
         .order('transaction_date', ascending: false)
         .limit(limit);
 
+    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+  }
+
+  static String get _txSelectWithLines =>
+      '$_txSelect, fx_transaction_lines(id, line_no, account_id, currency_code, '
+      'foreign_amount, rate_used, debit_pkr, credit_pkr, memo, fx_accounts(code, name))';
+
+  Future<List<FxTransaction>> fetchPartyTransactionsForStatement({
+    required String branchId,
+    required String partyId,
+    required DateTime from,
+    required DateTime to,
+    PartyStatementStatusFilter status = PartyStatementStatusFilter.posted,
+    FxTransactionType? transactionType,
+    String? currencyCode,
+    String search = '',
+    int limit = 500,
+  }) async {
+    final fromIso = from.toIso8601String().split('T').first;
+    final toIso = to.toIso8601String().split('T').first;
+
+    var query = supabase
+        .from('fx_transactions')
+        .select(_txSelectWithLines)
+        .eq('branch_id', branchId)
+        .eq('party_id', partyId)
+        .eq('is_deleted', false)
+        .gte('transaction_date', fromIso)
+        .lte('transaction_date', toIso);
+
+    switch (status) {
+      case PartyStatementStatusFilter.posted:
+        query = query.eq('status', 'posted');
+      case PartyStatementStatusFilter.draft:
+        query = query.eq('status', 'draft');
+      case PartyStatementStatusFilter.voided:
+        query = query.eq('status', 'voided');
+      case PartyStatementStatusFilter.all:
+        break;
+    }
+
+    if (transactionType != null) {
+      query = query.eq('transaction_type', transactionType.dbValue);
+    }
+    if (currencyCode != null && currencyCode.isNotEmpty) {
+      query = query.eq('currency_code', currencyCode);
+    }
+
+    final rows = await query.order('transaction_date', ascending: true).limit(limit);
+    var txs = (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+
+    if (search.trim().isNotEmpty) {
+      final q = search.trim().toLowerCase();
+      txs = txs.where((tx) {
+        final no = tx.transactionNo?.toLowerCase() ?? '';
+        final desc = tx.description?.toLowerCase() ?? '';
+        final id = tx.id.toLowerCase();
+        return no.contains(q) || desc.contains(q) || id.contains(q);
+      }).toList();
+    }
+
+    return txs;
+  }
+
+  Future<List<FxTransaction>> fetchPartyTransactionsPriorTo({
+    required String branchId,
+    required String partyId,
+    required DateTime before,
+    PartyStatementStatusFilter status = PartyStatementStatusFilter.posted,
+    int limit = 2000,
+  }) async {
+    final beforeIso = before.toIso8601String().split('T').first;
+
+    var query = supabase
+        .from('fx_transactions')
+        .select(_txSelectWithLines)
+        .eq('branch_id', branchId)
+        .eq('party_id', partyId)
+        .eq('is_deleted', false)
+        .lt('transaction_date', beforeIso);
+
+    switch (status) {
+      case PartyStatementStatusFilter.posted:
+        query = query.eq('status', 'posted');
+      case PartyStatementStatusFilter.draft:
+        query = query.eq('status', 'draft');
+      case PartyStatementStatusFilter.voided:
+        query = query.eq('status', 'voided');
+      case PartyStatementStatusFilter.all:
+        break;
+    }
+
+    final rows = await query.order('transaction_date', ascending: true).limit(limit);
     return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
   }
 

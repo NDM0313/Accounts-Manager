@@ -4,7 +4,13 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_attachments_section.da
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
+import 'package:accounts_manager/data/supabase/supabase_client.dart';
+import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
+import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
+import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
@@ -52,6 +58,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   String? _expenseAccountCode;
   String? _settlementAccountCode;
   String? _partyId;
+  bool _onCredit = false;
   DateTime? _transactionDate;
   bool _busy = false;
   String? _draftId;
@@ -69,6 +76,10 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
     if (widget.editDraftId == null) {
       final now = DateTime.now();
       _transactionDate = DateTime(now.year, now.month, now.day);
+      if (widget.suggestedRate != null) {
+        _rateCtrl.text = widget.suggestedRate!.toString();
+        _rateInitialized = true;
+      }
     }
     if (widget.editDraftId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditDraft());
@@ -265,6 +276,8 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                   _settlementAccountCode ??= switch (widget.type) {
                     FxTransactionType.settlementSend => '2100',
                     FxTransactionType.settlementReceive => '1180',
+                    FxTransactionType.currencyBuy => _onCredit ? '2100' : null,
+                    FxTransactionType.currencySell => _onCredit ? '1190' : null,
                     _ => null,
                   };
                   _toCurrencyCode ??= widget.type == FxTransactionType.crossCurrency
@@ -429,6 +442,104 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
     );
   }
 
+  Widget _buildBuySellPartySection(FxTransactionType type) {
+    final isBuy = type == FxTransactionType.currencyBuy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FxSectionLabel(label: isBuy ? 'Agent purchase' : 'Customer sale'),
+        const SizedBox(height: 8),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(value: false, label: Text('Cash'), icon: Icon(Icons.payments_outlined, size: 18)),
+            ButtonSegment(value: true, label: Text('On credit'), icon: Icon(Icons.account_balance_outlined, size: 18)),
+          ],
+          selected: {_onCredit},
+          onSelectionChanged: _busy
+              ? null
+              : (s) => setState(() {
+                    _onCredit = s.first;
+                    _settlementAccountCode = _onCredit ? (isBuy ? '2100' : '1190') : null;
+                  }),
+        ),
+        const SizedBox(height: 12),
+        Consumer(
+          builder: (context, ref, _) {
+            final partiesAsync = ref.watch(partiesProvider(null));
+            return partiesAsync.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (parties) {
+                final filtered = parties.where((p) {
+                  if (_onCredit) {
+                    return isBuy ? p.partyType == FxPartyType.agent : p.partyType == FxPartyType.customer;
+                  }
+                  return isBuy
+                      ? p.partyType == FxPartyType.agent || p.partyType == FxPartyType.settlement
+                      : p.partyType == FxPartyType.customer || p.partyType == FxPartyType.settlement;
+                }).toList()
+                  ..sort((a, b) => a.name.compareTo(b.name));
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('party_${_partyId}_$_onCredit'),
+                      initialValue: _partyId,
+                      decoration: InputDecoration(
+                        labelText: _onCredit
+                            ? (isBuy ? 'Agent (required for credit)' : 'Customer (required for credit)')
+                            : 'Party (optional)',
+                      ),
+                      items: [
+                        if (!_onCredit) const DropdownMenuItem<String>(value: null, child: Text('—')),
+                        ...filtered.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.code} · ${p.name}'))),
+                      ],
+                      onChanged: _busy ? null : (v) => setState(() => _partyId = v),
+                      validator: _onCredit
+                          ? (v) => v == null ? 'Select a party for credit transactions' : null
+                          : null,
+                    ),
+                    if (_onCredit) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        key: ValueKey(_settlementAccountCode),
+                        initialValue: _settlementAccountCode,
+                        decoration: InputDecoration(
+                          labelText: isBuy ? 'Payable account' : 'Receivable account',
+                        ),
+                        items: (isBuy ? ['2100', '2200'] : ['1190', '1180'])
+                            .map((code) {
+                              final name = switch (code) {
+                                '2100' => 'Agent Payables',
+                                '2200' => 'Customer Payables',
+                                '1190' => 'Customer Receivables',
+                                '1180' => 'Agent Receivables',
+                                _ => code,
+                              };
+                              return DropdownMenuItem(value: code, child: Text('$code · $name'));
+                            })
+                            .toList(),
+                        onChanged: _busy ? null : (v) => setState(() => _settlementAccountCode = v),
+                        validator: (v) => v == null ? 'Select account' : null,
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      isBuy
+                          ? 'Buy on credit: Dr foreign cash, Cr agent/customer payable.'
+                          : 'Sell on credit: Dr customer/agent receivable, Cr foreign cash.',
+                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _attachmentsSection(FxUserProfile profile) {
     if (_draftId == null) {
       return Column(
@@ -487,6 +598,10 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildTransactionDateField(),
+                      if (type == FxTransactionType.currencyBuy || type == FxTransactionType.currencySell) ...[
+                        const SizedBox(height: 16),
+                        _buildBuySellPartySection(type),
+                      ],
                       const SizedBox(height: 16),
                       FxSectionLabel(label: 'Amount & rate'),
                       const SizedBox(height: 12),
@@ -519,19 +634,37 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                           type == FxTransactionType.crossCurrency ||
                           (type == FxTransactionType.openingBalance && _currencyCode != 'PKR')) ...[
                         const SizedBox(height: 12),
-                        FxObsidianFormField(
-                          label: 'Rate (PKR per unit)',
-                          controller: _rateCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          enabled: !_busy,
-                          textAlign: TextAlign.end,
-                          validator: (v) {
-                            final n = double.tryParse(v ?? '');
-                            if (n == null || n <= 0) return 'Enter a valid rate';
-                            return null;
-                          },
-                          onChanged: (_) => setState(() {}),
-                        ),
+                        if (_currencyCode != null)
+                          FxRateValuationSection(
+                            fromCurrency: _currencyCode!,
+                            toCurrency: 'PKR',
+                            dealRateController: _rateCtrl,
+                            receiveAmount: double.tryParse(_foreignAmountCtrl.text),
+                            rateSide: type == FxTransactionType.currencyBuy ? RateSide.buy : RateSide.sell,
+                            asOfDate: _transactionDate,
+                            dealRateLabel: 'Rate (PKR per unit)',
+                            showPkrEquivalent: false,
+                            validator: (v) {
+                              final n = double.tryParse(v ?? '');
+                              if (n == null || n <= 0) return 'Enter a valid rate';
+                              return null;
+                            },
+                            onDealRateChanged: (_) => setState(() {}),
+                          )
+                        else
+                          FxObsidianFormField(
+                            label: 'Rate (PKR per unit)',
+                            controller: _rateCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            enabled: !_busy,
+                            textAlign: TextAlign.end,
+                            validator: (v) {
+                              final n = double.tryParse(v ?? '');
+                              if (n == null || n <= 0) return 'Enter a valid rate';
+                              return null;
+                            },
+                            onChanged: (_) => setState(() {}),
+                          ),
                       ],
                       if (type == FxTransactionType.accountTransfer) ...[
                         const SizedBox(height: 12),
@@ -583,22 +716,54 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                           onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 12),
-                        FxObsidianFormField(
-                          label: 'To rate (PKR per unit)',
-                          controller: _toRateCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          enabled: !_busy,
-                          textAlign: TextAlign.end,
-                          validator: (v) {
-                            final n = double.tryParse(v ?? '');
-                            if (n == null || n <= 0) return 'Enter a valid rate';
-                            return null;
-                          },
-                          onChanged: (_) => setState(() {}),
-                        ),
+                        if (_toCurrencyCode != null)
+                          FxRateValuationSection(
+                            fromCurrency: _toCurrencyCode!,
+                            toCurrency: 'PKR',
+                            dealRateController: _toRateCtrl,
+                            receiveAmount: double.tryParse(_toForeignAmountCtrl.text),
+                            rateSide: RateSide.reference,
+                            asOfDate: _transactionDate,
+                            dealRateLabel: 'To rate (PKR per unit)',
+                            showPkrEquivalent: false,
+                            validator: (v) {
+                              final n = double.tryParse(v ?? '');
+                              if (n == null || n <= 0) return 'Enter a valid rate';
+                              return null;
+                            },
+                            onDealRateChanged: (_) => setState(() {}),
+                          )
+                        else
+                          FxObsidianFormField(
+                            label: 'To rate (PKR per unit)',
+                            controller: _toRateCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            enabled: !_busy,
+                            textAlign: TextAlign.end,
+                            validator: (v) {
+                              final n = double.tryParse(v ?? '');
+                              if (n == null || n <= 0) return 'Enter a valid rate';
+                              return null;
+                            },
+                            onChanged: (_) => setState(() {}),
+                          ),
                       ],
                       if (type.isSettlement) ...[
                         const SizedBox(height: 12),
+                        FxObsidianReportPanel(
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 18, color: context.fx.onSurfaceVariant),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Settlement is PKR-only — no FX rate required.',
+                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Consumer(
                           builder: (context, ref, _) {
                             final partiesAsync = ref.watch(partiesProvider(null));
@@ -787,6 +952,20 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           _toForeignAmountCtrl.text = toLine.foreignAmount.toString();
           _toRateCtrl.text = toLine.rateUsed.toString();
         }
+      case FxTransactionType.currencyBuy:
+        final buyCredit = tx.lines.where((l) => l.creditPkr > 0).firstOrNull;
+        if (buyCredit?.accountCode != null && buyCredit!.accountCode != '1110') {
+          _onCredit = true;
+          _settlementAccountCode = buyCredit.accountCode;
+        }
+      case FxTransactionType.currencySell:
+        final debitLineBuySell = tx.lines.where((l) => l.debitPkr > 0).firstOrNull;
+        if (tx.transactionType == FxTransactionType.currencySell &&
+            debitLineBuySell?.accountCode != null &&
+            debitLineBuySell!.accountCode != '1110') {
+          _onCredit = true;
+          _settlementAccountCode = debitLineBuySell.accountCode;
+        }
       default:
         break;
     }
@@ -838,6 +1017,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           toForeignAmount: type == FxTransactionType.crossCurrency ? _toForeignAmount : null,
           toRateUsed: type == FxTransactionType.crossCurrency ? _toRateUsed : null,
           revaluationDeltaPkr: revaluationDelta,
+          onCredit: _onCredit,
         );
       } else {
         await repo.editTransaction(
@@ -863,6 +1043,28 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
     }
   }
 
+  Future<RateReferenceSnapshot?> _captureRateSnapshot(FxTransactionType type) async {
+    if (_transactionDate == null || _currencyCode == null) return null;
+    if (type != FxTransactionType.currencyBuy &&
+        type != FxTransactionType.currencySell &&
+        type != FxTransactionType.crossCurrency &&
+        !(type == FxTransactionType.openingBalance && _currencyCode != 'PKR')) {
+      return null;
+    }
+    final rates = await ref.read(rateRepositoryProvider).fetchRatesAsOf(_transactionDate!);
+    final svc = ref.read(rateSuggestionServiceProvider);
+    final side = type == FxTransactionType.currencyBuy ? RateSide.buy : RateSide.sell;
+    return RateReferenceSnapshot.capture(
+      svc: svc,
+      rates: rates,
+      fromCurrency: _currencyCode!,
+      toCurrency: 'PKR',
+      dealRate: _rateUsed,
+      side: side,
+      lockedBy: supabase.auth.currentUser?.id,
+    );
+  }
+
   Future<void> _saveDraft(FxUserProfile profile, List<FxAccount> accounts) async {
     if (!_formKey.currentState!.validate()) return;
     if (!_ensureTransactionDate(context)) return;
@@ -881,6 +1083,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           ? _foreignAmount
           : _baseAmountPkr;
       final description = _descriptionCtrl.text.isEmpty ? null : _descriptionCtrl.text;
+      final rateSnapshot = await _captureRateSnapshot(type);
       final FxTransaction tx;
       if (_draftId != null) {
         tx = await repo.updateDraft(
@@ -902,6 +1105,8 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           toForeignAmount: type == FxTransactionType.crossCurrency ? _toForeignAmount : null,
           toRateUsed: type == FxTransactionType.crossCurrency ? _toRateUsed : null,
           revaluationDeltaPkr: revaluationDelta,
+          onCredit: _onCredit,
+          rateSnapshot: rateSnapshot,
         );
       } else {
         tx = await repo.createDraft(
@@ -924,6 +1129,8 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
           toForeignAmount: type == FxTransactionType.crossCurrency ? _toForeignAmount : null,
           toRateUsed: type == FxTransactionType.crossCurrency ? _toRateUsed : null,
           revaluationDeltaPkr: revaluationDelta,
+          onCredit: _onCredit,
+          rateSnapshot: rateSnapshot,
         );
       }
       setState(() => _draftId = tx.id);

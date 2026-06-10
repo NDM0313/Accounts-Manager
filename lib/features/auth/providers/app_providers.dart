@@ -6,17 +6,24 @@ import 'package:accounts_manager/data/repositories/journal_repository.dart';
 import 'package:accounts_manager/data/repositories/party_repository.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/data/repositories/transaction_repository.dart';
+import 'package:accounts_manager/data/repositories/deal_repository.dart';
 import 'package:accounts_manager/data/repositories/currency_repository.dart';
 import 'package:accounts_manager/data/repositories/profile_repository.dart';
 import 'package:accounts_manager/data/repositories/rate_repository.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
+import 'package:accounts_manager/domain/models/party_statement.dart';
+import 'package:accounts_manager/domain/services/party_statement_builder.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
+import 'package:accounts_manager/domain/models/fx_deal.dart';
+import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_audit_log.dart';
 import 'package:accounts_manager/domain/models/fx_journal_entry.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_rate.dart';
+import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
+import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +54,7 @@ final rateRepositoryProvider = Provider((ref) => RateRepository());
 final profileRepositoryProvider = Provider((ref) => ProfileRepository());
 final partyRepositoryProvider = Provider((ref) => PartyRepository());
 final journalRepositoryProvider = Provider((ref) => JournalRepository());
+final dealRepositoryProvider = Provider((ref) => DealRepository());
 final attachmentRepositoryProvider = Provider((ref) => AttachmentRepository());
 
 /// Listens to Supabase auth state for GoRouter refresh.
@@ -107,6 +115,21 @@ final ratesProvider = FutureProvider<List<FxRate>>((ref) async {
   return ref.read(rateRepositoryProvider).fetchLatestRates();
 });
 
+final ratesAsOfProvider = FutureProvider.family<List<FxRate>, DateTime>((ref, asOf) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return [];
+  return ref.read(rateRepositoryProvider).fetchRatesAsOf(
+        RateSuggestionService.endOfDay(asOf),
+      );
+});
+
+final rateSuggestionServiceProvider = Provider((ref) => const RateSuggestionService());
+
+final rateBoardPairsProvider = FutureProvider<List<RateBoardPair>>((ref) async {
+  final rates = await ref.watch(ratesProvider.future);
+  return ref.read(rateSuggestionServiceProvider).buildDashboardPairs(rates);
+});
+
 final trialBalanceAsOfProvider = NotifierProvider<TrialBalanceAsOfNotifier, DateTime>(
   TrialBalanceAsOfNotifier.new,
 );
@@ -149,6 +172,13 @@ final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) asyn
 
 final transactionDetailProvider = FutureProvider.family<FxTransaction, String>((ref, id) async {
   return ref.read(transactionRepositoryProvider).fetchTransactionWithLines(id);
+});
+
+final linkedExchangeTransactionsProvider =
+    FutureProvider.family<List<FxTransaction>, String>((ref, groupId) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return [];
+  return ref.read(transactionRepositoryProvider).fetchByExchangeGroup(profile.branchId, groupId);
 });
 
 final journalForTransactionProvider =
@@ -389,7 +419,42 @@ final currencyPositionProvider = FutureProvider<List<CurrencyPositionRow>>((ref)
   final profile = await ref.watch(currentProfileProvider.future);
   final asOf = ref.watch(reportAsOfProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchCurrencyPosition(profile.branchId, asOf: asOf);
+  return ref.read(reportRepositoryProvider).fetchCurrencyPositionExtended(profile.branchId, asOf: asOf);
+});
+
+final dealsListProvider = FutureProvider<List<FxDeal>>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return [];
+  ref.watch(dealsRefreshProvider);
+  return ref.read(dealRepositoryProvider).fetchDeals(profile.branchId);
+});
+
+class DealsRefreshNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void refresh() => state++;
+}
+
+final dealsRefreshProvider = NotifierProvider<DealsRefreshNotifier, int>(DealsRefreshNotifier.new);
+
+final dealDetailProvider = FutureProvider.family<FxDeal?, String>((ref, dealId) async {
+  ref.watch(dealsRefreshProvider);
+  return ref.read(dealRepositoryProvider).fetchDeal(dealId);
+});
+
+final dealTimelineProvider = FutureProvider.family<List<FxDealLeg>, String>((ref, dealId) async {
+  ref.watch(dealsRefreshProvider);
+  return ref.read(dealRepositoryProvider).fetchTimeline(dealId);
+});
+
+final partyDealOpenItemsProvider = FutureProvider.family<List<PartyDealOpenItem>, String>((ref, partyId) async {
+  ref.watch(dealsRefreshProvider);
+  try {
+    return ref.read(dealRepositoryProvider).fetchPartyOpenItems(partyId);
+  } catch (_) {
+    return [];
+  }
 });
 
 final closingPreviewProvider = FutureProvider<List<ClosingPreviewRow>>((ref) async {
@@ -430,6 +495,86 @@ final partyTransactionsProvider = FutureProvider.family<List<FxTransaction>, Str
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(transactionRepositoryProvider).fetchByParty(profile.branchId, partyId);
+});
+
+final partyStatementFiltersProvider = NotifierProvider<PartyStatementFiltersNotifier, PartyStatementFilters>(
+  PartyStatementFiltersNotifier.new,
+);
+
+class PartyStatementFiltersNotifier extends Notifier<PartyStatementFilters> {
+  @override
+  PartyStatementFilters build() {
+    final now = DateTime.now();
+    return PartyStatementFilters(
+      from: DateTime(now.year, now.month, 1),
+      to: DateTime(now.year, now.month, now.day),
+    );
+  }
+
+  void update(PartyStatementFilters filters) => state = filters;
+
+  void setDateRange(DateTime from, DateTime to) {
+    state = state.copyWith(
+      from: DateTime(from.year, from.month, from.day),
+      to: DateTime(to.year, to.month, to.day),
+    );
+  }
+
+  void setStatus(PartyStatementStatusFilter status) => state = state.copyWith(status: status);
+
+  void setSearch(String search) => state = state.copyWith(search: search);
+
+  void setCurrency(String? code) => state = state.copyWith(currencyCode: code, clearCurrency: code == null);
+
+  void setTransactionType(FxTransactionType? type) =>
+      state = state.copyWith(transactionType: type, clearType: type == null);
+
+  void setInternalView(bool internal) => state = state.copyWith(isInternalView: internal);
+}
+
+final partyStatementProvider = FutureProvider.family<PartyStatementView?, String>((ref, partyId) async {
+  ref.watch(partyStatementFiltersProvider);
+  final filters = ref.read(partyStatementFiltersProvider);
+  final profile = await ref.watch(currentProfileProvider.future);
+  final party = await ref.watch(partyDetailProvider(partyId).future);
+  if (profile == null || party == null) return null;
+
+  final txs = await ref.read(transactionRepositoryProvider).fetchPartyTransactionsForStatement(
+        branchId: profile.branchId,
+        partyId: partyId,
+        from: filters.from,
+        to: filters.to,
+        status: filters.status,
+        transactionType: filters.transactionType,
+        currencyCode: filters.currencyCode,
+        search: filters.search,
+      );
+
+  final priorTxs = await ref.read(transactionRepositoryProvider).fetchPartyTransactionsPriorTo(
+        branchId: profile.branchId,
+        partyId: partyId,
+        before: filters.from,
+        status: filters.status,
+      );
+
+  final openingBalance = PartyStatementBuilder.computeOpeningBalance(
+    party: party,
+    priorTransactions: priorTxs,
+  );
+
+  final attachmentIds = await ref.read(attachmentRepositoryProvider).fetchTransactionIdsWithAttachments(
+        txs.map((t) => t.id).toList(),
+      );
+
+  return PartyStatementBuilder.build(
+    party: party,
+    from: filters.from,
+    to: filters.to,
+    transactions: txs,
+    transactionIdsWithAttachments: attachmentIds,
+    isInternalView: filters.isInternalView,
+    openingBalancePkr: openingBalance,
+  );
 });
 
 final pendingSettlementsCountProvider = FutureProvider<int>((ref) async {

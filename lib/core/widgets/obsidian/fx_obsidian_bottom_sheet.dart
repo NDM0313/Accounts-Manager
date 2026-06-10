@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
@@ -50,6 +51,23 @@ class FxObsidianBottomSheet {
                       onTap: () {
                         Navigator.pop(ctx);
                         context.push('/transactions/new?type=${type.dbValue}');
+                      },
+                    ),
+                  _ActionRow(
+                    icon: Icons.link,
+                    label: 'Chained Exchange',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      context.push('/transactions/chained-exchange');
+                    },
+                  ),
+                  if (FeatureFlags.dealsWorkflowEnabled)
+                    _ActionRow(
+                      icon: Icons.handshake_outlined,
+                      label: 'Customer FX Deal (order first)',
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        context.push('/deals/new');
                       },
                     ),
                   const SizedBox(height: 8),

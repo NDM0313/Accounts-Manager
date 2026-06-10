@@ -146,6 +146,11 @@ class TransactionDetailScreen extends ConsumerWidget {
                         _DetailItem('Rate', fmt.format(tx.rateUsed)),
                       ],
                     ),
+                    if (tx.exchangeGroupId != null)
+                      _LinkedExchangeBanner(
+                        transactionId: transactionId,
+                        groupId: tx.exchangeGroupId!,
+                      ),
                     if (tx.description != null && tx.description!.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       FxSectionLabel(label: 'Notes'),
@@ -329,6 +334,65 @@ class TransactionDetailScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e')));
       }
     }
+  }
+}
+
+class _LinkedExchangeBanner extends ConsumerWidget {
+  const _LinkedExchangeBanner({required this.transactionId, required this.groupId});
+
+  final String transactionId;
+  final String groupId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final linkedAsync = ref.watch(linkedExchangeTransactionsProvider(groupId));
+
+    return linkedAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (linked) {
+        if (linked.length < 2) return const SizedBox.shrink();
+        final index = linked.indexWhere((t) => t.id == transactionId);
+        final label = index >= 0 ? 'Linked exchange · Part ${index + 1} of ${linked.length}' : 'Linked exchange';
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.fx.surfaceContainer,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(color: context.fx.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.link, size: 18, color: context.fx.primary),
+                    const SizedBox(width: 8),
+                    Text(label, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                for (final t in linked)
+                  if (t.id != transactionId)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: InkWell(
+                        onTap: () => context.push('/transactions/${t.id}'),
+                        child: Text(
+                          '→ ${t.transactionType.label}: ${t.transactionNo ?? t.id.substring(0, 8)}',
+                          style: AppTypography.bodyMd(context.fx.primary, context: context).copyWith(fontSize: 12),
+                        ),
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

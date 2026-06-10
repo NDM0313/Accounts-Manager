@@ -5,7 +5,7 @@ class AccountRepository {
   Future<List<FxAccount>> fetchChartOfAccounts() async {
     final response = await supabase
         .from('fx_accounts')
-        .select('id, code, name, account_type, is_active, parent_id')
+        .select('id, code, name, account_type, is_active, parent_id, currency_id, fx_currencies(code)')
         .eq('is_active', true)
         .order('code');
 

@@ -1,10 +1,12 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class CurrencyPositionScreen extends ConsumerWidget {
@@ -16,6 +18,7 @@ class CurrencyPositionScreen extends ConsumerWidget {
     final rowsAsync = ref.watch(currencyPositionProvider);
     final fmt = NumberFormat('#,##0.00');
     final dateLabel = asOf.toIso8601String().split('T').first;
+    final extended = FeatureFlags.dealsWorkflowEnabled;
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -43,6 +46,14 @@ class CurrencyPositionScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              if (extended)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Includes committed / required balances from open FX deals.',
+                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                  ),
+                ),
               const SizedBox(height: 16),
               FxObsidianReportPanel(
                 child: Column(
@@ -55,25 +66,46 @@ class CurrencyPositionScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ...rows.map((r) {
+                final showExtended = extended && r.hasExtendedMetrics;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: FxObsidianReportPanel(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(r.currencyCode, style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18)),
-                              Text(
-                                'Foreign ${fmt.format(r.foreignBalance)}',
-                                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                displayCurrencyCode(r.currencyCode),
+                                style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18),
                               ),
-                            ],
-                          ),
+                            ),
+                            Text('PKR ${fmt.format(r.baseEquivalentPkr)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                          ],
                         ),
-                        Text('PKR ${fmt.format(r.baseEquivalentPkr)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                        if (showExtended) ...[
+                          const SizedBox(height: 8),
+                          _metricRow(context, 'Actual', r.actualBalance ?? r.foreignBalance, fmt),
+                          if (r.committedBalance != null && r.committedBalance! > 0)
+                            _metricRow(context, 'Committed', r.committedBalance!, fmt, color: Colors.orange),
+                          if (r.onOrderBalance != null && r.onOrderBalance! > 0)
+                            _metricRow(context, 'On order', r.onOrderBalance!, fmt),
+                          if (r.requiredBalance != null && r.requiredBalance! > 0)
+                            _metricRow(context, 'To source', r.requiredBalance!, fmt, color: Colors.red.shade300),
+                          if (r.availableBalance != null)
+                            _metricRow(context, 'Available', r.availableBalance!, fmt, bold: true),
+                        ] else
+                          Text(
+                            'Foreign ${fmt.format(r.foreignBalance)}',
+                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                          ),
+                        if (extended && (r.requiredBalance ?? 0) > 0)
+                          TextButton(
+                            onPressed: () => context.push('/deals'),
+                            child: const Text('View open deals'),
+                          ),
                       ],
                     ),
                   ),
@@ -82,6 +114,25 @@ class CurrencyPositionScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _metricRow(BuildContext context, String label, double value, NumberFormat fmt, {Color? color, bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTypography.bodyMd(color ?? context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+          Text(
+            fmt.format(value),
+            style: AppTypography.bodyMd(color ?? context.fx.onSurface, context: context).copyWith(
+              fontSize: 11,
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

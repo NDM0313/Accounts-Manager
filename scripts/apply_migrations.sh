@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 EXPECTED_REF="ygidlcqhupmxvsdjmvnf"
 FORBIDDEN_DOMAIN="supabase.dincouture.pk"
 
-if grep -q "$FORBIDDEN_DOMAIN" .env 2>/dev/null; then
+if grep -v '^\s*#' .env 2>/dev/null | grep -q "$FORBIDDEN_DOMAIN"; then
   echo "ABORT: .env contains forbidden old VPS domain ($FORBIDDEN_DOMAIN)."
   exit 1
 fi
@@ -43,7 +43,8 @@ else
   echo "  pooler_host=$POOLER"
 fi
 
-ENC_PASS=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$PASS")
+ENC_PASS=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$PASS" 2>/dev/null \
+  || python -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$PASS")
 DB_URL="postgresql://postgres.${REF}:${ENC_PASS}@${POOLER}:5432/postgres?sslmode=require"
 
 echo "Applying migrations via session pooler (IPv4)..."

@@ -34,7 +34,7 @@ Living checklist for manual QA, backend deploy, and Stitch UX gaps. Update this 
 3. Reports → Parties → tap party → **Party Ledger** shows txn
 4. Transaction detail shows **Party** (tap → party ledger); ledger search finds party name
 
-**Note:** Currency Buy/Sell do **not** link to parties — only Settlement Send/Receive.
+**Note:** Currency Buy/Sell **link to parties** when party is selected (cash or on credit). Use **Chained Exchange** for PKR→USD→AED flows.
 
 **Re-test after full restart (stop `flutter run`, then `flutter run -d chrome`):**
 
@@ -76,6 +76,10 @@ Hot reload (`r`) / hot restart (`R`) alone may not pick up `storage_path.dart` c
 | Journal | Manual journal | Done | Invalid dual-side lines blocked; strict post payload |
 | Reports | COA, TB, P&L, BS, GL | Done | Hub + CSV Share export |
 | Closing | Daily closing | Done | Locked-day banner on detail |
+| Settings | Currency management | Done | Settings → Currencies; RPC `fx_create_currency` |
+| Navigation | Accounts tab grid | Done | 2-column cubic tiles on Accounts hub |
+| Transactions | Chained exchange wizard | Done | PKR→USD→AED linked drafts via `exchange_group_id` |
+| Transactions | Buy/Sell party + credit | Done | Agent purchase / customer sale on credit |
 | Settings | Theme toggle | Done | Dark Obsidian / Light Precision |
 | Settings | Backup export | Partial | Trial balance CSV via Share |
 | Offline | Drift / SQLite | Out of scope | Future phase |

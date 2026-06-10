@@ -3,6 +3,7 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_currency_tile.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_daily_closing_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_hero_balance_card.dart';
+import 'package:accounts_manager/core/widgets/rates/fx_current_rates_strip.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_bottom_sheet.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
@@ -56,6 +57,8 @@ class DashboardScreen extends ConsumerWidget {
             unpostedCount: draftsAsync.whenOrNull(data: (v) => v.length),
             pendingSettlements: settlementsAsync.whenOrNull(data: (v) => v),
           ),
+          const SizedBox(height: 24),
+          const FxCurrentRatesStrip(),
           const SizedBox(height: 24),
           if (isWide)
             Row(

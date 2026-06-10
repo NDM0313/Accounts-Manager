@@ -95,6 +95,13 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                             onChanged: _busy ? null : (v) => setState(() => _currencyId = v),
                             validator: (v) => v == null ? 'Select currency' : null,
                           ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Reference (mid): ${((double.tryParse(_buyCtrl.text) ?? 0) + (double.tryParse(_sellCtrl.text) ?? 0)) / 2}',
+                            style: AppTypography.bodyMd(context.fx.tertiary, context: context).copyWith(fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Source: manual', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
                           const SizedBox(height: 20),
                           FxObsidianFormField(
                             label: 'Buy rate (PKR)',
@@ -103,6 +110,7 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                             enabled: !_busy,
                             validator: _positiveRate,
                             accentTertiary: true,
+                            onChanged: (_) => setState(() {}),
                           ),
                           const SizedBox(height: 16),
                           FxObsidianFormField(
@@ -112,6 +120,7 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                             enabled: !_busy,
                             validator: _positiveRate,
                             accentTertiary: true,
+                            onChanged: (_) => setState(() {}),
                           ),
                         ],
                       ),

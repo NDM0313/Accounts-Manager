@@ -100,6 +100,19 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
+          FxSectionLabel(label: 'Configuration'),
+          const SizedBox(height: 8),
+          _SettingsGroup(
+            children: [
+              FxSettingsRow(
+                icon: Icons.currency_exchange,
+                title: 'Currencies',
+                subtitle: 'Add PKR, USD, AED, GBP…',
+                onTap: () => context.push('/settings/currencies'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           FxSectionLabel(label: 'Operations'),
           const SizedBox(height: 8),
           _SettingsGroup(

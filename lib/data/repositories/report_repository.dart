@@ -161,19 +161,42 @@ class CurrencyPositionRow {
     required this.currencyCode,
     required this.foreignBalance,
     required this.baseEquivalentPkr,
+    this.actualBalance,
+    this.committedBalance,
+    this.onOrderBalance,
+    this.requiredBalance,
+    this.availableBalance,
   });
 
   final String currencyCode;
   final double foreignBalance;
   final double baseEquivalentPkr;
+  final double? actualBalance;
+  final double? committedBalance;
+  final double? onOrderBalance;
+  final double? requiredBalance;
+  final double? availableBalance;
 
   factory CurrencyPositionRow.fromJson(Map<String, dynamic> json) {
     return CurrencyPositionRow(
       currencyCode: json['currency_code'] as String,
-      foreignBalance: (json['foreign_balance'] as num).toDouble(),
+      foreignBalance: (json['foreign_balance'] as num?)?.toDouble() ??
+          (json['actual_balance'] as num?)?.toDouble() ??
+          0,
       baseEquivalentPkr: (json['base_equivalent_pkr'] as num).toDouble(),
+      actualBalance: (json['actual_balance'] as num?)?.toDouble(),
+      committedBalance: (json['committed_balance'] as num?)?.toDouble(),
+      onOrderBalance: (json['on_order_balance'] as num?)?.toDouble(),
+      requiredBalance: (json['required_balance'] as num?)?.toDouble(),
+      availableBalance: (json['available_balance'] as num?)?.toDouble(),
     );
   }
+
+  bool get hasExtendedMetrics =>
+      actualBalance != null ||
+      committedBalance != null ||
+      onOrderBalance != null ||
+      requiredBalance != null;
 }
 
 class ClosingPreviewRow {
@@ -300,6 +323,19 @@ class ReportRepository {
       params: {'p_branch_id': branchId, 'p_as_of': date},
     );
     return (rows as List).cast<Map<String, dynamic>>().map(CurrencyPositionRow.fromJson).toList();
+  }
+
+  Future<List<CurrencyPositionRow>> fetchCurrencyPositionExtended(String branchId, {DateTime? asOf}) async {
+    final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
+    try {
+      final rows = await supabase.rpc(
+        'fx_get_currency_position_extended',
+        params: {'p_branch_id': branchId, 'p_as_of': date},
+      );
+      return (rows as List).cast<Map<String, dynamic>>().map(CurrencyPositionRow.fromJson).toList();
+    } catch (_) {
+      return fetchCurrencyPosition(branchId, asOf: asOf);
+    }
   }
 
   Future<List<ClosingPreviewRow>> fetchClosingPreview(String branchId, {DateTime? closingDate}) async {
