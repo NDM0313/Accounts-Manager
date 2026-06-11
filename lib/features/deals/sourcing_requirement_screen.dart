@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
@@ -23,9 +24,9 @@ class SourcingRequirementScreen extends ConsumerWidget {
     final timelineAsync = ref.watch(dealTimelineProvider(dealId));
     final fmt = NumberFormat('#,##0.00');
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(backgroundColor: context.fx.background, title: const Text('Sourcing Requirement')),
+    return FxPageScaffold(
+      fallbackRoute: '/deals/$dealId',
+      title: const Text('Sourcing Requirement'),
       body: dealAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -75,7 +76,7 @@ class SourcingRequirementScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               FxObsidianActionBar(
-                onCancel: () => context.pop(),
+                onCancel: () => fxSafePop(context, fallbackRoute: '/deals/$dealId'),
                 onSave: () => context.go('/deals/$dealId'),
                 saveLabel: 'Back to deal',
                 cancelLabel: 'Close',

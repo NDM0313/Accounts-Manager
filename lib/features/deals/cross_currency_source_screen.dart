@@ -1,4 +1,5 @@
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
@@ -54,8 +55,9 @@ class _CrossCurrencySourceScreenState extends ConsumerState<CrossCurrencySourceS
         ) ??
         [];
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Cross-Currency Source')),
+    return FxPageScaffold(
+      fallbackRoute: '/deals/${widget.dealId}',
+      title: const Text('Cross-Currency Source'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -119,7 +121,7 @@ class _CrossCurrencySourceScreenState extends ConsumerState<CrossCurrencySourceS
             FxPendingProofPicker(key: _proofPickerKey),
             const SizedBox(height: 24),
             FxObsidianActionBar(
-              onCancel: () => context.pop(),
+              onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
               onSave: _busy ? null : () => _submit(agentLegs),
               saveLabel: 'Save & link settlement',
               busy: _busy,

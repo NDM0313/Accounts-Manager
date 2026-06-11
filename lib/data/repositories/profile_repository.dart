@@ -16,6 +16,26 @@ class ProfileRepository {
     return FxUserProfile.fromJson(response);
   }
 
+  Future<CompanyAccountingContext> fetchCompanyAccountingContext(String companyId) async {
+    final company = await supabase
+        .from('fx_companies')
+        .select('base_currency_code')
+        .eq('id', companyId)
+        .maybeSingle();
+
+    final posted = await supabase
+        .from('fx_transactions')
+        .select('id')
+        .eq('company_id', companyId)
+        .eq('status', 'posted')
+        .limit(1);
+
+    return CompanyAccountingContext(
+      baseCurrencyCode: company?['base_currency_code'] as String? ?? 'PKR',
+      hasPostedTransactions: (posted as List).isNotEmpty,
+    );
+  }
+
   Future<BranchContext?> fetchBranchContext() async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return null;
@@ -53,4 +73,14 @@ class BranchContext {
   final String companyCode;
   final String branchName;
   final String branchCode;
+}
+
+class CompanyAccountingContext {
+  const CompanyAccountingContext({
+    required this.baseCurrencyCode,
+    required this.hasPostedTransactions,
+  });
+
+  final String baseCurrencyCode;
+  final bool hasPostedTransactions;
 }

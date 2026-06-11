@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_attachments_section.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
@@ -226,16 +227,12 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
     final currenciesAsync = ref.watch(currenciesProvider);
     final ratesAsync = ref.watch(ratesProvider);
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
-        title: Text(
-          widget.editDraftId != null
-              ? 'Edit Transaction'
-              : 'New ${widget.type.label}',
-        ),
+    return FxPageScaffold(
+      fallbackRoute: '/ledger',
+      title: Text(
+        widget.editDraftId != null
+            ? 'Edit Transaction'
+            : 'New ${widget.type.label}',
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -300,13 +297,9 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   }
 
   Widget _buildPostedEditScaffold(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
-        title: const Text('Edit Transaction'),
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/ledger',
+      title: const Text('Edit Transaction'),
       body: Form(
         key: _formKey,
         child: Column(
@@ -399,7 +392,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
             ),
             FxObsidianActionBar(
               busy: _busy,
-              onCancel: () => context.pop(),
+              onCancel: () => fxSafePop(context, fallbackRoute: '/ledger'),
               onSave: _savePostedEdit,
             ),
           ],

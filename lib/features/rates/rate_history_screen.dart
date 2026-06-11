@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/domain/models/fx_rate.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -50,15 +51,12 @@ class _RateHistoryScreenState extends ConsumerState<RateHistoryScreen> {
     final fmt = NumberFormat('#,##0.####');
     final dtFmt = DateFormat.yMMMd().add_jm();
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: Text('$code/PKR history', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-        ],
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/rates',
+      title: Text('$code/PKR history', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+      actions: [
+        IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+      ],
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/rates/new?currency=$code'),
         backgroundColor: context.fx.tertiary,

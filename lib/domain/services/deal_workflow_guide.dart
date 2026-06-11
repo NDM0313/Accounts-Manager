@@ -93,12 +93,14 @@ abstract final class DealWorkflowGuide {
     }
 
     final agentSrc = find(FxDealLegType.agentSource);
+    final agentSrcDone = agentSrc != null &&
+        (agentSrc.status == FxDealLegStatus.completed || has(FxDealLegType.currencyReceipt));
     steps.add(DealWorkflowStep(
       key: 'agent_source',
       label: 'Agent Source',
       status: agentSrc == null
           ? DealWorkflowStepStatus.skipped
-          : agentSrc.status == FxDealLegStatus.completed
+          : agentSrcDone
               ? DealWorkflowStepStatus.completed
               : DealWorkflowStepStatus.partial,
       amountLabel: agentSrc != null
@@ -185,6 +187,12 @@ abstract final class DealWorkflowGuide {
       nextTitle = 'Source currency from agent';
       nextRoute = '/deals/${deal.id}/legs/agent-source';
       warning = '${deal.sellCurrencyCode} may not be available in own balance — add agent source leg.';
+    } else if (has(FxDealLegType.agentSource) &&
+        pending(FxDealLegType.agentSource) &&
+        !has(FxDealLegType.currencyReceipt) &&
+        deal.status != FxDealStatus.completed) {
+      nextTitle = 'Confirm currency received from agent';
+      nextRoute = '/deals/${deal.id}/legs/currency-receipt';
     } else if (has(FxDealLegType.agentSource) &&
         !has(FxDealLegType.agentPayment) &&
         deal.status != FxDealStatus.completed) {

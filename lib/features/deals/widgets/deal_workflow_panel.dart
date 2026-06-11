@@ -7,6 +7,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/services/deal_workflow_guide.dart';
+import 'package:accounts_manager/domain/services/deal_workflow_narrative.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,10 +30,12 @@ class DealWorkflowPanel extends StatefulWidget {
 
 class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
   bool _expanded = false;
+  bool _helpExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final view = DealWorkflowGuide.build(deal: widget.deal, legs: widget.legs);
+    final help = DealWorkflowNarrative.buildHelp(deal: widget.deal, legs: widget.legs);
     final fx = context.fx;
 
     return FxObsidianReportPanel(
@@ -74,6 +77,21 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
             ),
           const SizedBox(height: 8),
           TextButton.icon(
+            onPressed: () => setState(() => _helpExpanded = !_helpExpanded),
+            icon: Icon(_helpExpanded ? Icons.expand_less : Icons.help_outline),
+            label: Text(_helpExpanded ? 'Hide workflow help' : 'Workflow help'),
+          ),
+          if (_helpExpanded) ...[
+            const Divider(height: 16),
+            _helpBlock(context, 'What this status means', help.statusMeaning),
+            _helpBlock(context, 'What to do next', help.whatToDoNext),
+            _helpBlock(context, 'What happens after', help.afterNextAction),
+            Text('Statements affected', style: AppTypography.bodyMd(fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 12)),
+            ...help.statementsAffected.map(
+              (s) => Text('• $s', style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+            ),
+          ],
+          TextButton.icon(
             onPressed: () => setState(() => _expanded = !_expanded),
             icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
             label: Text(_expanded ? 'Hide checklist' : 'Show step checklist'),
@@ -82,6 +100,19 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
             const Divider(height: 16),
             ...view.steps.where((s) => s.status != DealWorkflowStepStatus.skipped).map((s) => _StepRow(step: s)),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _helpBlock(BuildContext context, String title, String body) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 12)),
+          Text(body, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
         ],
       ),
     );
@@ -103,6 +134,8 @@ class _StepRow extends StatelessWidget {
       DealWorkflowStepStatus.skipped => const SizedBox.shrink(),
     };
 
+    final canGo = step.route != null && step.status != DealWorkflowStepStatus.completed;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -120,10 +153,15 @@ class _StepRow extends StatelessWidget {
                 if (step.partyName != null)
                   Text(step.partyName!, style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
                 if (step.attachmentCount > 0)
-                  Text('📎 ${step.attachmentCount} proof(s)', style: AppTypography.bodyMd(fx.tertiary, context: context).copyWith(fontSize: 11)),
+                  Text('${step.attachmentCount} proof(s)', style: AppTypography.bodyMd(fx.tertiary, context: context).copyWith(fontSize: 11)),
               ],
             ),
           ),
+          if (canGo)
+            TextButton(
+              onPressed: () => context.push(step.route!),
+              child: const Text('Go'),
+            ),
         ],
       ),
     );

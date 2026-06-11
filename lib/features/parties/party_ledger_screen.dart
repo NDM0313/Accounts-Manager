@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_party_statement_row.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
@@ -15,7 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:accounts_manager/core/export/fx_document_export.dart';
+import 'package:accounts_manager/core/export/report_pdf_builder.dart';
 
 class PartyLedgerScreen extends ConsumerStatefulWidget {
   const PartyLedgerScreen({super.key, required this.partyId});
@@ -45,22 +47,19 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
         : const AsyncValue<List<PartyDealOpenItem>>.data([]);
     final fmt = NumberFormat('#,##0.00');
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        title: partyAsync.when(
-          data: (p) => Text(p?.name ?? 'Party Statement'),
-          loading: () => const Text('Party Statement'),
-          error: (_, __) => const Text('Party Statement'),
-        ),
-        backgroundColor: context.fx.background,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () => _shareStatement(context, customerCopy: false),
-          ),
-        ],
+    return FxPageScaffold(
+      fallbackRoute: '/parties',
+      title: partyAsync.when(
+        data: (p) => Text(p?.name ?? 'Party Statement'),
+        loading: () => const Text('Party Statement'),
+        error: (_, __) => const Text('Party Statement'),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.share_outlined),
+          onPressed: () => _exportStatement(context, customerCopy: false),
+        ),
+      ],
       floatingActionButton: partyAsync.whenOrNull(
         data: (party) => party == null ? null : _buildFab(context, party),
       ),
@@ -399,21 +398,11 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.share_outlined),
-              title: const Text('Share Statement'),
+              leading: const Icon(Icons.ios_share_outlined),
+              title: const Text('Export / Print'),
               onTap: () {
                 Navigator.pop(ctx);
-                _shareStatement(context, customerCopy: true);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf_outlined),
-              title: const Text('Export PDF'),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('PDF export coming soon. Use Share for text/CSV.')),
-                );
+                _exportStatement(context, customerCopy: false);
               },
             ),
           ],
@@ -422,7 +411,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
     );
   }
 
-  Future<void> _shareStatement(BuildContext context, {required bool customerCopy}) async {
+  Future<void> _exportStatement(BuildContext context, {required bool customerCopy}) async {
     final view = ref.read(partyStatementProvider(widget.partyId)).whenOrNull(data: (v) => v);
     if (view == null || view.lines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -430,7 +419,42 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
       );
       return;
     }
-    final text = PartyStatementBuilder.formatShareText(view, internal: !customerCopy);
-    await SharePlus.instance.share(ShareParams(text: text, subject: 'Party Statement — ${view.party.name}'));
+    final internal = !customerCopy;
+    final text = PartyStatementBuilder.formatShareText(view, internal: internal);
+    final csv = PartyStatementBuilder.formatShareCsv(view);
+    final pdfRows = view.lines
+        .map((l) => [
+              l.transactionDate.toIso8601String().split('T').first,
+              l.transactionNo ?? l.transactionId.substring(0, 8),
+              l.transactionType.label,
+              l.currencyCode,
+              l.debitPkr.toStringAsFixed(2),
+              l.creditPkr.toStringAsFixed(2),
+              l.runningBalancePkr.toStringAsFixed(2),
+            ])
+        .toList();
+    final pdf = await buildStatementPdf(
+      title: 'Party Statement',
+      partyName: view.party.name,
+      periodLabel: '${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}',
+      displayCurrency: 'PKR',
+      lineRows: pdfRows,
+      totalDebit: view.summary.totalDebitPkr.toStringAsFixed(2),
+      totalCredit: view.summary.totalCreditPkr.toStringAsFixed(2),
+      closingBalance: view.summary.netBalancePkr.toStringAsFixed(2),
+      internal: internal,
+    );
+    if (!context.mounted) return;
+    await showFxExportSheet(
+      context,
+      mode: internal ? FxExportMode.internal : FxExportMode.customerFacing,
+      document: FxExportDocument(
+        title: 'Party Statement — ${view.party.name}',
+        textBody: text,
+        csvBody: csv,
+        pdfBytes: pdf,
+        subject: 'Party Statement — ${view.party.name}',
+      ),
+    );
   }
 }

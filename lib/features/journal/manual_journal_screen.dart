@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
@@ -74,13 +75,9 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
     final profileAsync = ref.watch(currentProfileProvider);
     final accountsAsync = ref.watch(accountsProvider);
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
-        title: const Text('Manual Journal'),
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/reports',
+      title: const Text('Manual Journal'),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
@@ -192,7 +189,7 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
           FxObsidianActionBar(
             busy: _busy,
             saveLabel: 'Post journal',
-            onCancel: () => context.pop(),
+            onCancel: () => fxSafePop(context, fallbackRoute: '/reports'),
             onSave: _canPost ? () => _post(profile, accounts) : null,
           ),
         ],

@@ -155,7 +155,10 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
           ),
         );
       }
-      ref.invalidate(partiesProvider(null));
+      ref.invalidate(partiesProvider);
+      if (widget.partyId != null) {
+        ref.invalidate(partyDetailProvider(widget.partyId!));
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Party saved.')));
         context.pop();

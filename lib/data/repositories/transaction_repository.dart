@@ -541,6 +541,17 @@ class TransactionRepository {
     return FxJournalEntry.fromJson(list.first as Map<String, dynamic>);
   }
 
+  Future<String?> fetchTransactionIdByNo(String branchId, String transactionNo) async {
+    final row = await supabase
+        .from('fx_transactions')
+        .select('id')
+        .eq('branch_id', branchId)
+        .eq('transaction_no', transactionNo)
+        .eq('is_deleted', false)
+        .maybeSingle();
+    return row?['id'] as String?;
+  }
+
   Future<FxJournalEntry> fetchJournalEntry(String entryId) async {
     final row = await supabase
         .from('fx_journal_entries')

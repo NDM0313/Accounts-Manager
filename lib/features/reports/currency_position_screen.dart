@@ -1,9 +1,12 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
+import 'package:accounts_manager/core/export/fx_report_export.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +22,9 @@ class CurrencyPositionScreen extends ConsumerWidget {
     final fmt = NumberFormat('#,##0.00');
     final dateLabel = asOf.toIso8601String().split('T').first;
     final extended = FeatureFlags.dealsWorkflowEnabled;
+    final currencyView = ref.watch(reportCurrencyViewProvider);
+    final userDisplayCode = ref.watch(displayCurrencyCodeProvider);
+    final converter = ref.watch(currencyConverterAsOfProvider(asOf)).whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -26,6 +32,21 @@ class CurrencyPositionScreen extends ConsumerWidget {
         backgroundColor: context.fx.background,
         title: const Text('Currency Position'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share),
+            tooltip: 'Export',
+            onPressed: () async {
+              final rows = await ref.read(currencyPositionProvider.future);
+              if (!context.mounted) return;
+              await exportCurrencyPositionReport(
+                context,
+                rows: rows,
+                dateLabel: dateLabel,
+                converter: converter,
+                view: currencyView,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.calendar_today_outlined),
             onPressed: () => _pickDate(context, ref, asOf),
@@ -54,13 +75,29 @@ class CurrencyPositionScreen extends ConsumerWidget {
                     style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
                   ),
                 ),
+              const SizedBox(height: 8),
+              ref.watch(companyAccountingContextProvider).maybeWhen(
+                    data: (ctx) => FxReportCurrencyToggle(
+                      view: currencyView,
+                      displayCurrencyCode: userDisplayCode,
+                      baseCurrencyCode: ctx.baseCurrencyCode,
+                      onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                    ),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
               const SizedBox(height: 16),
               FxObsidianReportPanel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Total PKR equivalent', style: AppTypography.labelCaps(context.fx.outline, context: context)),
-                    Text(fmt.format(totalPkr), style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                    converter != null
+                        ? FxConvertedAmount(
+                            pkrAmount: totalPkr,
+                            converter: converter,
+                            style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+                          )
+                        : Text(fmt.format(totalPkr), style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
                   ],
                 ),
               ),
@@ -82,7 +119,12 @@ class CurrencyPositionScreen extends ConsumerWidget {
                                 style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18),
                               ),
                             ),
-                            Text('PKR ${fmt.format(r.baseEquivalentPkr)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                            converter != null
+                                ? Text(
+                                    formatReportAmount(pkrAmount: r.baseEquivalentPkr, converter: converter, view: currencyView, fmt: fmt),
+                                    style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                                  )
+                                : Text('PKR ${fmt.format(r.baseEquivalentPkr)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (showExtended) ...[

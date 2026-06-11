@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/report_export.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -31,19 +32,16 @@ class ChartOfAccountsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsAsync = ref.watch(accountsProvider);
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        title: const Text('Chart of Accounts'),
-        backgroundColor: context.fx.background,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.ios_share),
-            tooltip: 'Export CSV',
-            onPressed: () => _export(context, ref),
-          ),
-        ],
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/accounts-hub',
+      title: const Text('Chart of Accounts'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.ios_share),
+          tooltip: 'Export CSV',
+          onPressed: () => _export(context, ref),
+        ),
+      ],
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

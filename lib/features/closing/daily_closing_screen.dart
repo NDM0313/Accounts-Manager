@@ -1,9 +1,11 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/export/fx_report_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_closing_report_view.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_dialog.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,18 +37,26 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
     final dateLabel = closingDate.toIso8601String().split('T').first;
     final horizontal = MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile;
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        title: const Text('Daily Closing'),
-        backgroundColor: context.fx.background,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today_outlined),
-            onPressed: () => _pickDate(context, ref, closingDate),
-          ),
-        ],
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/settings',
+      title: const Text('Daily Closing'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.ios_share),
+          tooltip: 'Export closing report',
+          onPressed: closedAsync.whenOrNull(data: (closed) => closed) == true
+              ? () async {
+                  final rows = await ref.read(closingPreviewProvider.future);
+                  if (!context.mounted) return;
+                  await exportDailyClosingReport(context, rows: rows, dateLabel: dateLabel);
+                }
+              : null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.calendar_today_outlined),
+          onPressed: () => _pickDate(context, ref, closingDate),
+        ),
+      ],
       body: ListView(
         padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 24),
         children: [

@@ -4,6 +4,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
@@ -229,13 +230,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
       });
     });
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
-        title: const Text('Chained Exchange'),
-        backgroundColor: context.fx.background,
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/ledger',
+      title: const Text('Chained Exchange'),
       body: currenciesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

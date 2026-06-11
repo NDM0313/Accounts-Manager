@@ -134,20 +134,30 @@ abstract final class PartyStatementBuilder {
 
   static String formatShareText(PartyStatementView view, {required bool internal}) {
     final buf = StringBuffer();
-    buf.writeln('Party Statement — ${view.party.name} (${view.party.partyType.label})');
+    buf.writeln('FX Cash Ledger — Party Statement');
+    buf.writeln('${view.party.name} (${view.party.partyType.label})');
     buf.writeln('Period: ${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}');
-    buf.writeln('Net balance (PKR): ${view.summary.netBalancePkr.toStringAsFixed(2)}');
+    buf.writeln('Closing balance (PKR): ${view.summary.netBalancePkr.toStringAsFixed(2)}');
     buf.writeln('');
+    buf.writeln('Date       Ref          Type              Dr PKR    Cr PKR    Balance');
     for (final line in view.lines) {
       buf.write('${line.transactionDate.toIso8601String().split('T').first} ');
-      buf.write('${line.transactionNo ?? line.transactionId.substring(0, 8)} ');
-      buf.write('${line.transactionType.label} ');
-      buf.write('${line.foreignAmount.toStringAsFixed(2)} ${line.currencyCode} ');
-      buf.write('Dr ${line.debitPkr.toStringAsFixed(2)} Cr ${line.creditPkr.toStringAsFixed(2)} ');
-      buf.writeln('Bal ${line.runningBalancePkr.toStringAsFixed(2)}');
+      buf.write('${(line.transactionNo ?? line.transactionId.substring(0, 8)).padRight(12)} ');
+      buf.write('${line.transactionType.label.padRight(18)} ');
+      buf.write('${line.debitPkr.toStringAsFixed(0).padLeft(8)} ');
+      buf.write('${line.creditPkr.toStringAsFixed(0).padLeft(8)} ');
+      buf.writeln('${line.runningBalancePkr.toStringAsFixed(0).padLeft(10)}');
+      if (internal) {
+        buf.writeln('  ${line.foreignAmount.toStringAsFixed(2)} ${line.currencyCode} @ ${line.rateUsed}');
+      }
     }
+    buf.writeln('');
+    buf.writeln('Total debit PKR: ${view.summary.totalDebitPkr.toStringAsFixed(2)}');
+    buf.writeln('Total credit PKR: ${view.summary.totalCreditPkr.toStringAsFixed(2)}');
     if (!internal) {
-      buf.writeln('\n— Customer copy (internal details omitted) —');
+      buf.writeln('\n— Customer copy: internal rates and notes omitted —');
+    } else {
+      buf.writeln('\nInternal ledger statement');
     }
     return buf.toString();
   }

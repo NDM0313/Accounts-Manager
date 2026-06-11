@@ -1,10 +1,13 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/utils/report_export.dart';
-import 'package:accounts_manager/data/repositories/report_repository.dart';
+import 'package:accounts_manager/core/export/fx_report_export.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/data/repositories/report_repository.dart';
+import 'package:accounts_manager/domain/services/reporting_currency_converter.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +22,9 @@ class ProfitLossScreen extends ConsumerWidget {
     final fmt = NumberFormat('#,##0.00');
     final fromLabel = range.from.toIso8601String().split('T').first;
     final toLabel = range.to.toIso8601String().split('T').first;
+    final currencyView = ref.watch(reportCurrencyViewProvider);
+    final displayCode = ref.watch(displayCurrencyCodeProvider);
+    final converter = ref.watch(currencyConverterAsOfProvider(range.to)).whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -28,19 +34,17 @@ class ProfitLossScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.ios_share),
-            tooltip: 'Export CSV',
+            tooltip: 'Export',
             onPressed: () async {
               final rows = await ref.read(profitLossProvider.future);
               if (!context.mounted) return;
-              if (rows.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No P&L data to export.')),
-                );
-                return;
-              }
-              await shareReportCsv(
-                csv: formatProfitLossCsv(rows),
-                subject: 'FX Ledger P&L $fromLabel to $toLabel',
+              await exportProfitLossReport(
+                context,
+                rows: rows,
+                fromLabel: fromLabel,
+                toLabel: toLabel,
+                converter: converter,
+                view: currencyView,
               );
             },
           ),
@@ -70,6 +74,16 @@ class ProfitLossScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Text('$fromLabel → $toLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              const SizedBox(height: 8),
+              ref.watch(companyAccountingContextProvider).maybeWhen(
+                    data: (ctx) => FxReportCurrencyToggle(
+                      view: currencyView,
+                      displayCurrencyCode: displayCode,
+                      baseCurrencyCode: ctx.baseCurrencyCode,
+                      onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                    ),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
               const SizedBox(height: 16),
               FxObsidianReportPanel(
                 child: Row(
@@ -79,18 +93,34 @@ class ProfitLossScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Net profit', style: AppTypography.labelCaps(context.fx.outline, context: context)),
-                          Text(
-                            fmt.format(net),
-                            style: AppTypography.headlineMd(net >= 0 ? context.fx.tertiary : context.fx.error, context: context),
-                          ),
+                          converter != null
+                              ? FxConvertedAmount(
+                                  pkrAmount: net,
+                                  converter: converter,
+                                  style: AppTypography.headlineMd(net >= 0 ? context.fx.tertiary : context.fx.error, context: context),
+                                )
+                              : Text(
+                                  fmt.format(net),
+                                  style: AppTypography.headlineMd(net >= 0 ? context.fx.tertiary : context.fx.error, context: context),
+                                ),
                         ],
                       ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Income ${fmt.format(totalIncome)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                        Text('Expense ${fmt.format(totalExpense)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                        Text(
+                          converter != null
+                              ? 'Income ${formatReportAmount(pkrAmount: totalIncome, converter: converter, view: currencyView, fmt: fmt)}'
+                              : 'Income ${fmt.format(totalIncome)}',
+                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                        ),
+                        Text(
+                          converter != null
+                              ? 'Expense ${formatReportAmount(pkrAmount: totalExpense, converter: converter, view: currencyView, fmt: fmt)}'
+                              : 'Expense ${fmt.format(totalExpense)}',
+                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                        ),
                       ],
                     ),
                   ],
@@ -99,12 +129,12 @@ class ProfitLossScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               FxObsidianReportSection(
                 label: 'Income',
-                children: income.map((r) => _row(context, fmt, r)).toList(),
+                children: income.map((r) => _row(context, fmt, r, converter, currencyView)).toList(),
               ),
               const SizedBox(height: 16),
               FxObsidianReportSection(
                 label: 'Expense',
-                children: expense.map((r) => _row(context, fmt, r)).toList(),
+                children: expense.map((r) => _row(context, fmt, r, converter, currencyView)).toList(),
               ),
             ],
           );
@@ -113,7 +143,7 @@ class ProfitLossScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(BuildContext context, NumberFormat fmt, ProfitLossRow r) {
+  Widget _row(BuildContext context, NumberFormat fmt, ProfitLossRow r, ReportingCurrencyConverter? converter, ReportCurrencyView currencyView) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: FxObsidianReportPanel(
@@ -126,7 +156,12 @@ class ProfitLossScreen extends ConsumerWidget {
                 style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
               ),
             ),
-            Text(fmt.format(r.amountPkr), style: AppTypography.labelMono(context.fx.onSurface, context: context)),
+            converter != null
+                ? Text(
+                    formatReportAmount(pkrAmount: r.amountPkr, converter: converter, view: currencyView, fmt: fmt),
+                    style: AppTypography.labelMono(context.fx.onSurface, context: context),
+                  )
+                : Text(fmt.format(r.amountPkr), style: AppTypography.labelMono(context.fx.onSurface, context: context)),
           ],
         ),
       ),

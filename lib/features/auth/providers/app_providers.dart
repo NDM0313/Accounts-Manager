@@ -448,6 +448,11 @@ final dealTimelineProvider = FutureProvider.family<List<FxDealLeg>, String>((ref
   return ref.read(dealRepositoryProvider).fetchTimeline(dealId);
 });
 
+final dealLegMetaProvider = FutureProvider.family<List<FxDealLeg>, String>((ref, dealId) async {
+  ref.watch(dealsRefreshProvider);
+  return ref.read(dealRepositoryProvider).fetchLegMeta(dealId);
+});
+
 final partyDealOpenItemsProvider = FutureProvider.family<List<PartyDealOpenItem>, String>((ref, partyId) async {
   ref.watch(dealsRefreshProvider);
   try {
@@ -481,6 +486,23 @@ final partiesProvider = FutureProvider.family<List<FxParty>, FxPartyType?>((ref,
         companyId: profile.companyId,
         partyType: filter,
       );
+});
+
+class CustomerOrderPartyChoices {
+  const CustomerOrderPartyChoices({required this.parties, required this.isFallback});
+
+  final List<FxParty> parties;
+  final bool isFallback;
+}
+
+final customerOrderPartyChoicesProvider = FutureProvider<CustomerOrderPartyChoices>((ref) async {
+  final customers = await ref.watch(partiesProvider(FxPartyType.customer).future);
+  if (customers.isNotEmpty) {
+    return CustomerOrderPartyChoices(parties: customers, isFallback: false);
+  }
+  final all = await ref.watch(partiesProvider(null).future);
+  final sorted = [...all]..sort((a, b) => a.name.compareTo(b.name));
+  return CustomerOrderPartyChoices(parties: sorted, isFallback: true);
 });
 
 final partyDetailProvider = FutureProvider.family<FxParty?, String>((ref, partyId) async {

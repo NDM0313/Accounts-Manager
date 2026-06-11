@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +17,9 @@ class JournalEntryDetailScreen extends ConsumerWidget {
     final entryAsync = ref.watch(journalEntryProvider(entryId));
     final fmt = NumberFormat('#,##0.00');
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: const Text('Journal Entry'),
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/ledger',
+      title: const Text('Journal Entry'),
       body: entryAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

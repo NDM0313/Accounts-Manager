@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
@@ -8,6 +9,7 @@ import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
 import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/core/utils/pending_proof_upload.dart';
+import 'package:accounts_manager/domain/services/deal_leg_permissions.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/deals/widgets/deal_workflow_panel.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +19,10 @@ import 'package:intl/intl.dart';
 
 /// Screen 3 — Agent source leg (Agent C provides RMB, wants AED).
 class AgentSourceLegScreen extends ConsumerStatefulWidget {
-  const AgentSourceLegScreen({super.key, required this.dealId});
+  const AgentSourceLegScreen({super.key, required this.dealId, this.legId});
 
   final String dealId;
+  final String? legId;
 
   @override
   ConsumerState<AgentSourceLegScreen> createState() => _AgentSourceLegScreenState();
@@ -37,7 +40,19 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
   String? _payCurrency;
   FxDeliveryTarget _deliveryTarget = FxDeliveryTarget.ourAccount;
   bool _busy = false;
+  bool _loadingLeg = false;
   final _proofPickerKey = GlobalKey<FxPendingProofPickerState>();
+
+  bool get _isEdit => widget.legId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEdit) {
+      _loadingLeg = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadLegForEdit());
+    }
+  }
 
   @override
   void dispose() {
@@ -50,6 +65,44 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
 
   double? get _receiveAmount => double.tryParse(_receiveAmountCtrl.text);
 
+  Future<void> _loadLegForEdit() async {
+    try {
+      final leg = await ref.read(dealRepositoryProvider).fetchLeg(widget.legId!);
+      if (!mounted || leg == null) return;
+      setState(() {
+        _agentId = leg.counterpartyPartyId;
+        _receiveCurrency = leg.receiveCurrency;
+        _payCurrency = leg.payCurrency ?? 'AED';
+        _deliveryTarget = leg.deliveryTarget ?? FxDeliveryTarget.ourAccount;
+        _receiveAmountCtrl.text = leg.receiveAmount > 0 ? leg.receiveAmount.toString() : '';
+        _payAmountCtrl.text = leg.payAmount > 0 ? leg.payAmount.toString() : '';
+        if (leg.rateUsed != null) _rateCtrl.text = leg.rateUsed.toString();
+        _notesCtrl.text = leg.notes ?? '';
+        _loadingLeg = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingLeg = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
+  void _maybeWarnDuplicate() {
+    if (_isEdit) return;
+    final legs = ref.read(dealTimelineProvider(widget.dealId)).whenOrNull(data: (v) => v);
+    if (legs == null) return;
+    if (DealLegPermissions.hasPendingLegOfType(legs, FxDealLegType.agentSource)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Pending Agent Source already exists — edit it from the timeline or add another intentionally.',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
@@ -57,21 +110,33 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
     final payCurrency = _payCurrency ?? 'AED';
     final receiveCurrency = _receiveCurrency;
 
-    dealAsync.whenData((deal) {
-      if (deal != null && _receiveCurrency == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _receiveCurrency == null) {
-            setState(() {
-              _receiveCurrency = deal.sellCurrencyCode;
-              _receiveAmountCtrl.text = deal.sellAmount.toString();
-            });
-          }
-        });
-      }
-    });
+    if (!_isEdit) {
+      dealAsync.whenData((deal) {
+        if (deal != null && _receiveCurrency == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _receiveCurrency == null) {
+              setState(() {
+                _receiveCurrency = deal.sellCurrencyCode;
+                _receiveAmountCtrl.text = deal.sellAmount.toString();
+              });
+              _maybeWarnDuplicate();
+            }
+          });
+        }
+      });
+    }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Agent Source Leg')),
+    if (_loadingLeg) {
+      return FxPageScaffold(
+        fallbackRoute: '/deals/${widget.dealId}',
+        title: Text(_isEdit ? 'Edit Agent Source' : 'Agent Source Leg'),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return FxPageScaffold(
+      fallbackRoute: '/deals/${widget.dealId}',
+      title: Text(_isEdit ? 'Edit Agent Source' : 'Agent Source Leg'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -142,13 +207,15 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
               onChanged: (v) => setState(() => _deliveryTarget = v ?? FxDeliveryTarget.ourAccount),
             ),
             FxObsidianFormField(controller: _notesCtrl, label: 'Notes / reference no.', maxLines: 2),
-            const SizedBox(height: 12),
-            FxPendingProofPicker(key: _proofPickerKey),
+            if (!_isEdit) ...[
+              const SizedBox(height: 12),
+              FxPendingProofPicker(key: _proofPickerKey),
+            ],
             const SizedBox(height: 24),
             FxObsidianActionBar(
-              onCancel: () => context.pop(),
+              onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
               onSave: _busy ? null : _confirmAndSubmit,
-              saveLabel: 'Save leg',
+              saveLabel: _isEdit ? 'Save changes' : 'Save leg',
               busy: _busy,
             ),
           ],
@@ -168,7 +235,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirm agent source leg'),
+        title: Text(_isEdit ? 'Confirm changes' : 'Confirm agent source leg'),
         content: Text(
           'Receive ${fmt.format(receive)} $receiveCurrency from agent\n'
           'Pay ${fmt.format(pay)} $payCurrency\n'
@@ -198,28 +265,48 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
         side: RateSide.reference,
         lockedBy: supabase.auth.currentUser?.id,
       );
-      final legId = await ref.read(dealRepositoryProvider).addLeg(
+      final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
+      final receiveAmount = double.parse(_receiveAmountCtrl.text);
+      final payAmount = double.tryParse(_payAmountCtrl.text) ?? 0;
+      final rateUsed = double.tryParse(_rateCtrl.text);
+
+      if (_isEdit) {
+        await ref.read(dealRepositoryProvider).updateLeg(
+              legId: widget.legId!,
+              counterpartyPartyId: _agentId,
+              receiveCurrency: _receiveCurrency,
+              receiveAmount: receiveAmount,
+              payCurrency: _payCurrency ?? 'AED',
+              payAmount: payAmount,
+              rateUsed: rateUsed,
+              deliveryTarget: _deliveryTarget,
+              notes: notes,
+              rateSnapshot: rateSnapshot,
+            );
+      } else {
+        final legId = await ref.read(dealRepositoryProvider).addLeg(
+              dealId: widget.dealId,
+              legType: FxDealLegType.agentSource,
+              counterpartyPartyId: _agentId,
+              receiveCurrency: _receiveCurrency,
+              receiveAmount: receiveAmount,
+              payCurrency: _payCurrency ?? 'AED',
+              payAmount: payAmount,
+              rateUsed: rateUsed,
+              deliveryTarget: _deliveryTarget,
+              notes: notes,
+              rateSnapshot: rateSnapshot,
+            );
+        final profile = await ref.read(currentProfileProvider.future);
+        if (profile != null) {
+          await uploadPendingProofsForLeg(
+            ref: ref,
+            branchId: profile.branchId,
             dealId: widget.dealId,
-            legType: FxDealLegType.agentSource,
-            counterpartyPartyId: _agentId,
-            receiveCurrency: _receiveCurrency,
-            receiveAmount: double.parse(_receiveAmountCtrl.text),
-            payCurrency: _payCurrency ?? 'AED',
-            payAmount: double.tryParse(_payAmountCtrl.text) ?? 0,
-            rateUsed: double.tryParse(_rateCtrl.text),
-            deliveryTarget: _deliveryTarget,
-            notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-            rateSnapshot: rateSnapshot,
+            legId: legId,
+            files: _proofPickerKey.currentState?.files ?? [],
           );
-      final profile = await ref.read(currentProfileProvider.future);
-      if (profile != null) {
-        await uploadPendingProofsForLeg(
-          ref: ref,
-          branchId: profile.branchId,
-          dealId: widget.dealId,
-          legId: legId,
-          files: _proofPickerKey.currentState?.files ?? [],
-        );
+        }
       }
       ref.read(dealsRefreshProvider.notifier).refresh();
       if (mounted) context.go('/deals/${widget.dealId}');

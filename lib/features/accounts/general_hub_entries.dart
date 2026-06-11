@@ -16,6 +16,12 @@ class GeneralHubEntry {
 
 const generalHubEntries = [
   GeneralHubEntry(
+    title: 'Opening Balances',
+    subtitle: 'Starting balances setup',
+    icon: Icons.account_balance_wallet_outlined,
+    route: '/opening-balances',
+  ),
+  GeneralHubEntry(
     title: 'Rate Board',
     subtitle: 'Reference FX rates',
     icon: Icons.currency_exchange_outlined,

@@ -26,7 +26,9 @@ import 'package:accounts_manager/features/reports/general_ledger_screen.dart';
 import 'package:accounts_manager/features/reports/profit_loss_screen.dart';
 import 'package:accounts_manager/features/reports/reports_hub_screen.dart';
 import 'package:accounts_manager/features/reports/trial_balance_screen.dart';
+import 'package:accounts_manager/features/guide/fx_workflow_guide_screen.dart';
 import 'package:accounts_manager/features/settings/currency_management_screen.dart';
+import 'package:accounts_manager/features/settings/currency_settings_screen.dart';
 import 'package:accounts_manager/features/settings/settings_screen.dart';
 import 'package:accounts_manager/features/transactions/chained_exchange_wizard_screen.dart';
 import 'package:accounts_manager/features/transactions/transaction_audit_screen.dart';
@@ -42,6 +44,8 @@ import 'package:accounts_manager/features/deals/delivery_confirmation_screen.dar
 import 'package:accounts_manager/features/deals/new_customer_fx_order_screen.dart';
 import 'package:accounts_manager/features/deals/sourcing_requirement_screen.dart';
 import 'package:accounts_manager/features/ledger/ledger_hub_screen.dart';
+import 'package:accounts_manager/features/opening_balance/opening_balance_hub_screen.dart';
+import 'package:accounts_manager/features/opening_balance/opening_balance_wizard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -156,7 +160,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/deals/:id/legs/agent-source',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return AuthGate(child: AgentSourceLegScreen(dealId: id));
+          final legId = state.uri.queryParameters['legId'];
+          return AuthGate(child: AgentSourceLegScreen(dealId: id, legId: legId));
         },
       ),
       GoRoute(
@@ -170,8 +175,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/deals/:id/legs/agent-payment',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
+          final legId = state.uri.queryParameters['legId'];
           return AuthGate(
-            child: DealSettlementLegScreen(dealId: id, legType: FxDealLegType.agentPayment),
+            child: DealSettlementLegScreen(
+              dealId: id,
+              legType: FxDealLegType.agentPayment,
+              legId: legId,
+            ),
           );
         },
       ),
@@ -179,8 +189,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/deals/:id/legs/currency-receipt',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
+          final legId = state.uri.queryParameters['legId'];
           return AuthGate(
-            child: DealSettlementLegScreen(dealId: id, legType: FxDealLegType.currencyReceipt),
+            child: DealSettlementLegScreen(
+              dealId: id,
+              legType: FxDealLegType.currencyReceipt,
+              legId: legId,
+            ),
           );
         },
       ),
@@ -190,6 +205,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return AuthGate(child: DeliveryConfirmationScreen(dealId: id));
         },
+      ),
+      GoRoute(
+        path: '/settings/currency-settings',
+        builder: (context, state) => const AuthGate(child: CurrencySettingsScreen()),
+      ),
+      GoRoute(
+        path: '/guide/fx-workflow',
+        builder: (context, state) => const AuthGate(child: FxWorkflowGuideScreen()),
       ),
       GoRoute(
         path: '/settings/currencies',
@@ -304,6 +327,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final partyId = state.pathParameters['partyId']!;
           return AuthGate(child: PartyLedgerScreen(partyId: partyId));
         },
+      ),
+      GoRoute(
+        path: '/opening-balances',
+        builder: (context, state) => const AuthGate(child: OpeningBalanceHubScreen()),
+      ),
+      GoRoute(
+        path: '/opening-balances/wizard',
+        builder: (context, state) => const AuthGate(child: OpeningBalanceWizardScreen()),
       ),
       GoRoute(
         path: '/journal/:entryId',

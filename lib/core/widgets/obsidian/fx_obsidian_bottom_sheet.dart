@@ -44,7 +44,8 @@ class FxObsidianBottomSheet {
                   ),
                   for (final type in FxTransactionType.values.where((t) =>
                       t != FxTransactionType.manualJournal &&
-                      t != FxTransactionType.dailyClosingAdjustment))
+                      t != FxTransactionType.dailyClosingAdjustment &&
+                      t != FxTransactionType.openingBalance))
                     _ActionRow(
                       icon: _iconForType(type),
                       label: type.label,
@@ -59,6 +60,14 @@ class FxObsidianBottomSheet {
                     onTap: () {
                       Navigator.pop(ctx);
                       context.push('/transactions/chained-exchange');
+                    },
+                  ),
+                  _ActionRow(
+                    icon: Icons.account_balance_wallet_outlined,
+                    label: 'Opening Balances',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      context.push('/opening-balances/wizard');
                     },
                   ),
                   if (FeatureFlags.dealsWorkflowEnabled)

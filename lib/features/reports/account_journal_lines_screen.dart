@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -22,12 +23,9 @@ class AccountJournalLinesScreen extends ConsumerWidget {
     final fmt = NumberFormat('#,##0.00');
     final dateLabel = asOf.toIso8601String().split('T').first;
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: Text('Account $accountCode'),
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/reports/trial-balance',
+      title: Text('Account $accountCode'),
       body: linesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

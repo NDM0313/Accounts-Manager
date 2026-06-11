@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/env.dart';
-import 'package:accounts_manager/core/utils/transaction_receipt.dart';
+import 'package:accounts_manager/core/utils/report_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_settings_row.dart';
@@ -110,6 +110,12 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: 'Add PKR, USD, AED, GBP…',
                 onTap: () => context.push('/settings/currencies'),
               ),
+              FxSettingsRow(
+                icon: Icons.tune_outlined,
+                title: 'Currency Settings',
+                subtitle: 'Base currency & display/reporting currency',
+                onTap: () => context.push('/settings/currency-settings'),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -138,6 +144,19 @@ class SettingsScreen extends ConsumerWidget {
                   onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
                 ),
                 onTap: () => ref.read(themeModeProvider.notifier).toggle(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          FxSectionLabel(label: 'Ledger setup'),
+          const SizedBox(height: 8),
+          _SettingsGroup(
+            children: [
+              FxSettingsRow(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'Opening Balances',
+                subtitle: 'Enter starting cash, FX & party balances',
+                onTap: () => context.push('/opening-balances'),
               ),
             ],
           ),

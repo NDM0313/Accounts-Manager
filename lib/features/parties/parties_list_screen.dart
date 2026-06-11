@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -30,12 +30,11 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        title: Text(widget.initialFilter == FxPartyType.agent ? 'Agent Ledger' : 'Parties'),
-        backgroundColor: context.fx.background,
-      ),
+    final fallback = widget.initialFilter == FxPartyType.agent ? '/accounts-hub' : '/parties';
+
+    return FxPageScaffold(
+      fallbackRoute: fallback,
+      title: Text(widget.initialFilter == FxPartyType.agent ? 'Agent Ledger' : 'Parties'),
       floatingActionButton: widget.initialFilter == FxPartyType.agent
           ? null
           : FloatingActionButton(

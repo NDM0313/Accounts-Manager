@@ -1,9 +1,12 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/export/fx_report_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_account_statement_table.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +24,9 @@ class AccountStatementScreen extends ConsumerWidget {
     final fromLabel = range.from.toIso8601String().split('T').first;
     final toLabel = range.to.toIso8601String().split('T').first;
     final isWide = MediaQuery.sizeOf(context).width >= 720;
+    final currencyView = ref.watch(reportCurrencyViewProvider);
+    final userDisplayCode = ref.watch(displayCurrencyCodeProvider);
+    final converter = ref.watch(currencyConverterAsOfProvider(range.to)).whenOrNull(data: (v) => v);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,8 +81,37 @@ class AccountStatementScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            if (accountCode != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.ios_share),
+                tooltip: 'Export',
+                onPressed: () async {
+                  final view = ref.read(accountStatementProvider).whenOrNull(data: (v) => v);
+                  if (view == null || !context.mounted) return;
+                  await exportAccountStatementReport(
+                    context,
+                    view: view,
+                    converter: converter,
+                    currencyView: currencyView,
+                  );
+                },
+              ),
+            ],
           ],
         ),
+        if (accountCode != null) ...[
+          const SizedBox(height: 8),
+          ref.watch(companyAccountingContextProvider).maybeWhen(
+                data: (ctx) => FxReportCurrencyToggle(
+                  view: currencyView,
+                  displayCurrencyCode: userDisplayCode,
+                  baseCurrencyCode: ctx.baseCurrencyCode,
+                  onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+        ],
         const SizedBox(height: 16),
         Expanded(
           child: accountCode == null
@@ -122,11 +157,23 @@ class AccountStatementScreen extends ConsumerWidget {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: _summaryTile(context, 'Opening', fmt.format(view.openingBalancePkr)),
+                                    child: _summaryTile(
+                                      context,
+                                      'Opening',
+                                      converter != null
+                                          ? formatReportAmount(pkrAmount: view.openingBalancePkr, converter: converter, view: currencyView, fmt: fmt)
+                                          : fmt.format(view.openingBalancePkr),
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _summaryTile(context, 'Closing', fmt.format(view.closingBalancePkr)),
+                                    child: _summaryTile(
+                                      context,
+                                      'Closing',
+                                      converter != null
+                                          ? formatReportAmount(pkrAmount: view.closingBalancePkr, converter: converter, view: currencyView, fmt: fmt)
+                                          : fmt.format(view.closingBalancePkr),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -169,7 +216,9 @@ class AccountStatementScreen extends ConsumerWidget {
                                         Text('Dr ${fmt.format(line.debitPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
                                         Text('Cr ${fmt.format(line.creditPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
                                         Text(
-                                          'Bal ${fmt.format(line.runningBalancePkr)}',
+                                          converter != null
+                                              ? 'Bal ${formatReportAmount(pkrAmount: line.runningBalancePkr, converter: converter, view: currencyView, fmt: fmt)}'
+                                              : 'Bal ${fmt.format(line.runningBalancePkr)}',
                                           style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 11),
                                         ),
                                       ],

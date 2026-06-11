@@ -1,4 +1,3 @@
-import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -42,12 +41,4 @@ Future<void> shareTransactionReceipt(FxTransaction tx, {String? subject}) {
     text: formatTransactionReceipt(tx),
     subject: subject ?? 'FX Ledger Receipt ${tx.transactionNo ?? tx.id.substring(0, 8)}',
   ));
-}
-
-String formatTrialBalanceCsv(List<TrialBalanceRow> rows) {
-  final buf = StringBuffer('Account Code,Account Name,Debit PKR,Credit PKR,Net PKR\n');
-  for (final r in rows) {
-    buf.writeln('${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.debitPkr},${r.creditPkr},${r.netPkr}');
-  }
-  return buf.toString();
 }

@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
@@ -122,12 +123,9 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
       RateFormMode.duplicate => 'Duplicate rate',
     };
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-      ),
+    return FxPageScaffold(
+      fallbackRoute: '/rates',
+      title: Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
@@ -306,7 +304,7 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                   FxObsidianActionBar(
                     busy: _busy,
                     saveLabel: widget.mode == RateFormMode.editVersion ? 'Save new version' : 'Save rate',
-                    onCancel: _busy ? () {} : () => context.pop(),
+                    onCancel: _busy ? () {} : () => fxSafePop(context, fallbackRoute: '/rates'),
                     onSave: _busy ? () {} : () => _save(profile.branchId),
                   ),
                 ],

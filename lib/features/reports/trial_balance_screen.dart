@@ -1,9 +1,11 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/utils/report_export.dart';
+import 'package:accounts_manager/core/export/fx_report_export.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +21,9 @@ class TrialBalanceScreen extends ConsumerWidget {
     final totalsAsync = ref.watch(trialBalanceTotalsProvider);
     final fmt = NumberFormat('#,##0.00');
     final dateLabel = asOf.toIso8601String().split('T').first;
+    final currencyView = ref.watch(reportCurrencyViewProvider);
+    final displayCode = ref.watch(displayCurrencyCodeProvider);
+    final converter = ref.watch(reportCurrencyConverterProvider).whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -28,20 +33,16 @@ class TrialBalanceScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.ios_share),
-            tooltip: 'Export CSV',
+            tooltip: 'Export',
             onPressed: () async {
               final rows = await ref.read(trialBalanceProvider.future);
               if (!context.mounted) return;
-              if (rows.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No trial balance data to export.')),
-                );
-                return;
-              }
-              final dateLabel = asOf.toIso8601String().split('T').first;
-              await shareReportCsv(
-                csv: formatTrialBalanceCsv(rows),
-                subject: 'FX Ledger Trial Balance $dateLabel',
+              await exportTrialBalanceReport(
+                context,
+                rows: rows,
+                dateLabel: dateLabel,
+                converter: converter,
+                view: currencyView,
               );
             },
           ),
@@ -56,7 +57,22 @@ class TrialBalanceScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                const SizedBox(height: 8),
+                ref.watch(companyAccountingContextProvider).maybeWhen(
+                      data: (ctx) => FxReportCurrencyToggle(
+                        view: currencyView,
+                        displayCurrencyCode: displayCode,
+                        baseCurrencyCode: ctx.baseCurrencyCode,
+                        onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                      ),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
+              ],
+            ),
           ),
           totalsAsync.when(
             loading: () => const SizedBox.shrink(),
@@ -124,7 +140,9 @@ class TrialBalanceScreen extends ConsumerWidget {
                                     style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
                                   ),
                                   Text(
-                                    'Net ${fmt.format(row.netPkr)}',
+                                    converter != null
+                                        ? 'Net ${formatReportAmount(pkrAmount: row.netPkr, converter: converter, view: currencyView, fmt: fmt)}'
+                                        : 'Net ${fmt.format(row.netPkr)} PKR',
                                     style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
                                   ),
                                 ],

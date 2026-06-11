@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
@@ -55,9 +56,9 @@ class _DeliveryConfirmationScreenState extends ConsumerState<DeliveryConfirmatio
       }
     });
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(backgroundColor: context.fx.background, title: const Text('Delivery Confirmation')),
+    return FxPageScaffold(
+      fallbackRoute: '/deals/${widget.dealId}',
+      title: const Text('Delivery Confirmation'),
       body: dealAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
@@ -104,7 +105,7 @@ class _DeliveryConfirmationScreenState extends ConsumerState<DeliveryConfirmatio
                 FxObsidianFormField(controller: _notesCtrl, label: 'Notes', maxLines: 2),
                 const SizedBox(height: 24),
                 FxObsidianActionBar(
-                  onCancel: () => context.pop(),
+                  onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
                   onSave: _busy ? null : _submit,
                   saveLabel: 'Confirm delivery',
                   busy: _busy,

@@ -3,15 +3,19 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_currency_tile.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_daily_closing_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_hero_balance_card.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_current_rates_strip.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_bottom_sheet.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
+import 'package:accounts_manager/domain/models/fx_opening_balance_batch.dart';
 import 'package:accounts_manager/domain/models/fx_rate.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/dashboard/dashboard_kpi_row.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/auth/providers/opening_balance_providers.dart';
+import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,11 +37,29 @@ class DashboardScreen extends ConsumerWidget {
     final tbTotalsAsync = ref.watch(trialBalanceTotalsProvider);
     final draftsAsync = ref.watch(draftTransactionsProvider);
     final settlementsAsync = ref.watch(pendingSettlementsCountProvider);
+    final openingAsync = ref.watch(openingBalanceStatusProvider);
     final isWide = MediaQuery.sizeOf(context).width >= 900;
 
+    final converterAsync = ref.watch(dashboardCurrencyConverterProvider);
     final totalNet = cashAsync.maybeWhen(
       data: (rows) => rows.fold<double>(0, (s, r) => s + r.balancePkr),
       orElse: () => null,
+    );
+
+    String heroPrimary = '—';
+    String? heroSubtitle;
+    converterAsync.maybeWhen(
+      data: (converter) {
+        if (totalNet == null) return;
+        final c = converter.convertFromPkr(totalNet);
+        heroPrimary = '${c.displayCurrencyCode} ${fmt.format(c.displayAmount)}';
+        if (!converter.isDisplayBase) {
+          heroSubtitle = c.usedFallback ? c.fallbackMessage : '≈ PKR ${fmt.format(totalNet)}';
+        }
+      },
+      orElse: () {
+        if (totalNet != null) heroPrimary = 'PKR ${fmt.format(totalNet)}';
+      },
     );
 
     return FxObsidianPage(
@@ -45,7 +67,8 @@ class DashboardScreen extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           FxHeroBalanceCard(
-            amountLabel: totalNet != null ? 'PKR ${fmt.format(totalNet)}' : '—',
+            amountLabel: heroPrimary,
+            trendLabel: heroSubtitle,
             onQuickAdd: () => _showNewMenu(context),
             onExport: () => _exportTodayCsv(context, ref, todayAsync, fmt),
           ),
@@ -57,6 +80,10 @@ class DashboardScreen extends ConsumerWidget {
             unpostedCount: draftsAsync.whenOrNull(data: (v) => v.length),
             pendingSettlements: settlementsAsync.whenOrNull(data: (v) => v),
           ),
+          const SizedBox(height: 24),
+          _openingBalanceBanner(context, openingAsync),
+          const SizedBox(height: 16),
+          _workflowGuideCard(context),
           const SizedBox(height: 24),
           const FxCurrentRatesStrip(),
           const SizedBox(height: 24),
@@ -79,6 +106,101 @@ class DashboardScreen extends ConsumerWidget {
           ],
           const SizedBox(height: 24),
           _recentSection(context, todayAsync, fmt),
+        ],
+      ),
+    );
+  }
+
+  Widget _openingBalanceBanner(BuildContext context, AsyncValue<FxOpeningBalanceView> openingAsync) {
+    return openingAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (view) {
+        if (view.status == FxOpeningBalanceStatus.posted) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Opening balance posted',
+                    style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                  ),
+                ),
+                TextButton(onPressed: () => context.push('/opening-balances'), child: const Text('View')),
+              ],
+            ),
+          );
+        }
+        if (view.status == FxOpeningBalanceStatus.missing || view.status == FxOpeningBalanceStatus.draft) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.fx.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(color: context.fx.error.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_outlined, color: context.fx.error, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    view.status == FxOpeningBalanceStatus.draft
+                        ? 'Opening balance draft in progress — complete before trading'
+                        : 'Opening balances not set — enter starting balances',
+                    style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push(
+                    view.status == FxOpeningBalanceStatus.draft
+                        ? '/opening-balances/wizard'
+                        : '/opening-balances',
+                  ),
+                  child: Text(view.status == FxOpeningBalanceStatus.draft ? 'Continue' : 'Set up'),
+                ),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _workflowGuideCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.fx.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: context.fx.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.menu_book_outlined, color: context.fx.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('How FX Deal Works', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
+                Text(
+                  'Step-by-step guide: opening balance → customer order → sourcing → statements',
+                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          TextButton(onPressed: () => context.push('/guide/fx-workflow'), child: const Text('Open guide')),
         ],
       ),
     );

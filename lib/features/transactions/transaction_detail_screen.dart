@@ -2,8 +2,11 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_attachments_section.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_locked_closing_banner.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_dialog.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/export/fx_document_export.dart';
+import 'package:accounts_manager/core/export/report_pdf_builder.dart';
 import 'package:accounts_manager/core/utils/transaction_receipt.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -27,18 +30,9 @@ class TransactionDetailScreen extends ConsumerWidget {
     final dtFmt = DateFormat('d MMM yyyy • HH:mm');
     final isWide = MediaQuery.sizeOf(context).width >= 900;
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: isWide
-          ? null
-          : AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.pop(),
-              ),
-              title: const Text('Transaction Detail'),
-              backgroundColor: context.fx.background,
-            ),
+    return FxPageScaffold(
+      fallbackRoute: '/ledger',
+      title: const Text('Transaction Detail'),
       body: txAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -80,13 +74,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                         Row(
                           children: [
                             _IconBtn(
-                              icon: Icons.print_outlined,
-                              onTap: () => shareTransactionReceipt(tx, subject: 'FX Ledger Receipt'),
-                            ),
-                            const SizedBox(width: 8),
-                            _IconBtn(
-                              icon: Icons.share_outlined,
-                              onTap: () => shareTransactionReceipt(tx),
+                              icon: Icons.ios_share,
+                              onTap: () => _exportReceipt(context, tx),
                             ),
                           ],
                         ),
@@ -394,6 +383,24 @@ class _LinkedExchangeBanner extends ConsumerWidget {
       },
     );
   }
+}
+
+Future<void> _exportReceipt(BuildContext context, FxTransaction tx) async {
+  final text = formatTransactionReceipt(tx);
+  final pdf = await buildReceiptPdf(
+    receiptText: text,
+    title: 'Receipt ${tx.transactionNo ?? tx.id.substring(0, 8).toUpperCase()}',
+  );
+  if (!context.mounted) return;
+  await showFxExportSheet(
+    context,
+    document: FxExportDocument(
+      title: 'Transaction Receipt',
+      textBody: text,
+      pdfBytes: pdf,
+      subject: 'FX Ledger Receipt ${tx.transactionNo ?? tx.id.substring(0, 8)}',
+    ),
+  );
 }
 
 class _IconBtn extends StatelessWidget {

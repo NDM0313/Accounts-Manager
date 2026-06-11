@@ -2,13 +2,13 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
-import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
@@ -58,7 +58,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
   Widget build(BuildContext context) {
     final now = DateTime.now();
     _bookingDate ??= DateTime(now.year, now.month, now.day);
-    final customersAsync = ref.watch(partiesProvider(FxPartyType.customer));
+    final customerChoicesAsync = ref.watch(customerOrderPartyChoicesProvider);
     final currenciesAsync = ref.watch(currenciesProvider);
     final positionAsync = ref.watch(currencyPositionProvider);
     final fmt = NumberFormat('#,##0.00');
@@ -79,25 +79,70 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
     final required = positionRow?.requiredBalance;
     final insufficient = _amount != null && available != null && _amount! > available;
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(backgroundColor: context.fx.background, title: const Text('New Customer FX Order')),
+    return FxPageScaffold(
+      fallbackRoute: '/deals',
+      title: const Text('New Customer FX Order'),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             const FxSectionLabel(label:'Customer'),
-            customersAsync.when(
+            customerChoicesAsync.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
-              data: (parties) => DropdownButtonFormField<String>(
-                value: _customerId,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: parties.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
-                onChanged: (v) => setState(() => _customerId = v),
-                validator: (v) => v == null ? 'Select customer' : null,
-              ),
+              data: (choices) {
+                if (choices.parties.isEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'No parties yet. Add a customer to book FX orders.',
+                        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : () => context.push('/parties/new'),
+                        icon: const Icon(Icons.person_add_outlined, size: 18),
+                        label: const Text('Add customer'),
+                      ),
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (choices.isFallback)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'No Customer-type parties found. Showing all parties — add a Customer party for cleaner reporting.',
+                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                        ),
+                      ),
+                    DropdownButtonFormField<String>(
+                      value: _customerId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      hint: const Text('Select customer'),
+                      items: choices.parties
+                          .map(
+                            (p) => DropdownMenuItem(
+                              value: p.id,
+                              child: Text(
+                                choices.isFallback
+                                    ? '${p.code} · ${p.name} · ${p.partyType.label}'
+                                    : '${p.code} · ${p.name}',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy ? null : (v) => setState(() => _customerId = v),
+                      validator: (v) => v == null ? 'Select customer' : null,
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             const FxSectionLabel(label:'Currency & amount'),
@@ -247,7 +292,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             FxObsidianFormField(controller: _notesCtrl, label: 'Notes', maxLines: 2),
             const SizedBox(height: 24),
             FxObsidianActionBar(
-              onCancel: () => context.pop(),
+              onCancel: () => fxSafePop(context, fallbackRoute: '/deals'),
               onSave: _busy ? null : _submit,
               saveLabel: 'Book Order',
               busy: _busy,

@@ -71,6 +71,35 @@ abstract final class DealRpcPayload {
     return payload;
   }
 
+  static Map<String, dynamic> updateLeg({
+    required String legId,
+    String? counterpartyPartyId,
+    String? receiveCurrency,
+    double? receiveAmount,
+    String? payCurrency,
+    double? payAmount,
+    double? rateUsed,
+    FxDeliveryTarget? deliveryTarget,
+    String? notes,
+    RateReferenceSnapshot? rateSnapshot,
+  }) {
+    final payload = <String, dynamic>{'leg_id': legId};
+    if (counterpartyPartyId != null) payload['counterparty_party_id'] = counterpartyPartyId;
+    if (receiveCurrency != null) {
+      payload['receive_currency'] = normalizeFxCurrencyCode(receiveCurrency);
+    }
+    if (receiveAmount != null) payload['receive_amount'] = receiveAmount;
+    if (payCurrency != null) payload['pay_currency'] = normalizeFxCurrencyCode(payCurrency);
+    if (payAmount != null) payload['pay_amount'] = payAmount;
+    if (rateUsed != null) payload['rate_used'] = rateUsed;
+    if (deliveryTarget != null) payload['delivery_target'] = deliveryTarget.dbValue;
+    if (notes != null) payload['notes'] = notes;
+    if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
+      payload.addAll(snapshotFields(rateSnapshot));
+    }
+    return payload;
+  }
+
   static Map<String, dynamic> snapshotFields(RateReferenceSnapshot s) {
     return {
       'reference_rate': s.referenceRate,

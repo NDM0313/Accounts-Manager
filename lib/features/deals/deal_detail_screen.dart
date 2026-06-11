@@ -3,53 +3,79 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_proof_attachments_section.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
+import 'package:accounts_manager/domain/services/deal_leg_permissions.dart';
+import 'package:accounts_manager/domain/services/deal_workflow_narrative.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/deals/widgets/deal_detail_quick_links.dart';
 import 'package:accounts_manager/features/deals/widgets/deal_workflow_panel.dart';
+import 'package:accounts_manager/features/deals/widgets/deal_workflow_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 /// Screen 6 — Deal detail timeline hub with guided workflow.
-class DealDetailScreen extends ConsumerWidget {
+class DealDetailScreen extends ConsumerStatefulWidget {
   const DealDetailScreen({super.key, required this.dealId});
 
   final String dealId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DealDetailScreen> createState() => _DealDetailScreenState();
+}
+
+class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
+  final _timelineKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    final dealId = widget.dealId;
     final dealAsync = ref.watch(dealDetailProvider(dealId));
     final timelineAsync = ref.watch(dealTimelineProvider(dealId));
     final profileAsync = ref.watch(currentProfileProvider);
     final fmt = NumberFormat('#,##0.00');
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: dealAsync.when(
-          data: (d) => Text(d?.dealNo ?? 'Deal'),
-          loading: () => const Text('Deal'),
-          error: (_, __) => const Text('Deal'),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.read(dealsRefreshProvider.notifier).refresh()),
-          PopupMenuButton<String>(
-            onSelected: (route) => context.push(route),
-            itemBuilder: (_) => [
-              PopupMenuItem(value: '/deals/$dealId/sourcing', child: const Text('Sourcing')),
-              PopupMenuItem(value: '/deals/$dealId/legs/agent-source', child: const Text('Agent source')),
-              PopupMenuItem(value: '/deals/$dealId/legs/cross-source', child: const Text('Cross source')),
-              PopupMenuItem(value: '/deals/$dealId/legs/agent-payment', child: const Text('Agent payment')),
-              PopupMenuItem(value: '/deals/$dealId/legs/currency-receipt', child: const Text('Currency receipt')),
-              PopupMenuItem(value: '/deals/$dealId/delivery', child: const Text('Delivery')),
-            ],
-          ),
-        ],
+    return FxPageScaffold(
+      fallbackRoute: '/deals',
+      title: dealAsync.when(
+        data: (d) => Text(d?.dealNo ?? 'Deal'),
+        loading: () => const Text('Deal'),
+        error: (_, __) => const Text('Deal'),
       ),
+      actions: [
+        IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.read(dealsRefreshProvider.notifier).refresh()),
+        PopupMenuButton<String>(
+          onSelected: (route) {
+            timelineAsync.whenOrNull(
+              data: (legs) {
+                final type = DealLegPermissions.legTypeForAddRoute(route);
+                if (type != null && DealLegPermissions.hasPendingLegOfType(legs, type)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Pending ${type.label} already exists — edit it from the timeline or add another intentionally.',
+                      ),
+                    ),
+                  );
+                }
+              },
+            );
+            context.push(route);
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(value: '/deals/$dealId/sourcing', child: const Text('Sourcing')),
+            PopupMenuItem(value: '/deals/$dealId/legs/agent-source', child: const Text('Agent source')),
+            PopupMenuItem(value: '/deals/$dealId/legs/cross-source', child: const Text('Cross source')),
+            PopupMenuItem(value: '/deals/$dealId/legs/agent-payment', child: const Text('Agent payment')),
+            PopupMenuItem(value: '/deals/$dealId/legs/currency-receipt', child: const Text('Currency receipt')),
+            PopupMenuItem(value: '/deals/$dealId/delivery', child: const Text('Delivery')),
+          ],
+        ),
+      ],
       body: dealAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -64,6 +90,20 @@ class DealDetailScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _SummaryCard(deal: deal, legs: legs, fmt: fmt),
+                  const SizedBox(height: 12),
+                  DealDetailQuickLinks(
+                    deal: deal,
+                    legs: legs,
+                    dealId: dealId,
+                    onViewProofs: () {
+                      final ctx = _timelineKey.currentContext;
+                      if (ctx != null) {
+                        Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DealWorkflowSummary(deal: deal, legs: legs),
                   const SizedBox(height: 16),
                   DealWorkflowPanel(
                     deal: deal,
@@ -71,7 +111,10 @@ class DealDetailScreen extends ConsumerWidget {
                     onReceivePayment: () => _recordPayment(context, ref, deal),
                   ),
                   const SizedBox(height: 16),
-                  Text('TIMELINE', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                  KeyedSubtree(
+                    key: _timelineKey,
+                    child: Text('TIMELINE', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                  ),
                   const SizedBox(height: 8),
                   if (legs.isEmpty)
                     const Text('No legs yet.')
@@ -79,6 +122,7 @@ class DealDetailScreen extends ConsumerWidget {
                     ...legs.map(
                       (leg) => _TimelineTile(
                         leg: leg,
+                        deal: deal,
                         dealId: dealId,
                         branchId: profileAsync.value?.branchId,
                         fmt: fmt,
@@ -133,7 +177,7 @@ class DealDetailScreen extends ConsumerWidget {
 
     try {
       await ref.read(dealRepositoryProvider).recordCustomerPayment(
-            dealId: dealId,
+            dealId: widget.dealId,
             amountPkr: amount,
             notes: notes.isEmpty ? null : notes,
           );
@@ -197,15 +241,17 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _TimelineTile extends StatelessWidget {
+class _TimelineTile extends ConsumerWidget {
   const _TimelineTile({
     required this.leg,
+    required this.deal,
     required this.dealId,
     required this.fmt,
     this.branchId,
   });
 
   final FxDealLeg leg;
+  final FxDeal deal;
   final String dealId;
   final String? branchId;
   final NumberFormat fmt;
@@ -236,8 +282,57 @@ class _TimelineTile extends StatelessWidget {
     );
   }
 
+  Future<void> _openTransaction(BuildContext context, WidgetRef ref) async {
+    final no = leg.linkedTransactionNo;
+    if (no == null || branchId == null) return;
+    final txId = await ref.read(transactionRepositoryProvider).fetchTransactionIdByNo(branchId!, no);
+    if (txId != null && context.mounted) context.push('/transactions/$txId');
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete ${leg.legType.label}?'),
+        content: Text(
+          'Remove step ${leg.legNo} (${leg.legType.label})? '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await ref.read(dealRepositoryProvider).deleteLeg(leg.id);
+      ref.read(dealsRefreshProvider.notifier).refresh();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Step deleted')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final action = DealLegTimelineActions.forLeg(
+      leg: leg,
+      deal: deal,
+      customerPartyId: deal.customerPartyId,
+    );
+    final canEdit = DealLegPermissions.canEditLeg(leg, deal);
+    final canDelete = DealLegPermissions.canDeleteLeg(leg, deal);
+    final editRoute = DealLegPermissions.editRoute(leg: leg, deal: deal);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: FxObsidianReportPanel(
@@ -271,6 +366,24 @@ class _TimelineTile extends StatelessWidget {
                             ],
                           ),
                         ),
+                      if (canEdit || canDelete)
+                        PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert, size: 18, color: context.fx.onSurfaceVariant),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                if (editRoute != null) context.push(editRoute);
+                              case 'delete':
+                                _confirmDelete(context, ref);
+                            }
+                          },
+                          itemBuilder: (_) => [
+                            if (canEdit && editRoute != null)
+                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            if (canDelete)
+                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          ],
+                        ),
                     ],
                   ),
                   if (leg.counterpartyName != null)
@@ -282,12 +395,37 @@ class _TimelineTile extends StatelessWidget {
                   if (leg.proofReference != null && leg.proofReference!.isNotEmpty)
                     Text('Ref: ${leg.proofReference}', style: AppTypography.bodyMd(context.fx.outline, context: context).copyWith(fontSize: 11)),
                   if (leg.linkedTransactionNo != null)
-                    Text('Tx ${leg.linkedTransactionNo}', style: AppTypography.bodyMd(context.fx.outline, context: context).copyWith(fontSize: 11)),
+                    InkWell(
+                      onTap: () => _openTransaction(context, ref),
+                      child: Text(
+                        'Tx ${leg.linkedTransactionNo} →',
+                        style: AppTypography.bodyMd(context.fx.primary, context: context).copyWith(fontSize: 11),
+                      ),
+                    ),
                   Text(leg.status.label, style: AppTypography.labelCaps(context.fx.tertiary, context: context).copyWith(fontSize: 9)),
-                  TextButton.icon(
-                    onPressed: branchId != null ? () => _showProof(context) : null,
-                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
-                    label: Text(leg.attachmentCount > 0 ? 'View proof' : 'Add proof'),
+                  Wrap(
+                    spacing: 4,
+                    children: [
+                      TextButton.icon(
+                        onPressed: branchId != null ? () => _showProof(context) : null,
+                        icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
+                        label: Text(leg.attachmentCount > 0 ? 'View proof' : 'Add proof'),
+                      ),
+                      if (action != null)
+                        TextButton(
+                          onPressed: () {
+                            switch (action.onTapKind) {
+                              case DealLegActionKind.viewCustomerStatement:
+                                context.push('/parties/${deal.customerPartyId}/ledger');
+                              case DealLegActionKind.viewProof:
+                                _showProof(context);
+                              case null:
+                                if (action.route != null) context.push(action.route!);
+                            }
+                          },
+                          child: Text(action.label),
+                        ),
+                    ],
                   ),
                 ],
               ),

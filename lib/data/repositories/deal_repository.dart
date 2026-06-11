@@ -64,6 +64,46 @@ class DealRepository {
 
   }
 
+  Future<List<FxDealLeg>> fetchLegMeta(String dealId) async {
+    final rows = await supabase
+        .from('fx_deal_legs')
+        .select(
+          'id, deal_id, leg_no, leg_type, status, counterparty_party_id, '
+          'linked_transaction_id, fx_parties(name)',
+        )
+        .eq('deal_id', dealId)
+        .order('leg_no');
+    return (rows as List).cast<Map<String, dynamic>>().map((json) {
+      final party = json['fx_parties'] as Map<String, dynamic>?;
+      return FxDealLeg.fromJson({
+        ...json,
+        'leg_id': json['id'],
+        'leg_status': json['status'],
+        'counterparty_name': party?['name'],
+      });
+    }).toList();
+  }
+
+  Future<FxDealLeg?> fetchLeg(String legId) async {
+    final row = await supabase
+        .from('fx_deal_legs')
+        .select(
+          'id, deal_id, leg_no, leg_type, status, counterparty_party_id, '
+          'receive_currency, receive_amount, pay_currency, pay_amount, rate_used, '
+          'delivery_target, notes, linked_transaction_id, fx_parties(name)',
+        )
+        .eq('id', legId)
+        .maybeSingle();
+    if (row == null) return null;
+    final party = row['fx_parties'] as Map<String, dynamic>?;
+    return FxDealLeg.fromJson({
+      ...row,
+      'leg_id': row['id'],
+      'leg_status': row['status'],
+      'counterparty_name': party?['name'],
+    });
+  }
+
 
 
   Future<List<PartyDealOpenItem>> fetchPartyOpenItems(String partyId) async {
@@ -253,6 +293,76 @@ class DealRepository {
     );
 
     return legId as String;
+
+  }
+
+
+
+  Future<String> updateLeg({
+
+    required String legId,
+
+    String? counterpartyPartyId,
+
+    String? receiveCurrency,
+
+    double? receiveAmount,
+
+    String? payCurrency,
+
+    double? payAmount,
+
+    double? rateUsed,
+
+    FxDeliveryTarget? deliveryTarget,
+
+    String? notes,
+
+    RateReferenceSnapshot? rateSnapshot,
+
+  }) async {
+
+    final payload = DealRpcPayload.updateLeg(
+
+      legId: legId,
+
+      counterpartyPartyId: counterpartyPartyId,
+
+      receiveCurrency: receiveCurrency,
+
+      receiveAmount: receiveAmount,
+
+      payCurrency: payCurrency,
+
+      payAmount: payAmount,
+
+      rateUsed: rateUsed,
+
+      deliveryTarget: deliveryTarget,
+
+      notes: notes,
+
+      rateSnapshot: rateSnapshot,
+
+    );
+
+    final id = await supabase.rpc(
+
+      'fx_update_deal_leg_v2',
+
+      params: {'p_payload': payload},
+
+    );
+
+    return id as String;
+
+  }
+
+
+
+  Future<void> deleteLeg(String legId) async {
+
+    await supabase.rpc('fx_delete_deal_leg_v2', params: {'p_leg_id': legId});
 
   }
 
