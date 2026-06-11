@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/main_shell.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
 import 'package:accounts_manager/features/accounts/chart_of_accounts_screen.dart';
 import 'package:accounts_manager/features/accounts/general_hub_screen.dart';
 import 'package:accounts_manager/features/auth/branch_select_screen.dart';
@@ -14,7 +15,6 @@ import 'package:accounts_manager/features/journal/manual_journal_screen.dart';
 import 'package:accounts_manager/features/parties/parties_list_screen.dart';
 import 'package:accounts_manager/features/parties/party_form_screen.dart';
 import 'package:accounts_manager/features/parties/party_ledger_screen.dart';
-import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/features/rates/rate_board_screen.dart';
 import 'package:accounts_manager/features/rates/rate_form_screen.dart';
 import 'package:accounts_manager/features/rates/rate_history_screen.dart';
@@ -98,6 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               initialCurrency: currency,
               suggestedRate: rate,
               initialPartyId: q['partyId'],
+              draftMode: TransactionDraftMode.fromQuery(q['mode']),
             ),
           );
         },
@@ -113,7 +114,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/transactions/:id/complete',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return AuthGate(child: TransactionCompleteScreen(transactionId: id));
+          final mode = TransactionDraftMode.fromQuery(state.uri.queryParameters['mode']);
+          return AuthGate(child: TransactionCompleteScreen(transactionId: id, draftMode: mode));
         },
       ),
       GoRoute(

@@ -91,7 +91,7 @@ class _DeliveryConfirmationScreenState extends ConsumerState<DeliveryConfirmatio
                   validator: (v) => double.tryParse(v ?? '') == null ? 'Enter amount' : null,
                 ),
                 DropdownButtonFormField<FxDeliveryTarget>(
-                  value: _target,
+                  initialValue: _target,
                   decoration: const InputDecoration(labelText: 'Delivered to', border: OutlineInputBorder()),
                   items: FxDeliveryTarget.values.map((t) => DropdownMenuItem(value: t, child: Text(t.label))).toList(),
                   onChanged: (v) => setState(() => _target = v ?? FxDeliveryTarget.directToCustomer),

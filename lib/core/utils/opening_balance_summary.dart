@@ -12,14 +12,14 @@ String formatOpeningBalanceSummary({
 }) {
   final fmt = NumberFormat('#,##0.00');
   final dateFmt = DateFormat('d MMM yyyy');
-  final accountName = (String? id) {
+  String accountName(String? id) {
     if (id == null) return '—';
     return accounts.where((a) => a.id == id).map((a) => '${a.code} ${a.name}').firstOrNull ?? id;
-  };
-  final partyName = (String? id) {
+  }
+  String partyName(String? id) {
     if (id == null) return '—';
     return parties.where((p) => p.id == id).map((p) => p.name).firstOrNull ?? id;
-  };
+  }
 
   final buf = StringBuffer()
     ..writeln('FX Cash Ledger — Opening Balance Summary')

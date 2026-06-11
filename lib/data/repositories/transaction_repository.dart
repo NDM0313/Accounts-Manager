@@ -105,7 +105,7 @@ class TransactionRepository {
           'transaction_date': _localDateIso(transactionDate),
           'currency_code': currencyCode,
           'party_id': partyId,
-          if (exchangeGroupId != null) 'exchange_group_id': exchangeGroupId,
+          'exchange_group_id': ?exchangeGroupId,
           'total_foreign_amount': foreignAmount,
           'rate_used': rateUsed,
           'total_base_amount_pkr': baseAmountPkr,
@@ -176,7 +176,7 @@ class TransactionRepository {
     final txUpdate = <String, dynamic>{
           'currency_code': currencyCode,
           'party_id': partyId,
-          if (exchangeGroupId != null) 'exchange_group_id': exchangeGroupId,
+          'exchange_group_id': ?exchangeGroupId,
           if (transactionDate != null) 'transaction_date': _localDateIso(transactionDate),
           'total_foreign_amount': foreignAmount,
           'rate_used': rateUsed,

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';

@@ -120,7 +120,7 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
             agentsAsync.when(
               loading: () => const LinearProgressIndicator(),
               data: (agents) => DropdownButtonFormField<String>(
-                value: _partyId,
+                initialValue: _partyId,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: agents.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
                 onChanged: (v) => setState(() => _partyId = v),
@@ -130,7 +130,7 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _currency,
+              initialValue: _currency,
               decoration: InputDecoration(
                 labelText: _isReceipt ? 'Receive currency' : 'Pay currency',
                 border: const OutlineInputBorder(),

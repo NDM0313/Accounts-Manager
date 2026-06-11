@@ -63,7 +63,7 @@ class CurrencySettingsScreen extends ConsumerWidget {
             data: (currencies) {
               final active = currencies.where((c) => c.isActive).toList();
               return DropdownButtonFormField<String>(
-                value: active.any((c) => c.code == displayCode) ? displayCode : active.firstOrNull?.code,
+                initialValue: active.any((c) => c.code == displayCode) ? displayCode : active.firstOrNull?.code,
                 decoration: const InputDecoration(labelText: 'Display currency'),
                 items: active
                     .map((c) => DropdownMenuItem(value: c.code, child: Text('${c.code} — ${c.name}')))

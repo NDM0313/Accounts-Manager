@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/transaction_receipt.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +10,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class TransactionCompleteScreen extends ConsumerWidget {
-  const TransactionCompleteScreen({super.key, required this.transactionId});
+  const TransactionCompleteScreen({
+    super.key,
+    required this.transactionId,
+    this.draftMode = TransactionDraftMode.standard,
+  });
 
   final String transactionId;
+  final TransactionDraftMode draftMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,13 +79,17 @@ class TransactionCompleteScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Transaction Posted',
+                      draftMode != TransactionDraftMode.standard
+                          ? draftMode.successTitle
+                          : 'Transaction Posted',
                       style: AppTypography.headlineLg(context.fx.onSurface, context: context),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your ledger has been updated successfully.',
+                      tx.partyName != null
+                          ? '${tx.currencyCode} ${fmt.format(tx.totalForeignAmount)} · ${tx.partyName}'
+                          : 'Your ledger has been updated successfully.',
                       style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
                       textAlign: TextAlign.center,
                     ),
@@ -97,8 +107,18 @@ class TransactionCompleteScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
+                        onPressed: tx.partyId != null
+                            ? () => context.go('/parties/${tx.partyId}/ledger')
+                            : () => context.go('/transactions/$transactionId'),
+                        child: Text(tx.partyId != null ? 'View Statement' : 'View Detail'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
                         onPressed: () => context.go('/'),
-                        child: const Text('Go Home'),
+                        child: const Text('Done'),
                       ),
                     ),
                   ],

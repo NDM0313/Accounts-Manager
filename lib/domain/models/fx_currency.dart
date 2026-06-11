@@ -1,4 +1,3 @@
-import 'package:accounts_manager/domain/models/fx_currency.dart';
 
 class FxCurrency {
   const FxCurrency({

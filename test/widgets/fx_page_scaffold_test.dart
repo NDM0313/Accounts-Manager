@@ -57,10 +57,10 @@ void main() {
   testWidgets('FxPageScaffold back uses go when cannot pop', (tester) async {
     final router = GoRouter(
       routes: [
-        GoRoute(path: '/', builder: (_, __) => const SizedBox(key: Key('home'))),
+        GoRoute(path: '/', builder: (_, _) => const SizedBox(key: Key('home'))),
         GoRoute(
           path: '/detail',
-          builder: (_, __) => FxPageScaffold(
+          builder: (_, _) => FxPageScaffold(
             fallbackRoute: '/',
             title: const Text('Detail'),
             body: const Text('Detail body'),

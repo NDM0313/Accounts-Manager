@@ -124,7 +124,7 @@ class RateSuggestionService {
 
     if (from == baseCurrency) {
       final toQuote = pkrQuote(rates, to, side: side, now: now);
-      if (toQuote == null || !toQuote.isAvailable) {
+      if (!toQuote.isAvailable) {
         return _unavailable(from, to);
       }
       final inv = 1 / toQuote.referenceRate;

@@ -85,7 +85,7 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   DropdownButtonFormField<FxPartyType>(
-                    value: _type,
+                    initialValue: _type,
                     decoration: const InputDecoration(labelText: 'Party type'),
                     items: FxPartyType.values
                         .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))

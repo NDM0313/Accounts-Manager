@@ -25,14 +25,14 @@ class OpeningBalanceRepository {
       'fx_save_opening_balance_batch',
       params: {
         'p_payload': {
-          if (batchId != null) 'batch_id': batchId,
+          'batch_id': ?batchId,
           'company_id': companyId,
           'branch_id': branchId,
           'opening_date': openingDate.toIso8601String().split('T').first,
           'base_currency_code': baseCurrencyCode,
-          if (description != null) 'description': description,
-          if (notes != null) 'notes': notes,
-          if (equityAccountId != null) 'equity_account_id': equityAccountId,
+          'description': ?description,
+          'notes': ?notes,
+          'equity_account_id': ?equityAccountId,
           'lines': lines.map((l) => l.toJson()).toList(),
         },
       },

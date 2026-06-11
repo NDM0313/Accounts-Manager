@@ -7,6 +7,8 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.da
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_post_confirmation_dialog.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_success_feedback.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
@@ -15,6 +17,7 @@ import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
+import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -31,6 +34,7 @@ class DraftTransactionScreen extends ConsumerStatefulWidget {
     this.suggestedRate,
     this.initialPartyId,
     this.editDraftId,
+    this.draftMode = TransactionDraftMode.standard,
   });
 
   final FxTransactionType type;
@@ -38,6 +42,7 @@ class DraftTransactionScreen extends ConsumerStatefulWidget {
   final double? suggestedRate;
   final String? initialPartyId;
   final String? editDraftId;
+  final TransactionDraftMode draftMode;
 
   @override
   ConsumerState<DraftTransactionScreen> createState() => _DraftTransactionScreenState();
@@ -69,6 +74,18 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
   String? _editLoadError;
   FxTransactionType? _editType;
   bool _isPostedEdit = false;
+
+  String get _screenTitle {
+    if (widget.editDraftId != null) return 'Edit Transaction';
+    if (widget.draftMode != TransactionDraftMode.standard &&
+        widget.draftMode.screenTitle.isNotEmpty) {
+      return widget.draftMode.screenTitle;
+    }
+    return 'New ${widget.type.label}';
+  }
+
+  bool get _needsPostConfirmation =>
+      widget.type.isSettlement || widget.draftMode != TransactionDraftMode.standard;
 
   @override
   void initState() {
@@ -229,11 +246,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
 
     return FxPageScaffold(
       fallbackRoute: '/ledger',
-      title: Text(
-        widget.editDraftId != null
-            ? 'Edit Transaction'
-            : 'New ${widget.type.label}',
-      ),
+      title: Text(_screenTitle),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
@@ -258,8 +271,14 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                   _currencyCode ??= widget.initialCurrency ??
                       (widget.type == FxTransactionType.openingBalance
                           ? currencies.firstOrNull?.code
-                          : currencies.where((c) => !c.isBase).firstOrNull?.code) ??
+                          : widget.type == FxTransactionType.accountTransfer
+                              ? 'PKR'
+                              : currencies.where((c) => !c.isBase).firstOrNull?.code) ??
                       currencies.firstOrNull?.code;
+                  if (widget.draftMode != TransactionDraftMode.standard) {
+                    _currencyCode ??= 'PKR';
+                    _settlementAccountCode ??= widget.draftMode.defaultSettlementAccount;
+                  }
                   _fromAccountCode ??= switch (widget.type) {
                     FxTransactionType.expense => '1110',
                     FxTransactionType.settlementSend ||
@@ -461,7 +480,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
             final partiesAsync = ref.watch(partiesProvider(null));
             return partiesAsync.when(
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
               data: (parties) {
                 final filtered = parties.where((p) {
                   if (_onCredit) {
@@ -495,7 +514,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                     if (_onCredit) ...[
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        key: ValueKey(_settlementAccountCode),
+                        key: ValueKey('credit-settlement-$_settlementAccountCode'),
                         initialValue: _settlementAccountCode,
                         decoration: InputDecoration(
                           labelText: isBuy ? 'Payable account' : 'Receivable account',
@@ -599,7 +618,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                       FxSectionLabel(label: 'Amount & rate'),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        key: ValueKey(_currencyCode),
+                        key: ValueKey('draft-currency-$_currencyCode'),
                         initialValue: _currencyCode,
                         decoration: const InputDecoration(labelText: 'Currency'),
                         items: currencies.map((c) => DropdownMenuItem(value: c.code, child: Text(c.code))).toList(),
@@ -662,7 +681,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                       if (type == FxTransactionType.accountTransfer) ...[
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_fromAccountCode),
+                          key: ValueKey('account-transfer-from-$_fromAccountCode'),
                           initialValue: _fromAccountCode,
                           decoration: const InputDecoration(labelText: 'From account'),
                           items: cashAccounts.map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}'))).toList(),
@@ -671,7 +690,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_toAccountCode),
+                          key: ValueKey('account-transfer-to-$_toAccountCode'),
                           initialValue: _toAccountCode,
                           decoration: const InputDecoration(labelText: 'To account'),
                           items: cashAccounts.map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}'))).toList(),
@@ -684,7 +703,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                         FxSectionLabel(label: 'Receive leg'),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_toCurrencyCode),
+                          key: ValueKey('cross-to-currency-$_toCurrencyCode'),
                           initialValue: _toCurrencyCode,
                           decoration: const InputDecoration(labelText: 'To currency'),
                           items: currencies
@@ -762,7 +781,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                             final partiesAsync = ref.watch(partiesProvider(null));
                             return partiesAsync.when(
                               loading: () => const LinearProgressIndicator(),
-                              error: (_, __) => const SizedBox.shrink(),
+                              error: (_, _) => const SizedBox.shrink(),
                               data: (parties) {
                                 if (parties.isEmpty) {
                                   return Text(
@@ -781,18 +800,29 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                                     if (r != 0) return r;
                                     return a.name.compareTo(b.name);
                                   });
+                                final filtered = widget.draftMode != TransactionDraftMode.standard
+                                    ? sorted.where((p) => widget.draftMode.matchesParty(p.partyType)).toList()
+                                    : sorted;
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
                                     DropdownButtonFormField<String>(
-                                      key: ValueKey(_partyId),
+                                      key: ValueKey('settlement-party-$_partyId'),
                                       initialValue: _partyId,
-                                      decoration: const InputDecoration(labelText: 'Party (recommended)'),
+                                      decoration: InputDecoration(
+                                        labelText: widget.draftMode.requiresParty
+                                            ? 'Party (required)'
+                                            : 'Party (recommended)',
+                                      ),
                                       items: [
-                                        const DropdownMenuItem<String>(value: null, child: Text('—')),
-                                        ...sorted.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.code} · ${p.name}'))),
+                                        if (!widget.draftMode.requiresParty)
+                                          const DropdownMenuItem<String>(value: null, child: Text('—')),
+                                        ...filtered.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.code} · ${p.name}'))),
                                       ],
                                       onChanged: _busy ? null : (v) => setState(() => _partyId = v),
+                                      validator: widget.draftMode.requiresParty
+                                          ? (v) => v == null ? 'Select party' : null
+                                          : null,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -807,7 +837,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_settlementAccountCode),
+                          key: ValueKey('settlement-account-$_settlementAccountCode'),
                           initialValue: _settlementAccountCode,
                           decoration: const InputDecoration(labelText: 'Settlement account'),
                           items: settlementAccounts
@@ -818,7 +848,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_fromAccountCode),
+                          key: ValueKey('settlement-cash-$_fromAccountCode'),
                           initialValue: _fromAccountCode,
                           decoration: InputDecoration(
                             labelText: type == FxTransactionType.settlementSend ? 'Pay from (cash)' : 'Receive to (cash)',
@@ -834,7 +864,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                           type == FxTransactionType.revaluation) ...[
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_fromAccountCode),
+                          key: ValueKey('reval-cash-$_fromAccountCode'),
                           initialValue: _fromAccountCode,
                           decoration: const InputDecoration(labelText: 'Cash account'),
                           items: cashAccounts
@@ -847,7 +877,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                       if (type == FxTransactionType.expense) ...[
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_expenseAccountCode),
+                          key: ValueKey('expense-account-$_expenseAccountCode'),
                           initialValue: _expenseAccountCode,
                           decoration: const InputDecoration(labelText: 'Expense account'),
                           items: expenseAccounts.map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}'))).toList(),
@@ -856,7 +886,7 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          key: ValueKey(_fromAccountCode),
+                          key: ValueKey('expense-cash-$_fromAccountCode'),
                           initialValue: _fromAccountCode,
                           decoration: const InputDecoration(labelText: 'Pay from (cash)'),
                           items: cashAccounts.map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}'))).toList(),
@@ -1132,8 +1162,9 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
         ref.invalidate(transactionDetailProvider(widget.editDraftId!));
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(wasUpdate ? 'Draft updated.' : 'Draft saved.')),
+        FxSuccessFeedback.showSnack(
+          context,
+          wasUpdate ? 'Draft updated' : 'Draft saved',
         );
         if (widget.editDraftId != null) context.pop();
       }
@@ -1148,6 +1179,34 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
 
   Future<void> _postDraft() async {
     if (!_ensureTransactionDate(context)) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_needsPostConfirmation) {
+      String? partyLabel;
+      if (_partyId != null) {
+        final parties = await ref.read(partiesProvider(null).future);
+        final match = parties.where((p) => p.id == _partyId).firstOrNull;
+        partyLabel = match != null ? '${match.code} · ${match.name}' : null;
+      }
+      if (!mounted) return;
+      final confirmed = await showFxPostConfirmationDialog(
+        context,
+        FxPostConfirmationData(
+          title: widget.draftMode != TransactionDraftMode.standard
+              ? widget.draftMode.confirmTitle
+              : 'Confirm Transaction Posting',
+          partyLabel: partyLabel,
+          accountLabel: _fromAccountCode,
+          currencyCode: _currencyCode ?? 'PKR',
+          amount: _foreignAmount,
+          rate: _rateUsed,
+          pkrEquivalent: _baseAmountPkr,
+          notes: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
+        ),
+      );
+      if (!confirmed || !mounted) return;
+    }
+
     setState(() => _busy = true);
     try {
       await ref.read(transactionRepositoryProvider).postTransaction(_draftId!);
@@ -1155,7 +1214,9 @@ class _DraftTransactionScreenState extends ConsumerState<DraftTransactionScreen>
       ref.invalidate(todayTransactionsProvider);
       ref.invalidate(cashBalancesProvider);
       if (mounted) {
-        context.pushReplacement('/transactions/$_draftId/complete');
+        final mode = widget.draftMode;
+        final query = mode != TransactionDraftMode.standard ? '?mode=${mode.dbValue}' : '';
+        context.pushReplacement('/transactions/$_draftId/complete$query');
       }
     } catch (e) {
       if (mounted) {

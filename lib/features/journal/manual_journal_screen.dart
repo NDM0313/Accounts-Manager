@@ -213,7 +213,7 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: line.accountCode,
+                  initialValue: line.accountCode,
                   decoration: const InputDecoration(labelText: 'Account', isDense: true),
                   items: accounts
                       .map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}')))

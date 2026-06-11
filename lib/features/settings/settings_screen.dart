@@ -32,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           profileAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (profile) {
               final name = profile?.fullName ?? 'User';
               final email = profile?.email ?? '';

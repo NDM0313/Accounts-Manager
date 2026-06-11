@@ -67,7 +67,7 @@ class _CrossCurrencySourceScreenState extends ConsumerState<CrossCurrencySourceS
             agentsAsync.when(
               loading: () => const LinearProgressIndicator(),
               data: (agents) => DropdownButtonFormField<String>(
-                value: _agentDId,
+                initialValue: _agentDId,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: agents.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
                 onChanged: (v) => setState(() => _agentDId = v),
@@ -104,7 +104,7 @@ class _CrossCurrencySourceScreenState extends ConsumerState<CrossCurrencySourceS
             if (agentLegs.isNotEmpty) ...[
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _targetAgentLegId ?? agentLegs.first.id,
+                initialValue: _targetAgentLegId ?? agentLegs.first.id,
                 decoration: const InputDecoration(labelText: 'AED delivered to (Agent C leg)', border: OutlineInputBorder()),
                 items: agentLegs
                     .map((l) => DropdownMenuItem(

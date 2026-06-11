@@ -1,7 +1,6 @@
-import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/core/utils/transaction_menu_entries.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +12,7 @@ class FxObsidianBottomSheet {
       isScrollControlled: true,
       builder: (ctx) {
         final maxHeight = MediaQuery.sizeOf(ctx).height * 0.85;
+        final groups = buildTransactionMenuGroups();
         return Container(
           constraints: BoxConstraints(maxHeight: maxHeight),
           decoration: BoxDecoration(
@@ -42,43 +42,27 @@ class FxObsidianBottomSheet {
                       style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context),
                     ),
                   ),
-                  for (final type in FxTransactionType.values.where((t) =>
-                      t != FxTransactionType.manualJournal &&
-                      t != FxTransactionType.dailyClosingAdjustment &&
-                      t != FxTransactionType.openingBalance))
-                    _ActionRow(
-                      icon: _iconForType(type),
-                      label: type.label,
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        context.push('/transactions/new?type=${type.dbValue}');
-                      },
+                  for (final group in groups) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          group.title.toUpperCase(),
+                          style: AppTypography.labelCaps(context.fx.outline, context: context),
+                        ),
+                      ),
                     ),
-                  _ActionRow(
-                    icon: Icons.link,
-                    label: 'Chained Exchange',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      context.push('/transactions/chained-exchange');
-                    },
-                  ),
-                  _ActionRow(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'Opening Balances',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      context.push('/opening-balances/wizard');
-                    },
-                  ),
-                  if (FeatureFlags.dealsWorkflowEnabled)
-                    _ActionRow(
-                      icon: Icons.handshake_outlined,
-                      label: 'Customer FX Deal (order first)',
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        context.push('/deals/new');
-                      },
-                    ),
+                    for (final entry in group.entries)
+                      _ActionRow(
+                        icon: entry.icon,
+                        label: entry.label,
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          context.push(entry.route);
+                        },
+                      ),
+                  ],
                   const SizedBox(height: 8),
                 ],
               ),
@@ -88,20 +72,6 @@ class FxObsidianBottomSheet {
       },
     );
   }
-
-  static IconData _iconForType(FxTransactionType type) => switch (type) {
-        FxTransactionType.currencyBuy => Icons.add_shopping_cart_outlined,
-        FxTransactionType.currencySell => Icons.payments_outlined,
-        FxTransactionType.accountTransfer => Icons.swap_horiz,
-        FxTransactionType.expense => Icons.receipt_long_outlined,
-        FxTransactionType.openingBalance => Icons.account_balance_outlined,
-        FxTransactionType.crossCurrency => Icons.currency_exchange,
-        FxTransactionType.settlementSend => Icons.send_outlined,
-        FxTransactionType.settlementReceive => Icons.call_received_outlined,
-        FxTransactionType.revaluation => Icons.trending_up,
-        FxTransactionType.manualJournal => Icons.edit_note_outlined,
-        FxTransactionType.dailyClosingAdjustment => Icons.lock_clock_outlined,
-      };
 }
 
 class _ActionRow extends StatelessWidget {

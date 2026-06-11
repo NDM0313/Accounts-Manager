@@ -33,10 +33,10 @@ class PartyRepository {
 
   Future<FxParty> updateParty(String partyId, {String? name, String? phone, String? notes, bool? isActive}) async {
     final payload = <String, dynamic>{
-      if (name != null) 'name': name,
-      if (phone != null) 'phone': phone,
-      if (notes != null) 'notes': notes,
-      if (isActive != null) 'is_active': isActive,
+      'name': ?name,
+      'phone': ?phone,
+      'notes': ?notes,
+      'is_active': ?isActive,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
     final row = await supabase.from('fx_parties').update(payload).eq('id', partyId).select(_select).single();

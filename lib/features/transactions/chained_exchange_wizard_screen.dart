@@ -280,7 +280,7 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
           _dateField(),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _intermediateCurrency,
+            initialValue: _intermediateCurrency,
             decoration: const InputDecoration(labelText: 'Buy currency'),
             items: foreign.map((c) => DropdownMenuItem(value: c.code, child: Text(c.code))).toList(),
             onChanged: _busy ? null : (v) => setState(() => _intermediateCurrency = v),
@@ -342,7 +342,7 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _toCurrency,
+            initialValue: _toCurrency,
             decoration: const InputDecoration(labelText: 'To currency'),
             items: foreign
                 .where((c) => c.code != _intermediateCurrency)

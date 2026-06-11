@@ -86,7 +86,7 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
           const SizedBox(height: 16),
           closedAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (closed) {
               if (!closed) return const SizedBox.shrink();
               return Container(
@@ -168,7 +168,7 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
           const SizedBox(height: 24),
           closedAsync.when(
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (closed) {
               if (!closed) {
                 return SizedBox(
@@ -188,7 +188,7 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
               }
               return previewAsync.when(
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
                 data: (rows) => FxClosingReportView(rows: rows, dateLabel: dateLabel),
               );
             },

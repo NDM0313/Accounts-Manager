@@ -474,7 +474,7 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                   Text(kind.label, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: accountId,
+                    initialValue: accountId,
                     decoration: const InputDecoration(labelText: 'Account'),
                     items: cashAccounts
                         .map((a) => DropdownMenuItem(value: a.id, child: Text('${a.code} ${a.name}')))
@@ -482,7 +482,7 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                     onChanged: (v) => setLocal(() => accountId = v),
                   ),
                   DropdownButtonFormField<String>(
-                    value: currency,
+                    initialValue: currency,
                     decoration: const InputDecoration(labelText: 'Currency'),
                     items: ['PKR', 'USD', 'AED', 'CNY', 'SAR', 'AFN']
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -568,13 +568,13 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                 children: [
                   Text('Party / agent balance', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
                   DropdownButtonFormField<FxParty>(
-                    value: party,
+                    initialValue: party,
                     decoration: const InputDecoration(labelText: 'Party'),
                     items: parties.map((p) => DropdownMenuItem(value: p, child: Text('${p.partyType.label}: ${p.name}'))).toList(),
                     onChanged: (v) => setLocal(() => party = v),
                   ),
                   DropdownButtonFormField<FxOpeningBalanceLineKind>(
-                    value: kind,
+                    initialValue: kind,
                     decoration: const InputDecoration(labelText: 'Balance type'),
                     items: const [
                       DropdownMenuItem(value: FxOpeningBalanceLineKind.partyReceivable, child: Text('Receivable (they owe us)')),
@@ -583,7 +583,7 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                     onChanged: (v) => setLocal(() => kind = v ?? kind),
                   ),
                   DropdownButtonFormField<String>(
-                    value: currency,
+                    initialValue: currency,
                     decoration: const InputDecoration(labelText: 'Currency'),
                     items: ['PKR', 'USD', 'AED', 'CNY']
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -767,7 +767,7 @@ class _LineCard extends StatelessWidget {
         title: Text('${line.lineKind.label} — ${line.currencyCode} ${fmt.format(line.foreignAmount)}'),
         subtitle: Text(
           [
-            if (accountLabel != null) accountLabel,
+            ?accountLabel,
             if (line.locationLabel != null) 'Location: ${line.locationLabel}',
             'PKR ${fmt.format(line.pkrAmount)} @ ${fmt.format(line.rateUsed)}',
           ].join('\n'),

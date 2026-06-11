@@ -146,7 +146,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
             agentsAsync.when(
               loading: () => const LinearProgressIndicator(),
               data: (agents) => DropdownButtonFormField<String>(
-                value: _agentId,
+                initialValue: _agentId,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: agents.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
                 onChanged: (v) => setState(() => _agentId = v),
@@ -163,7 +163,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
               onChanged: (_) => setState(() {}),
             ),
             DropdownButtonFormField<String>(
-              value: receiveCurrency,
+              initialValue: receiveCurrency,
               decoration: const InputDecoration(labelText: 'Receive currency', border: OutlineInputBorder()),
               items: ['CNY', 'USD', 'AED', 'SAR'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _receiveCurrency = v),
@@ -171,7 +171,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
             const SizedBox(height: 16),
             const FxSectionLabel(label:'Pay to agent'),
             DropdownButtonFormField<String>(
-              value: payCurrency,
+              initialValue: payCurrency,
               decoration: const InputDecoration(labelText: 'Pay currency', border: OutlineInputBorder()),
               items: ['PKR', 'AED', 'USD', 'CNY'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _payCurrency = v),
@@ -201,7 +201,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
             const SizedBox(height: 16),
             const FxSectionLabel(label:'Delivery to'),
             DropdownButtonFormField<FxDeliveryTarget>(
-              value: _deliveryTarget,
+              initialValue: _deliveryTarget,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: FxDeliveryTarget.values.map((t) => DropdownMenuItem(value: t, child: Text(t.label))).toList(),
               onChanged: (v) => setState(() => _deliveryTarget = v ?? FxDeliveryTarget.ourAccount),

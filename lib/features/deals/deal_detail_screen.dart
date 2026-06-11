@@ -44,7 +44,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
       title: dealAsync.when(
         data: (d) => Text(d?.dealNo ?? 'Deal'),
         loading: () => const Text('Deal'),
-        error: (_, __) => const Text('Deal'),
+        error: (_, _) => const Text('Deal'),
       ),
       actions: [
         IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.read(dealsRefreshProvider.notifier).refresh()),

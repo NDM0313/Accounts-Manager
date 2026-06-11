@@ -1,5 +1,3 @@
-import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/deal_statement.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';

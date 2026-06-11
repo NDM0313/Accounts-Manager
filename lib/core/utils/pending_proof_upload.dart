@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:accounts_manager/data/repositories/attachment_repository.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

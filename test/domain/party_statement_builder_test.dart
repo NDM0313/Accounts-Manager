@@ -1,6 +1,5 @@
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
-import 'package:accounts_manager/domain/models/fx_transaction_line.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 

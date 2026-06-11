@@ -52,7 +52,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
       title: partyAsync.when(
         data: (p) => Text(p?.name ?? 'Party Statement'),
         loading: () => const Text('Party Statement'),
-        error: (_, __) => const Text('Party Statement'),
+        error: (_, _) => const Text('Party Statement'),
       ),
       actions: [
         IconButton(
@@ -87,7 +87,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                       return ListView.separated(
                         padding: const EdgeInsets.only(bottom: 100),
                         itemCount: view.lines.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (context, i) {
                           final line = view.lines[i];
                           return FxPartyStatementRow(
@@ -186,7 +186,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
   Widget _openDealsSection(BuildContext context, AsyncValue<List<PartyDealOpenItem>> openDealsAsync, NumberFormat fmt) {
     return openDealsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (items) {
         if (items.isEmpty) return const SizedBox.shrink();
         return Container(

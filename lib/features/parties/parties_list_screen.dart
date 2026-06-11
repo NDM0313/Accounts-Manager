@@ -82,7 +82,7 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                   }
                   return ListView.separated(
                     itemCount: parties.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, i) {
                       final p = parties[i];
                       return Material(

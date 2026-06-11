@@ -146,7 +146,7 @@ abstract final class PartyStatementBuilder {
       buf.write('${line.transactionType.label.padRight(18)} ');
       buf.write('${line.debitPkr.toStringAsFixed(0).padLeft(8)} ');
       buf.write('${line.creditPkr.toStringAsFixed(0).padLeft(8)} ');
-      buf.writeln('${line.runningBalancePkr.toStringAsFixed(0).padLeft(10)}');
+      buf.writeln(line.runningBalancePkr.toStringAsFixed(0).padLeft(10));
       if (internal) {
         buf.writeln('  ${line.foreignAmount.toStringAsFixed(2)} ${line.currencyCode} @ ${line.rateUsed}');
       }

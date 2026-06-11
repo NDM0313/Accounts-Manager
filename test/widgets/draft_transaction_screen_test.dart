@@ -1,6 +1,7 @@
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/transactions/draft_transaction_screen.dart';
@@ -52,5 +53,58 @@ void main() {
     await tester.pumpWidget(wrap(FxTransactionType.openingBalance));
     await tester.pumpAndSettle();
     expect(find.text('New Opening Balance'), findsOneWidget);
+  });
+
+  testWidgets('Account transfer opens without duplicate key error', (tester) async {
+    await tester.pumpWidget(wrap(FxTransactionType.accountTransfer));
+    await tester.pumpAndSettle();
+    expect(find.text('New Account Transfer'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Customer payment receive screen renders', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentProfileProvider.overrideWith((ref) async => profile),
+          accountsProvider.overrideWith((ref) async => accounts),
+          currenciesProvider.overrideWith((ref) async => currencies),
+          ratesProvider.overrideWith((ref) async => []),
+          partiesProvider(null).overrideWith((ref) async => []),
+        ],
+        child: MaterialApp(
+          home: DraftTransactionScreen(
+            type: FxTransactionType.settlementReceive,
+            draftMode: TransactionDraftMode.customerReceipt,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Receive from Customer'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Agent payment send screen renders', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentProfileProvider.overrideWith((ref) async => profile),
+          accountsProvider.overrideWith((ref) async => accounts),
+          currenciesProvider.overrideWith((ref) async => currencies),
+          ratesProvider.overrideWith((ref) async => []),
+          partiesProvider(null).overrideWith((ref) async => []),
+        ],
+        child: MaterialApp(
+          home: DraftTransactionScreen(
+            type: FxTransactionType.settlementSend,
+            draftMode: TransactionDraftMode.agentPayment,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Pay Agent'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

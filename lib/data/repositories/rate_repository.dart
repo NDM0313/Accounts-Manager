@@ -28,11 +28,11 @@ class RateRepository {
   Future<FxRate?> fetchRateById(String id) async {
     final response = await supabase
         .from('fx_rates')
-        .select('$_selectCols')
+        .select(_selectCols)
         .eq('id', id)
         .maybeSingle();
     if (response == null) return null;
-    final row = response as Map<String, dynamic>;
+    final row = response;
     final currency = row['fx_currencies'] as Map<String, dynamic>;
     return _mapRow(row, currency['code'] as String);
   }
@@ -41,7 +41,7 @@ class RateRepository {
   Future<FxRate?> fetchRateAsOf(String currencyCode, DateTime asOf) async {
     final response = await supabase
         .from('fx_rates')
-        .select('$_selectCols')
+        .select(_selectCols)
         .eq('fx_currencies.code', currencyCode.toUpperCase())
         .lte('effective_at', asOf.toUtc().toIso8601String())
         .order('effective_at', ascending: false)
@@ -62,7 +62,7 @@ class RateRepository {
   Future<List<FxRate>> fetchRateHistory(String currencyCode, {int limit = 100}) async {
     final response = await supabase
         .from('fx_rates')
-        .select('$_selectCols')
+        .select(_selectCols)
         .eq('fx_currencies.code', currencyCode.toUpperCase())
         .order('effective_at', ascending: false)
         .limit(limit);
@@ -123,8 +123,7 @@ class RateRepository {
 
   Future<Map<String, dynamic>> _insertRateVersion(Map<String, dynamic> payload) async {
     try {
-      return await supabase.from('fx_rates').insert(payload).select(_selectCols).single()
-          as Map<String, dynamic>;
+      return await supabase.from('fx_rates').insert(payload).select(_selectCols).single();
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
         throw const RateEffectiveAtConflictException();
@@ -134,8 +133,7 @@ class RateRepository {
           ..remove('rate_source')
           ..remove('notes');
         try {
-          return await supabase.from('fx_rates').insert(fallback).select(_selectCols).single()
-              as Map<String, dynamic>;
+          return await supabase.from('fx_rates').insert(fallback).select(_selectCols).single();
         } on PostgrestException catch (e2) {
           if (e2.code == '23505') {
             throw const RateEffectiveAtConflictException();

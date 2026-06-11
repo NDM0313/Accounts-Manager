@@ -114,7 +114,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget _openingBalanceBanner(BuildContext context, AsyncValue<FxOpeningBalanceView> openingAsync) {
     return openingAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (view) {
         if (view.status == FxOpeningBalanceStatus.posted) {
           return Container(

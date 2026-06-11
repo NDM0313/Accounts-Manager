@@ -54,7 +54,7 @@ class RateBoardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           pairsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const FxObsidianReportPanel(
+            error: (_, _) => const FxObsidianReportPanel(
               child: Text('Unable to load rates. Ensure your profile is configured.'),
             ),
             data: (pairs) {

@@ -1,5 +1,4 @@
 import 'package:accounts_manager/domain/models/fx_rate.dart';
-import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
 import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

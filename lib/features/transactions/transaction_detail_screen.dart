@@ -190,7 +190,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ],
                     journalAsync.when(
                       loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
                       data: (journal) {
                         if (journal == null) return const SizedBox.shrink();
                         return Padding(
@@ -338,7 +338,7 @@ class _LinkedExchangeBanner extends ConsumerWidget {
 
     return linkedAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (linked) {
         if (linked.length < 2) return const SizedBox.shrink();
         final index = linked.indexWhere((t) => t.id == transactionId);

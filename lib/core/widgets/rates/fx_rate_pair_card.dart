@@ -160,25 +160,23 @@ class FxRatePairCard extends StatelessWidget {
               const SizedBox(height: 4),
 
               Row(
-
                 children: [
-
-                  _SourceBadge(source: pair.source),
-
-                  const Spacer(),
-
-                  if (pair.effectiveAt != null)
-
-                    Text(
-
-                      _timeLabel(pair.effectiveAt!),
-
-                      style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
-
+                  Flexible(
+                    child: _SourceBadge(source: pair.source),
+                  ),
+                  if (pair.effectiveAt != null) ...[
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        _timeLabel(pair.effectiveAt!),
+                        style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.end,
+                      ),
                     ),
-
+                  ],
                 ],
-
               ),
 
             ],
@@ -354,11 +352,10 @@ class _SourceBadge extends StatelessWidget {
       ),
 
       child: Text(
-
         RateSourceLabels.label(source),
-
         style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 9),
-
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
 
     );
