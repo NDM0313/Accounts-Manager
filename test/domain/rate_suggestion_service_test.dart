@@ -23,11 +23,12 @@ void main() {
     _rate('USD', 278, 280, at: fresh),
     _rate('AED', 75, 76, at: fresh),
     _rate('CNY', 38, 39, at: fresh),
+    _rate('AFN', 3.2, 3.4, at: fresh),
   ];
 
   group('pkrQuote', () {
     test('direct USD/PKR returns mid reference', () {
-      final q = svc.pkrQuote(rates, 'USD');
+      final q = svc.pkrQuote(rates, 'USD', now: now);
       expect(q.lookupMethod, RateLookupMethod.directPkr);
       expect(q.referenceRate, closeTo(279, 0.01));
       expect(q.pairLabel, contains('USD'));
@@ -53,6 +54,12 @@ void main() {
     test('sell side uses sell rate', () {
       final q = svc.pkrQuote(rates, 'USD', side: RateSide.sell);
       expect(q.rate, 280);
+    });
+
+    test('AFN/PKR direct quote', () {
+      final q = svc.pkrQuote(rates, 'AFN', side: RateSide.sell);
+      expect(q.rate, 3.4);
+      expect(q.fromCurrency, 'AFN');
     });
   });
 

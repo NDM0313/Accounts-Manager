@@ -1,11 +1,18 @@
 # FX Ledger — Remaining Tasks
 
 **Project:** `ygidlcqhupmxvsdjmvnf` (Cloud only)  
-**Last updated:** 2026-06-19
+**Last updated:** 2026-06-22
 
 ---
 
-## Done (this push)
+## Done (latest)
+
+- **New Customer FX Order rate bug:** `FxRateValuationSection` now re-applies suggested rate on currency change; spread severity tiers (20% warning, 100% critical); "Apply suggested rate" action
+- **Customer payment posting:** migration `202606220001` — `fx_record_deal_customer_payment` uses `settlement_receive` instead of `manual_journal` (deployed to Cloud)
+
+---
+
+## Done (prior push)
 
 - Deal RPC v2 consolidation (`fx_book_customer_deal_v2`, `fx_add_deal_leg_v2`)
 - Per-leg attachments migration + Flutter proof upload UI
@@ -25,7 +32,7 @@
 |---|------|-------|-------|
 | 1 | **Run dev data reset** | User approval | `supabase/scripts/reset_dev_fx_data.sql` — destructive; not executed |
 | 2 | **Storage bucket cleanup** | Manual | After reset, follow `docs/STORAGE_CLEANUP_AFTER_RESET.md` |
-| 3 | **End-to-end deal test** | QA / user | Order → agent source leg → payment proof → delivery |
+| 3 | **End-to-end deal test** | QA / user | New Customer FX Order: CNY rate ~41, paid 150k, book without error |
 | 4 | **Hot restart verify** | User | Workflow panel, proof attachments, AFN in settings, rate source labels |
 
 ---

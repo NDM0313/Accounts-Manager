@@ -121,7 +121,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                         ),
                       ),
                     DropdownButtonFormField<String>(
-                      value: _customerId,
+                      initialValue: _customerId,
                       isExpanded: true,
                       decoration: const InputDecoration(border: OutlineInputBorder()),
                       hint: const Text('Select customer'),
@@ -156,7 +156,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                   });
                 }
                 return DropdownButtonFormField<String>(
-                  value: _currencyCode,
+                  initialValue: _currencyCode,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     labelText: 'Currency customer wants',
@@ -164,11 +164,11 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                   items: active
                       .map((c) => DropdownMenuItem<String>(value: c.code, child: Text(displayCurrencyCode(c.code))))
                       .toList(),
-                  onChanged: (v) => setState(() => _currencyCode = v),
+                  onChanged: (v) => setState(() => _currencyCode = v != null ? normalizeFxCurrencyCode(v) : null),
                   validator: (v) => v == null ? 'Select currency' : null,
                 );
               },
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 8),
             InkWell(
@@ -212,6 +212,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             if (_currencyCode != null) ...[
               const SizedBox(height: 8),
               FxRateValuationSection(
+                key: ValueKey('rate_${_currencyCode}_PKR'),
                 fromCurrency: _currencyCode!,
                 toCurrency: 'PKR',
                 dealRateController: _rateCtrl,
@@ -283,7 +284,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             const SizedBox(height: 16),
             const FxSectionLabel(label:'Delivery method'),
             DropdownButtonFormField<FxDeliveryMethod>(
-              value: _deliveryMethod,
+              initialValue: _deliveryMethod,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: FxDeliveryMethod.values.map((m) => DropdownMenuItem(value: m, child: Text(m.label))).toList(),
               onChanged: (v) => setState(() => _deliveryMethod = v ?? FxDeliveryMethod.agent),

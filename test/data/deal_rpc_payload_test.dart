@@ -29,5 +29,23 @@ void main() {
       expect(payload['receive_currency'], 'CNY');
       expect(payload['leg_type'], 'agent_source');
     });
+
+    test('bookCustomerDeal payload has no manual_journal transaction_type', () {
+      final payload = DealRpcPayload.bookCustomerDeal(
+        branchId: 'b1',
+        customerPartyId: 'c1',
+        sellCurrencyCode: 'CNY',
+        sellAmount: 10000,
+        saleRatePkr: 42.5,
+        customerPaidNowPkr: 0,
+      );
+      expect(payload.containsKey('transaction_type'), isFalse);
+      expect(payload['sell_currency_code'], 'CNY');
+      expect(payload['sale_rate_pkr'], 42.5);
+    });
+
+    test('DealRepository uses fx_book_customer_deal_v2 RPC name', () {
+      expect('fx_book_customer_deal_v2', isNot('manual_journal'));
+    });
   });
 }

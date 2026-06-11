@@ -16,6 +16,7 @@ DECLARE
   v_commitment_count INT;
   v_paid NUMERIC;
   v_receivable NUMERIC;
+  v_payment_tx_type TEXT;
 BEGIN
   -- 1) Overload check
   SELECT COUNT(*) INTO v_legacy_add
@@ -118,7 +119,22 @@ BEGIN
     RAISE EXCEPTION 'FAIL: customer_receivable_pkr expected %, got %',
       GREATEST(0, 2800000 - 500000), v_receivable;
   END IF;
-  RAISE NOTICE 'PASS: customer payment math paid=% receivable=%', v_paid, v_receivable;
+
+  SELECT t.transaction_type::text INTO v_payment_tx_type
+  FROM fx_transactions t
+  JOIN fx_deal_legs l ON l.linked_transaction_id = t.id
+  WHERE l.deal_id = v_deal_id AND l.leg_type = 'customer_payment'
+  ORDER BY l.leg_no DESC
+  LIMIT 1;
+
+  IF v_payment_tx_type IS DISTINCT FROM 'settlement_receive' THEN
+    RAISE EXCEPTION 'FAIL: customer payment tx type expected settlement_receive, got %', v_payment_tx_type;
+  END IF;
+  IF v_payment_tx_type = 'manual_journal' THEN
+    RAISE EXCEPTION 'FAIL: customer payment must not use manual_journal';
+  END IF;
+
+  RAISE NOTICE 'PASS: customer payment math paid=% receivable=% tx_type=%', v_paid, v_receivable, v_payment_tx_type;
 
   RAISE NOTICE 'ALL FX LEDGER SMOKE CHECKS PASSED';
   EXCEPTION
