@@ -34,6 +34,18 @@ const generalHubEntries = [
     route: '/deals',
   ),
   GeneralHubEntry(
+    title: 'Remittance',
+    subtitle: 'Hawala / payout tracking',
+    icon: Icons.public_outlined,
+    route: '/remittance',
+  ),
+  GeneralHubEntry(
+    title: 'Team Messages',
+    subtitle: 'Internal staff chat',
+    icon: Icons.chat_bubble_outline,
+    route: '/messages',
+  ),
+  GeneralHubEntry(
     title: 'Chart of Accounts',
     subtitle: 'Read-only COA',
     icon: Icons.account_tree_outlined,

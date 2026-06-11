@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/env.dart';
 import 'package:accounts_manager/core/utils/report_export.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_settings_row.dart';
@@ -42,15 +43,11 @@ class SettingsScreen extends ConsumerWidget {
               final initials = name.isNotEmpty
                   ? name.split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase()
                   : '?';
-              return Container(
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: context.fx.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                  border: Border.all(color: context.fx.outlineVariant),
-                ),
-                child: Row(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: FxPremiumCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
                   children: [
                     CircleAvatar(
                       radius: 28,
@@ -82,6 +79,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
               );
             },
@@ -200,8 +198,8 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _themeLabel(ThemeMode mode) => switch (mode) {
-        ThemeMode.dark => 'Dark (Obsidian)',
-        ThemeMode.light => 'Light (Precision Ledger)',
+        ThemeMode.dark => 'Dark (Executive FX)',
+        ThemeMode.light => 'Light (Executive FX)',
         ThemeMode.system => 'System',
       };
 

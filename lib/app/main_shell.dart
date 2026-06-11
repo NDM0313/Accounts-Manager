@@ -1,4 +1,4 @@
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_shell.dart';
 import 'package:accounts_manager/features/auth/profile_not_configured_screen.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -26,4 +26,4 @@ class AuthGate extends ConsumerWidget {
   }
 }
 
-typedef MainShell = FxObsidianShell;
+typedef MainShell = FxPremiumShell;

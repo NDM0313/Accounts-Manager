@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,13 +67,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Container(
+            child: FxPremiumCard(
               padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: context.fx.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                border: Border.all(color: context.fx.outlineVariant),
-              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -81,13 +77,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Icon(Icons.account_balance_wallet, size: 48, color: theme.colorScheme.primary),
                     const SizedBox(height: 16),
                     Text(
-                      'FX Ledger',
+                      'Executive FX Ledger',
                       style: AppTypography.headlineLg(theme.colorScheme.onSurface, context: context),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Private internal ledger',
+                      'Sign in to your private ledger',
                       style: AppTypography.bodyMd(theme.colorScheme.onSurfaceVariant, context: context),
                       textAlign: TextAlign.center,
                     ),
@@ -109,7 +105,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 16),
-                      Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: context.fx.errorContainer,
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                          border: Border.all(color: context.fx.error.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: AppTypography.bodyMd(context.fx.error, context: context),
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     FilledButton(

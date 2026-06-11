@@ -10,7 +10,7 @@ void main() {
         child: MaterialApp(home: LoginScreen()),
       ),
     );
-    expect(find.text('FX Ledger'), findsOneWidget);
+    expect(find.text('Executive FX Ledger'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
   });
 }

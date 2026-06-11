@@ -28,9 +28,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('TRANSACTIONS'), findsOneWidget);
-    expect(find.text('ACCOUNT STATEMENT'), findsOneWidget);
-    expect(find.text('ACTIVE ONLY'), findsOneWidget);
+    expect(find.text('Transactions'), findsOneWidget);
+    expect(find.text('Account statement'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
   });
 
   testWidgets('Account statement tab prompts account selection', (tester) async {
@@ -58,7 +58,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('ACCOUNT STATEMENT'));
+    await tester.tap(find.text('Account statement'));
     await tester.pumpAndSettle();
 
     expect(find.text('Select an account to view its statement.'), findsOneWidget);

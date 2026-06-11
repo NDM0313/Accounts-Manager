@@ -49,12 +49,12 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.warning_amber_rounded, size: 18, color: Colors.orange.shade700),
+                Icon(Icons.warning_amber_rounded, size: 18, color: fx.warning),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     view.warningText!,
-                    style: AppTypography.bodyMd(Colors.orange.shade700, context: context).copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(fx.warning, context: context).copyWith(fontSize: 12),
                   ),
                 ),
               ],
@@ -128,7 +128,7 @@ class _StepRow extends StatelessWidget {
     final fx = context.fx;
     final icon = switch (step.status) {
       DealWorkflowStepStatus.completed => Icon(Icons.check_circle, color: fx.primary, size: 18),
-      DealWorkflowStepStatus.partial => Icon(Icons.timelapse, color: Colors.orange.shade700, size: 18),
+      DealWorkflowStepStatus.partial => Icon(Icons.timelapse, color: fx.warning, size: 18),
       DealWorkflowStepStatus.pending => Icon(Icons.radio_button_unchecked, color: fx.outline, size: 18),
       DealWorkflowStepStatus.skipped => const SizedBox.shrink(),
     };

@@ -21,11 +21,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('ACTIVE ONLY'), findsOneWidget);
-    expect(find.text('LAST 30 DAYS'), findsOneWidget);
-    expect(find.text('CURRENCY'), findsOneWidget);
-    expect(find.text('MORE'), findsOneWidget);
-    expect(find.text('Search by Party or Reference…'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Last 30 days'), findsOneWidget);
+    expect(find.text('Currency'), findsOneWidget);
+    expect(find.text('Sort'), findsOneWidget);
+    expect(find.text('Search party or reference…'), findsOneWidget);
   });
 
   testWidgets('Ledger list groups transactions with sticky date header', (tester) async {

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FX Cash Ledger - Live Rates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d8e2ff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#d6e3ff",
+                    "on-secondary-fixed-variant": "#004395",
+                    "secondary-container": "#2170e4",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "primary-container": "#1a365d",
+                    "surface-container-highest": "#d5e3fd",
+                    "inverse-on-surface": "#ebf1ff",
+                    "inverse-primary": "#adc7f7",
+                    "on-primary-container": "#86a0cd",
+                    "on-secondary-container": "#fefcff",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#0d1c2f",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "outline": "#74777f",
+                    "surface": "#f8f9ff",
+                    "secondary": "#0058be",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#233144",
+                    "tertiary": "#002617",
+                    "surface-container": "#e6eeff",
+                    "on-surface-variant": "#43474e",
+                    "tertiary-container": "#003e28",
+                    "on-secondary-fixed": "#001a42",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-primary-fixed": "#001b3c",
+                    "on-tertiary-container": "#00b47d",
+                    "surface-container-high": "#dde9ff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c4c6cf",
+                    "surface-variant": "#d5e3fd",
+                    "primary-fixed-dim": "#adc7f7",
+                    "surface-tint": "#455f88",
+                    "surface-dim": "#ccdbf4",
+                    "primary": "#002045",
+                    "on-surface": "#0d1c2f",
+                    "on-tertiary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "12px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "container-margin": "16px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "data-md": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "data-lg": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f8f9ff;
+            -webkit-font-smoothing: antialiased;
+        }
+        .rate-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .rate-card:active {
+            transform: scale(0.98);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface dark:bg-primary shadow-sm">
+<div class="flex items-center gap-md">
+<button class="active:scale-95 transition-transform text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Live Rates</h1>
+</div>
+<button class="active:scale-95 transition-transform text-primary dark:text-primary-fixed hover:opacity-80">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">refresh</span>
+</button>
+</header>
+<main class="pt-[80px] pb-[80px] px-container-margin max-w-[1140px] mx-auto">
+<!-- Status Header -->
+<section class="mb-lg flex flex-col md:flex-row md:items-center justify-between gap-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">schedule</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Last Updated: 2 mins ago</p>
+</div>
+<div class="inline-flex items-center gap-xs px-md py-1 bg-surface-container-high rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Manual Reference</span>
+</div>
+</section>
+<!-- Rate Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md mb-xl">
+<!-- USD Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="USA Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxdqPA7Lu-mtfU04F0sovzfva-_9pslIrGxaVxOoUN9H7YYfoL8zSgjdR3carV7Q5Pv_NftnlFHp9gdu3jEwQJn3hXvL7qlF44DLd8Jyc2uqGHs9g3GA9xUmWj_kq2jWfnA8a3ojk0D6Tt91DL_EE6A4QUXmKFddO5G-UogsYapOUYyUAWkRR8VqQ5MY0P4_rtnj0nEbKbv2bhnnAVTGBVTifPhWR3tn77_XAfytLMqKUjwy3tE0zTA24A2Yv6I-gno7Xk3NNSC35G"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">USD / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">US Dollar</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">278.45</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">281.20</p>
+</div>
+</div>
+</div>
+<!-- AED Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="UAE Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmKDTOqV_Z1H5206oTfwpVEZRliRYSvtuMnWjWnMONEFl0NKHLrwARKpgOG0fnaUjM1NZ6hbuDoBe2rEUpgpZtyqZnicUu49PCfSU2J0dYZz3eL1nWY4geP0IP6ny2b3cgWYLyD-NAnqoqsoAHC6FCSXS_eqZnDZiJnIEYcSxL2R2ll7gcFVmK9FSXPJSZhasKsRkVCFpRZI6ivU28TiV516OW8m223Zs1bcr2SmGjIoIYYKFqRuXqubKPenuc6VS4jv4dctYrHZ8n"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">AED / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">UAE Dirham</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">75.80</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">76.45</p>
+</div>
+</div>
+</div>
+<!-- CNY Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="China Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOYwez5p91S1SMvJ6ZTWCka1ivp954mP2xWhUiO4uZj6L7DG6GEXaU6V65rXj9IVUbXrOVc_qGVOyzht-qThaJtykuahEU5c86UaQfDGxJqGUnwBUe9Zu1j4pOp0EydENlQ8syggtfJAQrr3NR2cFhWfAV4P_jwlhLdNURaAgcUo65CRuuC-w9KhCuaSk8nAJSjSYvNpxvkH-JTcsJykVASXq01_-cl9ynjV_-MwgmcEOT-1FkCkm6syGtb1pLWg5Xov-kDBsC0qtA"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">CNY / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Chinese Yuan</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">38.25</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">39.10</p>
+</div>
+</div>
+</div>
+<!-- GBP Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="UK Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqS1pW9o9-AY1UT9coJSIQcJ8MG-l8fdzJ7sXOQ4N6iV6l7rFmcLY9a8GlmZrddCZDWB5ER8xCkzXTiWqICMDgxuL8dvq3gzZ3mC8Nr9B_F4F5bdXZVCxsWMZ3-W0YuZmEPSlAH9x17D3rXQovFuLLcW65D-fR9VgfCseyy9hXEcVdOOccpf7QSMnZuXfJ1yNenfJ1xy-m9XZM15qcgVId1_OtQ5XucFzncwUqQ8E3a9ZQWCQtDJ6yrHUqZcsLgK5hZy8P9vWxYMQh"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">GBP / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">British Pound</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">352.10</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">355.80</p>
+</div>
+</div>
+</div>
+<!-- EUR Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="Euro Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6OlyKuD-yD85mvLmUOk5-dUjpIpNO1UeC3b7irEL0EUiPD-MtYOhNSsFcQcyJqG-Wzt3Yqlv0eJr2yyMkgh4cINUJcea95UVZDM3k2lVg5rfgJcSlC_en-0MEo2lbjDReABwIpmUavpsSjV2zJ7BWpyTvOXcE1dYrYE-LsAiAWVpnwCQ389XPZ9KLl8EAwvYe0gCm0Un3wyRXTSWcxSw8Sr1PnfyrywyXqm-cvQTqdnoC-2STfbF47sMHuilL8Z3Aybopp79GR8L5"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">EUR / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Euro</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">301.45</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">304.90</p>
+</div>
+</div>
+</div>
+<!-- SAR Card -->
+<div class="rate-card bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="Saudi Flag" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6k39qut7qx1a32YqgvMzlb_I1UmEBPENc-bx0MB1VLCd0xi_araQWVnUPP-FYZH_4gDs2R9QfYXSFylxm3Q5W92CE2Czf_9VqN5TDqcJglR9Q5HkAJ2n46SAps09cYPfdZwC2oFkjUEnUmFY1s5b2_Sj9FpO3frTKdgiWwdysVNsOIIn8PfPBD1LryaWSHi8gW6BJ4jVPutVykUphjqwV3k0iHsmdkULaSXO8aGvzm4bdYknJtzaAVVALqHYDRXnLHTDMoF3eZUgE"/>
+</div>
+<div>
+<h3 class="font-data-lg text-data-lg text-primary">SAR / PKR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Saudi Riyal</p>
+</div>
+</div>
+<button class="text-secondary hover:bg-surface-container-high p-sm rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">BUY</p>
+<p class="font-display-lg text-[24px] leading-none text-primary">74.15</p>
+</div>
+<div class="bg-secondary-container p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-secondary-container mb-xs">SELL</p>
+<p class="font-display-lg text-[24px] leading-none text-white">74.85</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Rate History Timeline -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="p-lg border-b border-outline-variant flex justify-between items-center">
+<h2 class="font-headline-sm text-headline-sm text-primary">USD/PKR History</h2>
+<div class="flex gap-sm">
+<button class="px-md py-1 rounded-full bg-secondary-container text-white font-label-caps text-label-caps">24H</button>
+<button class="px-md py-1 rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-label-caps">7D</button>
+</div>
+</div>
+<div class="p-lg">
+<div class="space-y-md">
+<!-- History Item -->
+<div class="flex items-start gap-md">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-secondary ring-4 ring-secondary-fixed mb-1"></div>
+<div class="w-0.5 h-16 bg-outline-variant"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-data-md text-data-md text-primary">Updated to 281.20</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">10:45 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Reference source changed to Interbank average + 1% spread.</p>
+</div>
+</div>
+<!-- History Item -->
+<div class="flex items-start gap-md">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-outline-variant mb-1"></div>
+<div class="w-0.5 h-16 bg-outline-variant"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-data-md text-data-md text-primary">Updated to 280.95</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">09:12 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Morning opening rates based on volatility report.</p>
+</div>
+</div>
+<!-- History Item -->
+<div class="flex items-start gap-md">
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-outline-variant"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-data-md text-data-md text-primary">Updated to 280.50</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Market closing rate.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 w-full h-[56px] z-50 flex justify-around items-center px-container-margin bg-surface dark:bg-primary border-t border-outline-variant dark:border-outline">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed border-t-2 border-secondary dark:border-secondary-fixed pt-1 transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">sync_alt</span>
+<span class="font-label-caps text-label-caps">Deals</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for the refresh button
+        const refreshBtn = document.querySelector('header button:last-child');
+        refreshBtn.addEventListener('click', () => {
+            const icon = refreshBtn.querySelector('.material-symbols-outlined');
+            icon.style.transition = 'transform 0.6s ease';
+            icon.style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                icon.style.transition = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }, 600);
+        });
+
+        // Add visual feedback to cards
+        document.querySelectorAll('.rate-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Focus state logic could go here
+                document.querySelectorAll('.rate-card').forEach(c => c.classList.remove('ring-2', 'ring-secondary'));
+                card.classList.add('ring-2', 'ring-secondary');
+            });
+        });
+    </script>
+</body></html>

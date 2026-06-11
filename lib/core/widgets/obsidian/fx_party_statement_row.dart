@@ -1,6 +1,8 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_proof_badge.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_status_badge.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -44,7 +46,7 @@ class FxPartyStatementRow extends StatelessWidget {
                     style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
                   ),
                   const SizedBox(width: 8),
-                  _StatusPill(status: line.status),
+                  FxStatusBadge(label: line.status, tone: FxStatusBadge.fromString(line.status)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -54,12 +56,13 @@ class FxPartyStatementRow extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${fmt.format(line.foreignAmount)} ${line.currencyCode}',
-                      style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                      _detailLine(fmt, line),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.dataMd(context.fx.onSurface, context: context),
                     ),
                   ),
-                  if (line.hasAttachment)
-                    Icon(Icons.attach_file, size: 16, color: context.fx.onSurfaceVariant),
+                  if (line.hasAttachment) FxProofBadge(count: 1),
                 ],
               ),
               const SizedBox(height: 8),
@@ -68,28 +71,23 @@ class FxPartyStatementRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Dr ${fmt.format(line.debitPkr)}',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Cr ${fmt.format(line.creditPkr)}',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Bal ${fmt.format(line.runningBalancePkr)}',
                       textAlign: TextAlign.end,
-                      style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(context.fx.onSurface, context: context).copyWith(fontSize: 11),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Rate ${fmt.format(line.rateUsed)} · PKR ${fmt.format(line.pkrEquivalent)}',
-                style: AppTypography.bodyMd(context.fx.outline, context: context).copyWith(fontSize: 10),
               ),
               if (line.description != null && line.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -106,31 +104,12 @@ class FxPartyStatementRow extends StatelessWidget {
       ),
     );
   }
-}
 
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status});
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (status.toLowerCase()) {
-      'posted' => context.fx.tertiary,
-      'draft' => context.fx.onSurfaceVariant,
-      'voided' => context.fx.error,
-      _ => context.fx.outline,
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: AppTypography.labelCaps(color, context: context).copyWith(fontSize: 8),
-      ),
-    );
+  static String _detailLine(NumberFormat fmt, PartyStatementLine line) {
+    if (line.foreignAmount != 0 && line.currencyCode.isNotEmpty) {
+      return 'Sold ${fmt.format(line.foreignAmount)} ${line.currencyCode} @ ${fmt.format(line.rateUsed)} = PKR ${fmt.format(line.pkrEquivalent)}';
+    }
+    return 'PKR ${fmt.format(line.pkrEquivalent)}';
   }
 }
 

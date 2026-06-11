@@ -43,6 +43,14 @@ import 'package:accounts_manager/features/deals/deals_list_screen.dart';
 import 'package:accounts_manager/features/deals/delivery_confirmation_screen.dart';
 import 'package:accounts_manager/features/deals/new_customer_fx_order_screen.dart';
 import 'package:accounts_manager/features/deals/sourcing_requirement_screen.dart';
+import 'package:accounts_manager/features/remittance/remittance_list_screen.dart';
+import 'package:accounts_manager/features/remittance/new_remittance_order_screen.dart';
+import 'package:accounts_manager/features/remittance/remittance_detail_screen.dart';
+import 'package:accounts_manager/features/remittance/remittance_customer_payment_screen.dart';
+import 'package:accounts_manager/features/remittance/remittance_workflow_screens.dart';
+import 'package:accounts_manager/features/remittance/remittance_reports_screen.dart';
+import 'package:accounts_manager/features/messaging/messages_inbox_screen.dart';
+import 'package:accounts_manager/features/messaging/conversation_room_screen.dart';
 import 'package:accounts_manager/features/ledger/ledger_hub_screen.dart';
 import 'package:accounts_manager/features/opening_balance/opening_balance_hub_screen.dart';
 import 'package:accounts_manager/features/opening_balance/opening_balance_wizard_screen.dart';
@@ -206,6 +214,64 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return AuthGate(child: DeliveryConfirmationScreen(dealId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance',
+        builder: (context, state) => const AuthGate(child: RemittanceListScreen()),
+      ),
+      GoRoute(
+        path: '/remittance/new',
+        builder: (context, state) => const AuthGate(child: NewRemittanceOrderScreen()),
+      ),
+      GoRoute(
+        path: '/remittance/reports',
+        builder: (context, state) => const AuthGate(child: RemittanceReportsScreen()),
+      ),
+      GoRoute(
+        path: '/remittance/:id/payment',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: RemittanceCustomerPaymentScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance/:id/assign-agent',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: RemittanceAssignAgentScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance/:id/payout',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: RemittanceConfirmPayoutScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance/:id/settlement',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: RemittanceAgentSettlementScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: RemittanceDetailScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/messages',
+        builder: (context, state) => const AuthGate(child: MessagesInboxScreen()),
+      ),
+      GoRoute(
+        path: '/messages/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: ConversationRoomScreen(conversationId: id));
         },
       ),
       GoRoute(

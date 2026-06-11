@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
@@ -11,6 +12,8 @@ import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
+import 'package:accounts_manager/features/messaging/widgets/entity_chat_panel.dart';
+import 'package:accounts_manager/domain/models/fx_conversation.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,6 +76,14 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _partyHeader(context, party, statementAsync, fmt),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: EntityChatPanel(
+                    type: FxConversationType.party,
+                    partyId: widget.partyId,
+                    title: party.name,
+                  ),
+                ),
                 _openDealsSection(context, openDealsAsync, fmt),
                 _filtersSection(context),
                 Expanded(
@@ -115,15 +126,11 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
   ) {
     final view = statementAsync.whenOrNull(data: (v) => v);
     final summary = view?.summary;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: context.fx.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: context.fx.outlineVariant),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: FxPremiumCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -180,6 +187,7 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
           ],
         ],
       ),
+      ),
     );
   }
 
@@ -201,6 +209,10 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('OPEN FX DEALS', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+              Text(
+                'Outstanding receivable/payable from active deals (PKR).',
+                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+              ),
               const SizedBox(height: 8),
               ...items.map((item) {
                 return ListTile(
@@ -208,7 +220,9 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                   contentPadding: EdgeInsets.zero,
                   title: Text(item.dealNo ?? item.dealId.substring(0, 8), style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
                   subtitle: Text(
-                    '${item.role} · ${item.dealStatus.label} · recv PKR ${fmt.format(item.receivablePkr)}',
+                    '${item.role} · ${item.dealStatus.label} · outstanding PKR ${fmt.format(item.receivablePkr)}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 18),
@@ -399,10 +413,18 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.ios_share_outlined),
-              title: const Text('Export / Print'),
+              title: const Text('Export / Print (internal)'),
               onTap: () {
                 Navigator.pop(ctx);
                 _exportStatement(context, customerCopy: false);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('Share customer copy'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _exportStatement(context, customerCopy: true);
               },
             ),
           ],

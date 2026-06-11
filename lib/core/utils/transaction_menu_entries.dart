@@ -51,6 +51,23 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
       ],
     ),
     TransactionMenuGroup(
+      title: 'Remittance',
+      entries: [
+        if (FeatureFlags.remittanceWorkflowEnabled)
+          const TransactionMenuEntry(
+            label: 'New Remittance Order',
+            icon: Icons.public_outlined,
+            route: '/remittance/new',
+          ),
+        if (FeatureFlags.remittanceWorkflowEnabled)
+          const TransactionMenuEntry(
+            label: 'Remittance List',
+            icon: Icons.list_alt_outlined,
+            route: '/remittance',
+          ),
+      ],
+    ),
+    TransactionMenuGroup(
       title: 'FX Deals',
       entries: [
         if (FeatureFlags.dealsWorkflowEnabled)
@@ -82,7 +99,7 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
       ],
     ),
     TransactionMenuGroup(
-      title: 'Settlement / Advanced',
+      title: 'Advanced',
       entries: [
         const TransactionMenuEntry(
           label: 'Settlement Receive',

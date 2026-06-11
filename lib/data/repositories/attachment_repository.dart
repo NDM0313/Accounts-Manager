@@ -10,6 +10,7 @@ class FxAttachment {
     this.transactionId,
     this.dealId,
     this.dealLegId,
+    this.messageId,
     required this.storagePath,
     required this.fileName,
     this.mimeType,
@@ -21,6 +22,7 @@ class FxAttachment {
   final String? transactionId;
   final String? dealId;
   final String? dealLegId;
+  final String? messageId;
   final String storagePath;
   final String fileName;
   final String? mimeType;
@@ -33,6 +35,7 @@ class FxAttachment {
       transactionId: json['transaction_id'] as String?,
       dealId: json['deal_id'] as String?,
       dealLegId: json['deal_leg_id'] as String?,
+      messageId: json['message_id'] as String?,
       storagePath: json['storage_path'] as String,
       fileName: json['file_name'] as String,
       mimeType: json['mime_type'] as String?,
@@ -102,15 +105,21 @@ class AttachmentRepository {
     String? transactionId,
     String? dealId,
     String? dealLegId,
+    String? messageId,
     String? attachmentType,
   }) async {
-    assert(transactionId != null || dealLegId != null, 'Need transactionId or dealLegId');
+    assert(
+      transactionId != null || dealLegId != null || messageId != null,
+      'Need transactionId, dealLegId, or messageId',
+    );
 
     final safeName = sanitizeStorageFileName(fileName);
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final path = dealLegId != null && dealId != null
-        ? '${sanitizeStoragePathSegment(branchId)}/deals/${sanitizeStoragePathSegment(dealId)}/legs/${sanitizeStoragePathSegment(dealLegId)}/${ts}_$safeName'
-        : '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId!)}/${ts}_$safeName';
+    final path = messageId != null
+        ? '${sanitizeStoragePathSegment(branchId)}/messages/${sanitizeStoragePathSegment(messageId)}/${ts}_$safeName'
+        : dealLegId != null && dealId != null
+            ? '${sanitizeStoragePathSegment(branchId)}/deals/${sanitizeStoragePathSegment(dealId)}/legs/${sanitizeStoragePathSegment(dealLegId)}/${ts}_$safeName'
+            : '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId!)}/${ts}_$safeName';
 
     await supabase.storage.from(bucket).uploadBinary(path, bytes, fileOptions: FileOptions(contentType: mimeType));
 
@@ -124,6 +133,7 @@ class AttachmentRepository {
     if (transactionId != null) insert['transaction_id'] = transactionId;
     if (dealId != null) insert['deal_id'] = dealId;
     if (dealLegId != null) insert['deal_leg_id'] = dealLegId;
+    if (messageId != null) insert['message_id'] = messageId;
     if (attachmentType != null) insert['attachment_type'] = attachmentType;
 
     final row = await supabase.from('fx_attachments').insert(insert).select(_selectCols).single();

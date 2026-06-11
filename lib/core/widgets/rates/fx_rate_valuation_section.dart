@@ -184,7 +184,7 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
               if (!quote.isAvailable)
                 Text(
                   noRateMessage,
-                  style: AppTypography.bodyMd(Colors.orange.shade700, context: context)
+                  style: AppTypography.bodyMd(context.fx.warning, context: context)
                       .copyWith(fontSize: 12),
                 )
               else ...[
@@ -228,11 +228,11 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber, size: 14, color: Colors.orange.shade700),
+                        Icon(Icons.warning_amber, size: 14, color: context.fx.warning),
                         const SizedBox(width: 4),
                         Text(
                           'Rate may be outdated',
-                          style: AppTypography.bodyMd(Colors.orange.shade700, context: context)
+                          style: AppTypography.bodyMd(context.fx.warning, context: context)
                               .copyWith(fontSize: 11),
                         ),
                       ],
@@ -249,6 +249,8 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
           ),
         ),
         const SizedBox(height: 12),
+        const FxSectionLabel(label: 'Your deal rate'),
+        const SizedBox(height: 8),
         FxObsidianFormField(
           label: widget.dealRateLabel,
           controller: widget.dealRateController,
@@ -345,10 +347,10 @@ class _SpreadBadge extends StatelessWidget {
     if (spread.matchesReference) return context.fx.onSurfaceVariant;
     final severity = spreadSeverityForPercent(spread.percentDiff);
     return switch (severity) {
-      SpreadSeverity.critical => Colors.red.shade700,
-      SpreadSeverity.warning => Colors.orange.shade700,
+      SpreadSeverity.critical => context.fx.error,
+      SpreadSeverity.warning => context.fx.warning,
       SpreadSeverity.normal =>
-        spread.isAboveReference ? Colors.orange.shade700 : Colors.green.shade700,
+        spread.isAboveReference ? context.fx.warning : context.fx.tertiary,
     };
   }
 

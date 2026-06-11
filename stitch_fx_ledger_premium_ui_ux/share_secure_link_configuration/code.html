@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Share Configuration | Executive FX Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#ccdbf4",
+                    "inverse-primary": "#adc7f7",
+                    "primary": "#002045",
+                    "on-tertiary-fixed": "#002113",
+                    "primary-fixed-dim": "#adc7f7",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-secondary-fixed": "#001a42",
+                    "surface-bright": "#f8f9ff",
+                    "primary-fixed": "#d6e3ff",
+                    "error-container": "#ffdad6",
+                    "background": "#f8f9ff",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-surface-variant": "#43474e",
+                    "on-secondary-container": "#fefcff",
+                    "on-background": "#0d1c2f",
+                    "tertiary": "#002617",
+                    "on-error-container": "#93000a",
+                    "surface-container-high": "#dde9ff",
+                    "secondary-container": "#2170e4",
+                    "on-tertiary-container": "#00b47d",
+                    "inverse-on-surface": "#ebf1ff",
+                    "surface-variant": "#d5e3fd",
+                    "surface-container": "#e6eeff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#455f88",
+                    "surface": "#f8f9ff",
+                    "surface-container-low": "#eff4ff",
+                    "inverse-surface": "#233144",
+                    "primary-container": "#1a365d",
+                    "on-surface": "#0d1c2f",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c4c6cf",
+                    "outline": "#74777f",
+                    "on-primary-container": "#86a0cd",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-primary-fixed": "#001b3c",
+                    "tertiary-container": "#003e28",
+                    "secondary": "#0058be",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "tertiary-fixed": "#6ffbbe",
+                    "surface-container-highest": "#d5e3fd",
+                    "secondary-fixed-dim": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "12px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "container-margin": "16px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "display-lg": ["Manrope"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "data-md": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "label-caps": ["Inter"],
+                    "data-lg": ["Inter"],
+                    "headline-sm": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom toggle switch styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #c4c6cf;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #0058be; }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar (From JSON Anchor) -->
+<nav class="fixed top-0 w-full z-50 h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-container-margin max-w-7xl mx-auto left-0 right-0">
+<div class="flex items-center gap-md">
+<button aria-label="Go back" class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-sm rounded-full active:scale-95 duration-100">
+                arrow_back
+            </button>
+<h1 class="font-headline-sm text-headline-sm text-primary">Share Configuration</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2DXyoVazyDfq0c854dRXxnAJmtR56uKAhUdt2pvlgOX1QIs2Tx9gI69HQXf5wtnhlmZ2a2oU9YTvC-ZEkcngZyctUJp-qrJzPWdnYLjDzJHWMNE3TgiN5GlL5YVbF9xLOQMF0TMoWRKVROJd0aFYfdUkcoBuyHBbuOKXvdvy1SikGZpL8TMZWraEjzG2BAYFyLAICAmGsQb3mZgXq0IDAy2-r7437WQJIjwJYcLT1ILPoy1cQARcgidTa36E03Fd2t069d9sLpfUM"/>
+</div>
+</nav>
+<main class="mt-16 px-container-margin max-w-2xl mx-auto pt-lg">
+<!-- Summary Section -->
+<section class="mb-xl">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center gap-md shadow-sm">
+<div class="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-primary leading-tight">Deal #FX-9942 - Audit Proof</h2>
+<p class="text-body-sm text-outline mt-xs uppercase tracking-wider font-semibold">Generated on Oct 24, 2023</p>
+</div>
+</div>
+</section>
+<!-- Link Expiry Section -->
+<section class="mb-xl">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-on-surface">Link Expiry</h3>
+<span class="material-symbols-outlined text-outline">schedule</span>
+</div>
+<div class="grid grid-cols-4 gap-sm bg-surface-container rounded-xl p-xs border border-outline-variant">
+<button class="expiry-btn py-sm px-xs text-center rounded-lg font-data-md text-body-sm transition-all bg-surface-container-lowest text-secondary shadow-sm ring-1 ring-outline-variant" onclick="selectExpiry(this)">1 Hour</button>
+<button class="expiry-btn py-sm px-xs text-center rounded-lg font-data-md text-body-sm transition-all text-on-surface-variant hover:bg-surface-container-low" onclick="selectExpiry(this)">24 Hours</button>
+<button class="expiry-btn py-sm px-xs text-center rounded-lg font-data-md text-body-sm transition-all text-on-surface-variant hover:bg-surface-container-low" onclick="selectExpiry(this)">7 Days</button>
+<button class="expiry-btn py-sm px-xs text-center rounded-lg font-data-md text-body-sm transition-all text-on-surface-variant hover:bg-surface-container-low" onclick="selectExpiry(this)">Custom</button>
+</div>
+</section>
+<!-- Security Permissions Section -->
+<section class="mb-xl space-y-md">
+<h3 class="font-headline-sm text-on-surface mb-md">Security Permissions</h3>
+<!-- Permission Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center justify-between transition-all hover:border-secondary">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">download</span>
+</div>
+<div>
+<p class="font-data-md text-on-surface">Allow Download (PDF)</p>
+<p class="text-body-sm text-outline">Recipient can save a local copy</p>
+</div>
+</div>
+<label class="switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<!-- Permission Card (With Nested Field) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md transition-all">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<div>
+<p class="font-data-md text-on-surface">Password Protection</p>
+<p class="text-body-sm text-outline">Encryption layer for link access</p>
+</div>
+</div>
+<label class="switch">
+<input id="passToggle" onchange="togglePasswordField()" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="hidden animate-in fade-in slide-in-from-top-1 duration-200" id="passwordFieldWrapper">
+<div class="relative">
+<input class="w-full bg-surface border border-outline-variant rounded-lg py-md px-md focus:ring-2 focus:ring-secondary focus:border-secondary outline-none font-body-md text-on-surface" placeholder="Enter secure password" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<p class="text-body-sm text-outline mt-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                        Minimum 12 characters recommended.
+                    </p>
+</div>
+</div>
+<!-- Permission Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-center justify-between transition-all hover:border-secondary">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<p class="font-data-md text-on-surface">Require Email Verification</p>
+<p class="text-body-sm text-outline">One-time code sent to recipient</p>
+</div>
+</div>
+<label class="switch">
+<input type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+</section>
+<!-- Link Preview Box -->
+<section class="mb-xl">
+<h3 class="font-headline-sm text-on-surface mb-md">Generated Link Preview</h3>
+<div class="bg-surface-dim/30 border-2 border-dashed border-outline-variant rounded-xl p-md flex items-center gap-md">
+<div class="flex-1 overflow-hidden">
+<p class="text-body-sm text-outline truncate font-mono">https://secure.fxledger.com/share/deal/9942/v?token=fx_a91b2c3d4e5f6g7h8i9j</p>
+</div>
+<button class="flex items-center gap-xs bg-surface-container-lowest border border-outline-variant text-primary px-md py-sm rounded-lg font-data-md hover:bg-surface-container transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+                    Copy
+                </button>
+</div>
+</section>
+<!-- Primary Action -->
+<div class="mt-xl space-y-md">
+<button class="w-full h-12 bg-secondary text-on-secondary font-headline-sm rounded-xl shadow-lg hover:shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                Generate Secure Link
+            </button>
+<p class="text-center text-body-sm text-outline">
+                All shared links are logged in the <span class="text-secondary font-semibold">Audit Ledger</span>.
+            </p>
+</div>
+</main>
+<!-- BottomNavBar (From JSON Anchor) -->
+<nav class="fixed bottom-0 w-full z-50 h-14 border-t border-outline-variant bg-surface shadow-sm">
+<div class="flex justify-around items-center w-full h-full max-w-7xl mx-auto">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-caps text-label-caps">Payments</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary font-bold border-t-2 border-secondary h-full px-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-label-caps text-label-caps">Documents</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</div>
+</nav>
+<script>
+        function selectExpiry(btn) {
+            // Reset all buttons
+            document.querySelectorAll('.expiry-btn').forEach(b => {
+                b.classList.remove('bg-surface-container-lowest', 'text-secondary', 'shadow-sm', 'ring-1', 'ring-outline-variant');
+                b.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+            });
+            
+            // Set active button
+            btn.classList.add('bg-surface-container-lowest', 'text-secondary', 'shadow-sm', 'ring-1', 'ring-outline-variant');
+            btn.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+        }
+
+        function togglePasswordField() {
+            const toggle = document.getElementById('passToggle');
+            const wrapper = document.getElementById('passwordFieldWrapper');
+            if (toggle.checked) {
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+    </script>
+</body></html>

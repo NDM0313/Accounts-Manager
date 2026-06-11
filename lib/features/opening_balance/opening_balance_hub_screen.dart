@@ -134,7 +134,7 @@ class _StatusBanner extends StatelessWidget {
           'Draft in progress'
         ),
       FxOpeningBalanceStatus.posted => (
-          Colors.green.shade700,
+          context.fx.tertiary,
           Icons.check_circle_outline,
           'Opening balance posted'
         ),

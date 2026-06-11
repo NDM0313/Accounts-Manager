@@ -9,9 +9,12 @@ Future<Uint8List> buildSimpleReportPdf({
   required List<List<String>> rows,
   required List<String> headers,
   String? footer,
+  String? companyName,
+  String? branchName,
 }) async {
   final doc = pw.Document();
   final generated = DateFormat('d MMM yyyy HH:mm').format(DateTime.now());
+  final orgLine = [if (companyName != null) companyName, if (branchName != null) branchName].join(' · ');
 
   doc.addPage(
     pw.MultiPage(
@@ -20,6 +23,7 @@ Future<Uint8List> buildSimpleReportPdf({
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text('FX Cash Ledger', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+          if (orgLine.isNotEmpty) pw.Text(orgLine, style: const pw.TextStyle(fontSize: 9)),
           pw.Text(title, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
           pw.Text(subtitle, style: const pw.TextStyle(fontSize: 10)),
           pw.Text('Generated: $generated', style: const pw.TextStyle(fontSize: 9)),

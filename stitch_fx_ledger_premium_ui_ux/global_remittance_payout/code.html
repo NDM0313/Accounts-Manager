@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Global Remittance | FX Cash Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        @keyframes subtle-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .animate-status {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#eff4ff",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#fefcff",
+                    "background": "#f8f9ff",
+                    "surface-tint": "#455f88",
+                    "outline-variant": "#c4c6cf",
+                    "surface-container": "#e6eeff",
+                    "on-secondary-fixed": "#001a42",
+                    "on-error-container": "#93000a",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#adc7f7",
+                    "secondary-container": "#2170e4",
+                    "on-tertiary-fixed": "#002113",
+                    "primary-fixed": "#d6e3ff",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#001b3c",
+                    "tertiary": "#002617",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#233144",
+                    "on-surface-variant": "#43474e",
+                    "secondary": "#0058be",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-container-highest": "#d5e3fd",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "inverse-on-surface": "#ebf1ff",
+                    "on-surface": "#0d1c2f",
+                    "tertiary-fixed": "#6ffbbe",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-container": "#86a0cd",
+                    "surface-variant": "#d5e3fd",
+                    "primary-container": "#1a365d",
+                    "inverse-primary": "#adc7f7",
+                    "primary": "#002045",
+                    "on-tertiary-container": "#00b47d",
+                    "surface-dim": "#ccdbf4",
+                    "on-secondary-fixed-variant": "#004395",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#003e28",
+                    "on-background": "#0d1c2f",
+                    "error": "#ba1a1a",
+                    "outline": "#74777f",
+                    "surface-container-high": "#dde9ff",
+                    "surface": "#f8f9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "gutter": "12px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "container-margin": "16px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "data-lg": ["Inter"],
+                    "headline-sm": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Inter"],
+                    "data-md": ["Inter"],
+                    "display-lg": ["Manrope"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface dark:bg-primary transition-transform active:scale-95">
+<div class="flex items-center gap-md">
+<button class="hover:opacity-80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">FX Cash Ledger</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="hover:opacity-80 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed">refresh</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate treasury manager in a modern office environment. The lighting is soft and natural, coming from a large window. The background features a clean, minimalist workspace with subtle architectural details in shades of blue and white, reflecting a high-end financial institution atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG8LlkwA3LbX7-Kex4QiWvEakDBQhSYrvg2XZGtXPxytQk6HdHMvf7uerFmHVnXJ28SnjHpEiK9EbmfjW1Ru7Sf_A8PYLKICC__Zw4h0G_jjo3eRJt1JzR1kxBgqIcwT_C3vYx208lVvj8WFOYircXZ7YC2GylVLSm8MAToRT0HJBjkJbeP15mrgiJR89FzT2K94zdTqHcL8sEhd7VD8NqvPkGUq4EYeqgW8shg0Fuug4JO2CydoVYbY7CWYBGfDAJYiib9KqW8zhn"/>
+</div>
+</div>
+</header>
+<main class="pt-20 px-container-margin max-w-[1140px] mx-auto">
+<!-- Transaction Header / Tracking MTCN -->
+<section class="mb-lg">
+<div class="bg-surface-container-highest rounded-xl p-md border border-outline-variant flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-1 uppercase">Tracking Number (MTCN)</span>
+<div class="flex items-center gap-sm">
+<span class="font-display-lg text-display-lg text-primary tracking-widest">842-991-0372</span>
+<button class="text-secondary hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="bg-on-tertiary-container/10 border border-on-tertiary-container/20 px-md py-sm rounded-lg flex items-center gap-sm animate-status">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-data-md text-data-md text-on-tertiary-container">Ready for Payout</span>
+</div>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<!-- Left Column: Transfer Details -->
+<div class="lg:col-span-7 flex flex-col gap-lg">
+<!-- Exchange Rate & Amounts Card -->
+<div class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm">
+<div class="flex items-center justify-between mb-lg border-b border-outline-variant pb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">currency_exchange</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Transfer Summary</h2>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-on-surface-variant">Live Exchange Rate</p>
+<p class="font-data-md text-data-md text-secondary">1 USD = 278.45 PKR</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="p-md bg-surface-container-low rounded-lg border border-outline-variant">
+<label class="font-label-caps text-label-caps text-on-surface-variant block mb-2">Sender Pays (USD)</label>
+<div class="flex items-baseline justify-between">
+<span class="font-display-lg text-display-lg text-primary">2,500.00</span>
+<span class="font-data-md text-data-md text-on-surface-variant">USD</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-2">+ $4.99 Transfer Fee</p>
+</div>
+<div class="p-md bg-surface-container-highest rounded-lg border border-secondary/30">
+<label class="font-label-caps text-label-caps text-on-surface-variant block mb-2">Recipient Receives (PKR)</label>
+<div class="flex items-baseline justify-between">
+<span class="font-display-lg text-display-lg text-secondary">696,125.00</span>
+<span class="font-data-md text-data-md text-secondary">PKR</span>
+</div>
+<p class="text-xs text-secondary mt-2">Guaranteed Payout</p>
+</div>
+</div>
+</div>
+<!-- Recipient & Sender Identity Cards (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary">person</span>
+<h3 class="font-data-lg text-data-lg">Recipient Details</h3>
+</div>
+<div class="space-y-md">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Full Name</p>
+<p class="font-body-md text-body-md font-semibold">Ahmed Hassan Ali</p>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">CNIC / ID Number</p>
+<p class="font-body-md text-body-md">42101-*****-3 (Verified)</p>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Phone Number</p>
+<p class="font-body-md text-body-md">+92 300 1234567</p>
+</div>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary">outbound</span>
+<h3 class="font-data-lg text-data-lg">Sender Details</h3>
+</div>
+<div class="space-y-md">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Sent By</p>
+<p class="font-body-md text-body-md font-semibold">Johnathan Doe</p>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Payment Method</p>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+<p class="font-body-md text-body-md">Debit Card (**** 4412)</p>
+</div>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Sent From</p>
+<p class="font-body-md text-body-md">New York, USA</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Payout Location & Interactive Map -->
+<div class="lg:col-span-5 flex flex-col gap-lg">
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm h-full flex flex-col">
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<h3 class="font-data-lg text-data-lg">Pickup Location</h3>
+</div>
+<button class="text-secondary font-data-md hover:underline">Change</button>
+</div>
+<!-- Pickup Selector -->
+<div class="p-md">
+<div class="bg-surface border border-outline rounded-lg p-md mb-md relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="bg-secondary text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Nearest</span>
+</div>
+<p class="font-body-md font-bold mb-1">Habib Bank Limited (HBL)</p>
+<p class="font-body-sm text-on-surface-variant">Shop 4, Jinnah Road, Saddar</p>
+<p class="font-body-sm text-on-surface-variant">Karachi, Pakistan</p>
+<div class="flex items-center gap-base mt-2 text-on-tertiary-container">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-xs">Open until 5:00 PM</span>
+</div>
+</div>
+<!-- Map Integration -->
+<div class="relative w-full h-64 rounded-xl overflow-hidden bg-surface-container-highest border border-outline-variant mb-md">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="A clean, high-contrast digital map interface showing a specific urban street layout in Karachi, Pakistan. The map uses a minimalist aesthetic with neutral greys and whites, highlighting a single blue location pin. The lighting is digital and crisp, emphasizing clear street lines and geometric patterns suitable for a premium fintech application dashboard." data-location="Karachi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfi_bluO0K4S2_ysuRWWTOWeeBXkhdeDSgyIQT7Yn4B4c7-nTe6kL_tlPU4SjZSDauJ10ryJ56f45z6jP-z1GWgF4ZrAPFOIrLysoagpMVs-ENBjfczHpmBl9Fm0k6e8uZzQldvHKDDapZZ8eqSlDcTpitzhVDu4_6d3lqLkFjKv1AkgHeSO17wgl_SSC_FnWKxvrhR3bpMSkVmuYZP3atoPoUtfXU09UZIao03AobF-VcUJt_xyWXO90jkpX7twsdXdL_6wPzND6b"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center animate-pulse">
+<div class="w-4 h-4 bg-secondary rounded-full shadow-lg border-2 border-white"></div>
+</div>
+</div>
+</div>
+<button class="w-full h-[48px] bg-primary text-white rounded-lg font-data-md hover:bg-primary-container transition-all active:scale-[0.98] flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">share</span>
+                            Share Pickup Info with Recipient
+                        </button>
+</div>
+<div class="mt-auto p-md bg-surface-container-lowest border-t border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-secondary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container text-[28px]">qr_code_2</span>
+</div>
+<div class="flex-1">
+<p class="font-body-sm font-semibold">Fast Track Pickup</p>
+<p class="text-xs text-on-surface-variant">Recipient can scan this code at the counter for faster processing.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Compliance & Security Notice -->
+<footer class="mt-xl mb-12 flex flex-col items-center gap-sm text-center">
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<p class="text-xs uppercase tracking-wider font-bold">Secure Bank-Grade Encryption</p>
+</div>
+<p class="text-[11px] text-on-surface-variant max-w-2xl">
+                This transaction is subject to verification. FX Cash Ledger complies with all AML and KYC regulations. Funds are typically available within minutes, though timing depends on the recipient bank's operating hours and local regulations.
+            </p>
+</footer>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full h-[56px] z-50 flex justify-around items-center px-container-margin bg-surface dark:bg-primary border-t border-outline-variant dark:border-outline">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">sync_alt</span>
+<span class="font-label-caps text-label-caps">Deals</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed border-t-2 border-secondary dark:border-secondary-fixed pt-1 transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for copy to clipboard
+        document.querySelector('button .material-symbols-outlined[innerText="content_copy"]')?.parentElement.addEventListener('click', function() {
+            const mtcn = "842-991-0372";
+            navigator.clipboard.writeText(mtcn).then(() => {
+                const originalIcon = this.innerHTML;
+                this.innerHTML = '<span class="material-symbols-outlined text-[18px] text-tertiary-fixed-dim">check</span>';
+                setTimeout(() => {
+                    this.innerHTML = originalIcon;
+                }, 2000);
+            });
+        });
+
+        // Add active states to navigation
+        const navItems = document.querySelectorAll('nav a');
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                navItems.forEach(i => {
+                    i.classList.remove('text-secondary', 'border-t-2', 'border-secondary', 'pt-1');
+                    i.classList.add('text-on-surface-variant', 'pt-1');
+                });
+                item.classList.add('text-secondary', 'border-t-2', 'border-secondary');
+                item.classList.remove('text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

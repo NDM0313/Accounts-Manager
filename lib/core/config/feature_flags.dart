@@ -3,6 +3,12 @@ abstract final class FeatureFlags {
   /// When true, FX Deals workflow is available (customer order first, multi-leg sourcing).
   static const dealsWorkflowEnabled = true;
 
+  /// When true, Hawala / remittance module is available (requires DB migration).
+  static const remittanceWorkflowEnabled = true;
+
+  /// When true, internal team messaging is available (requires DB migration).
+  static const messagingEnabled = true;
+
   /// When true, reference rate snapshots are persisted to DB (requires migration 202606180002).
   static const rateSnapshotColumnsEnabled = false;
 

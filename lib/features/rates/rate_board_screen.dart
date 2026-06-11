@@ -2,8 +2,8 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/utils/rate_source_labels.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_rate_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
-import 'package:accounts_manager/core/widgets/rates/fx_rate_pair_card.dart';
 import 'package:accounts_manager/domain/models/fx_rate.dart';
 import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -65,12 +65,29 @@ class RateBoardScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (pkrPairs.isNotEmpty) ...[
-                    Text('PKR pairs', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                    Text('PKR pairs', style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context)),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: pkrPairs.map((p) => FxRatePairCard(pair: p, showActions: true)).toList(),
+                    LayoutBuilder(
+                      builder: (context, c) {
+                        final cols = c.maxWidth >= 520 ? 2 : 1;
+                        final w = (c.maxWidth - (cols - 1) * 8) / cols;
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: pkrPairs.map((p) {
+                            return SizedBox(
+                              width: cols == 1 ? c.maxWidth : w,
+                              child: FxRateCard(
+                                pairLabel: p.pairLabel,
+                                rateLabel: fmt.format(p.referenceRate),
+                                isStale: p.isStale,
+                                onEdit: p.rateId != null ? () => context.push('/rates/edit/${p.rateId}') : null,
+                                onHistory: () => context.push('/rates/history/${p.fromCurrency}'),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                   ],
                   if (derived.isNotEmpty) ...[
@@ -85,7 +102,16 @@ class RateBoardScreen extends ConsumerWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: derived.map((p) => FxRatePairCard(pair: p, showActions: true)).toList(),
+                      children: derived.map((p) {
+                        return SizedBox(
+                          width: 160,
+                          child: FxRateCard(
+                            pairLabel: p.pairLabel,
+                            rateLabel: fmt.format(p.referenceRate),
+                            isStale: p.isStale,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ],
@@ -153,7 +179,7 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
       decoration: BoxDecoration(
         color: context.fx.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: _isStale ? Colors.orange.withValues(alpha: 0.4) : context.fx.outlineVariant),
+        border: Border.all(color: _isStale ? context.fx.warning.withValues(alpha: 0.4) : context.fx.outlineVariant),
       ),
       child: Column(
         children: [
@@ -168,7 +194,7 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
                   style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
                 ),
                 if (_isStale)
-                  Text('Rate may be outdated', style: AppTypography.bodyMd(Colors.orange.shade700, context: context).copyWith(fontSize: 11)),
+                  Text('Rate may be outdated', style: AppTypography.bodyMd(context.fx.warning, context: context).copyWith(fontSize: 11)),
               ],
             ),
             trailing: Row(

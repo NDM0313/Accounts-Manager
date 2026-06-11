@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attachment Proof Preview - FX Cash Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d8e2ff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#d6e3ff",
+                    "on-secondary-fixed-variant": "#004395",
+                    "secondary-container": "#2170e4",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "primary-container": "#1a365d",
+                    "surface-container-highest": "#d5e3fd",
+                    "inverse-on-surface": "#ebf1ff",
+                    "inverse-primary": "#adc7f7",
+                    "on-primary-container": "#86a0cd",
+                    "on-secondary-container": "#fefcff",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#0d1c2f",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "outline": "#74777f",
+                    "surface": "#f8f9ff",
+                    "secondary": "#0058be",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#233144",
+                    "tertiary": "#002617",
+                    "surface-container": "#e6eeff",
+                    "on-surface-variant": "#43474e",
+                    "tertiary-container": "#003e28",
+                    "on-secondary-fixed": "#001a42",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-primary-fixed": "#001b3c",
+                    "on-tertiary-container": "#00b47d",
+                    "surface-container-high": "#dde9ff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c4c6cf",
+                    "surface-variant": "#d5e3fd",
+                    "primary-fixed-dim": "#adc7f7",
+                    "surface-tint": "#455f88",
+                    "surface-dim": "#ccdbf4",
+                    "primary": "#002045",
+                    "on-surface": "#0d1c2f",
+                    "on-tertiary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "12px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "container-margin": "16px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "data-md": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "data-lg": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .preview-backdrop {
+            background-color: rgba(13, 28, 47, 0.85);
+            backdrop-filter: blur(8px);
+        }
+        .bento-card {
+            border: 1px solid #E9ECEF;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bento-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- Top Navigation (Shell suppressed per rules for "Back" focus, using custom task header) -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface">
+<div class="flex items-center gap-md">
+<button class="p-2 active:scale-95 transition-transform text-primary hover:opacity-80">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Preview Document</h1>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-full transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</header>
+<main class="flex-1 mt-[64px] pb-xl px-container-margin max-w-[1140px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-lg overflow-hidden">
+<!-- Large Preview Area -->
+<section class="lg:col-span-8 flex flex-col gap-md">
+<div class="relative group bg-surface-container flex items-center justify-center rounded-xl overflow-hidden min-h-[400px] lg:min-h-[600px] border border-outline-variant/30">
+<!-- Document Preview Image -->
+<img alt="TT Copy Document Preview" class="w-full h-full object-contain p-md" data-alt="A professional high-resolution photograph of a Telegrahpic Transfer bank receipt document placed on a dark grey minimalist desk surface. The document features clear banking details, stamp signatures, and transaction numbers. The lighting is soft and directional, highlighting the texture of the paper and the ink details. The overall aesthetic is clean, corporate, and trustworthy, with a shallow depth of field that keeps the focus on the financial details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7yEBdAwUCeClrkAR57kpso-l_Zs_vco3Ve_Jxvmx3kBJRp1WfQk9dxdLqmbTHThQgJBMZ2D2CgCe-1qobgibqtA9IM3FVYmiKV8JiRn93OB0Yk2ujfkqWEifC8xWGCfYEd9t48Z8_uwFxQdpEJNTDbIzVYl06Ojjb4chv0n8p8zgOi2OX-d0smhcgAFMybRTXmhOhqZ0waMVUvXNp-5Vzw_v3TNyHtf2cUjJjie6e9pJCqO45obxiAnTxFjBWv2wofNUS-dKyNHOa"/>
+<!-- Zoom/Actions Overlay (Atmospheric Interaction) -->
+<div class="absolute bottom-md right-md flex gap-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="bg-surface text-primary w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform border border-outline-variant">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Metadata Highlights (Mobile view primary, Desktop secondary) -->
+<div class="lg:hidden grid grid-cols-2 gap-sm">
+<div class="bg-surface border border-outline-variant p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Deal ID</p>
+<p class="font-data-md text-data-md text-secondary">#FX-9942</p>
+</div>
+<div class="bg-surface border border-outline-variant p-md rounded-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Status</p>
+<p class="font-data-md text-data-md text-tertiary-container flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+                        Verified
+                    </p>
+</div>
+</div>
+</section>
+<!-- Sidebar Details -->
+<aside class="lg:col-span-4 flex flex-col gap-lg h-full">
+<!-- Details Card -->
+<div class="bento-card bg-surface rounded-xl p-lg flex flex-col gap-md sticky top-[80px]">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-primary">Attachment Info</h2>
+<span class="material-symbols-outlined text-on-surface-variant">info</span>
+</div>
+<div class="space-y-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Document Type</span>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">description</span>
+<p class="font-body-lg text-body-lg text-on-surface">TT Copy (Telegraphic Transfer)</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md border-t border-outline-variant pt-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Uploaded Date</span>
+<p class="font-data-md text-data-md">Oct 24, 2023</p>
+<p class="text-[12px] text-on-surface-variant font-body-sm">14:45 PM</p>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Deal Association</span>
+<p class="font-data-md text-data-md text-secondary">#FX-9942</p>
+<p class="text-[12px] text-on-surface-variant font-body-sm">Urgent Settlement</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md border-t border-outline-variant pt-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Step</span>
+<p class="font-data-md text-data-md">Customer Payment</p>
+<p class="text-[12px] text-on-surface-variant font-body-sm">Node 4 of 6</p>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Uploaded By</span>
+<div class="flex items-center gap-xs">
+<div class="w-5 h-5 rounded-full bg-primary-fixed-dim flex items-center justify-center text-[10px] text-primary">Z</div>
+<p class="font-data-md text-data-md">Zubair</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Group -->
+<div class="mt-lg flex flex-col gap-sm">
+<button class="w-full h-[48px] bg-secondary text-on-secondary rounded-lg font-data-md flex items-center justify-center gap-sm hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">download</span>
+                        Download Document
+                    </button>
+<button class="w-full h-[48px] border border-outline-variant text-primary rounded-lg font-data-md flex items-center justify-center gap-sm hover:bg-surface-container-low active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">share</span>
+                        Share Secure Link
+                    </button>
+</div>
+</div>
+<!-- History Timeline (Compact) -->
+<div class="bento-card bg-surface-container-lowest rounded-xl p-lg flex flex-col gap-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-md">Document Audit</h3>
+<div class="space-y-md">
+<!-- Step 1 -->
+<div class="flex gap-md">
+<div class="flex flex-col items-center">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-[1px] h-full bg-outline-variant mt-1"></div>
+</div>
+<div class="pb-base">
+<p class="font-data-md text-data-md text-on-surface leading-none">Uploaded</p>
+<p class="text-[11px] text-on-surface-variant mt-1">By Zubair • 24 Oct, 14:45</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex gap-md">
+<div class="flex flex-col items-center">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-[1px] h-full bg-outline-variant mt-1"></div>
+</div>
+<div class="pb-base">
+<p class="font-data-md text-data-md text-on-surface leading-none">Auto-Scanned (OCR)</p>
+<p class="text-[11px] text-on-surface-variant mt-1">Success • 24 Oct, 14:46</p>
+</div>
+</div>
+<!-- Step 3 (Pending) -->
+<div class="flex gap-md">
+<div class="flex flex-col items-center">
+<div class="w-2 h-2 rounded-full border border-outline-variant bg-surface"></div>
+</div>
+<div>
+<p class="font-data-md text-data-md text-on-surface-variant leading-none">Compliance Review</p>
+<p class="text-[11px] text-on-surface-variant mt-1">Awaiting Approver</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Overlay Navigation logic (Custom interaction) -->
+<script>
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // Mimic close action
+                console.log('Closing preview screen...');
+            }
+        });
+    </script>
+</body></html>

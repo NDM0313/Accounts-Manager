@@ -1,5 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_hub_tile.dart';
+import 'package:accounts_manager/core/widgets/obsidian/fx_responsive_hub_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +19,8 @@ class ReportsHubScreen extends StatefulWidget {
     ('Parties', 'Customers, agents, settlements', Icons.people_outline, '/parties'),
     ('Agent Ledger', 'Settlement agents', Icons.support_agent_outlined, '/parties/agents'),
     ('Daily Closing', 'Close the day\'s session', Icons.lock_clock_outlined, '/closing'),
+    ('Remittance', 'Hawala / payout orders', Icons.public_outlined, '/remittance'),
+    ('Team Messages', 'Internal staff chat', Icons.chat_bubble_outline, '/messages'),
     ('Audit Log', 'Change history', Icons.history_outlined, '/reports/audit-log'),
   ];
 
@@ -176,48 +180,17 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
   }
 
   Widget _reportGrid({required int crossCount}) {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossCount,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: crossCount == 2 ? 1.6 : 2.2,
-      ),
+    return FxResponsiveHubGrid(
       itemCount: ReportsHubScreen.reports.length,
+      mainAxisExtent: crossCount == 2 ? 132 : 120,
       itemBuilder: (context, i) {
         final (title, subtitle, icon, route) = ReportsHubScreen.reports[i];
-        return Material(
-          color: context.fx.surfaceContainerLow,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            side: BorderSide(color: context.fx.outlineVariant),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => context.push(route),
-            hoverColor: context.fx.surfaceContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: context.fx.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                    ),
-                    child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-                  ),
-                  const Spacer(),
-                  Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                ],
-              ),
-            ),
-          ),
+        return FxHubTile(
+          title: title,
+          subtitle: subtitle,
+          icon: icon,
+          onTap: () => context.push(route),
+          compact: true,
         );
       },
     );

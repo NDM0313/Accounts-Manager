@@ -33,7 +33,7 @@ class DashboardKpiRow extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: cols == 4 ? 1.8 : 2.2,
+          childAspectRatio: cols == 4 ? 1.65 : 1.9,
           children: [
             _KpiTile(label: 'Assets', value: kpi != null ? fmt.format(kpi!.assets) : '—'),
             _KpiTile(label: 'Liabilities', value: kpi != null ? fmt.format(kpi!.liabilities) : '—'),

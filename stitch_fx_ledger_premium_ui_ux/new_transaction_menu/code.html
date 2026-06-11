@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FX Cash Ledger - New Transaction</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bottom-sheet-enter {
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .bottom-sheet-active {
+            transform: translateY(0);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e6eeff;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d8e2ff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#d6e3ff",
+                        "on-secondary-fixed-variant": "#004395",
+                        "secondary-container": "#2170e4",
+                        "surface-container-low": "#eff4ff",
+                        "surface-bright": "#f8f9ff",
+                        "primary-container": "#1a365d",
+                        "surface-container-highest": "#d5e3fd",
+                        "inverse-on-surface": "#ebf1ff",
+                        "inverse-primary": "#adc7f7",
+                        "on-primary-container": "#86a0cd",
+                        "on-secondary-container": "#fefcff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#0d1c2f",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "outline": "#74777f",
+                        "surface": "#f8f9ff",
+                        "secondary": "#0058be",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "inverse-surface": "#233144",
+                        "tertiary": "#002617",
+                        "surface-container": "#e6eeff",
+                        "on-surface-variant": "#43474e",
+                        "tertiary-container": "#003e28",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-primary-fixed": "#001b3c",
+                        "on-tertiary-container": "#00b47d",
+                        "surface-container-high": "#dde9ff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c4c6cf",
+                        "surface-variant": "#d5e3fd",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface-tint": "#455f88",
+                        "surface-dim": "#ccdbf4",
+                        "primary": "#002045",
+                        "on-surface": "#0d1c2f",
+                        "on-tertiary-fixed": "#002113",
+                        "background": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter": "12px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "container-margin": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-sm": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "data-md": ["Inter"],
+                        "headline-md": ["Manrope"],
+                        "data-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen overflow-hidden">
+<!-- Background Content (Simulated Ledger Dashboard) -->
+<main class="relative z-0 p-container-margin pt-[80px] pb-[72px]">
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">FX Cash Ledger</h1>
+<button class="material-symbols-outlined text-primary hover:opacity-80 active:scale-95 transition-transform">refresh</button>
+</header>
+<!-- Stats Overview -->
+<div class="grid grid-cols-2 gap-md mb-lg">
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<span class="font-label-caps text-label-caps text-on-surface-variant">LIQUIDITY</span>
+<p class="font-data-lg text-data-lg text-primary mt-xs">$42,500.00</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<span class="font-label-caps text-label-caps text-on-surface-variant">OPEN DEALS</span>
+<p class="font-data-lg text-data-lg text-primary mt-xs">12</p>
+</div>
+</div>
+<div class="space-y-md">
+<div class="flex justify-between items-center mb-sm">
+<h2 class="font-headline-sm text-headline-sm text-primary">Recent Activity</h2>
+<span class="font-label-caps text-label-caps text-secondary">VIEW ALL</span>
+</div>
+<!-- Mock Transaction List -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl divide-y divide-outline-variant">
+<div class="p-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">USD/EUR Deal #4092</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Completed • 12:45 PM</p>
+</div>
+</div>
+<p class="font-data-md text-data-md text-on-surface font-bold">+$12,000.00</p>
+</div>
+<div class="p-md flex items-center justify-between opacity-50">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Pay Agent: Alpha</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pending • 11:30 AM</p>
+</div>
+</div>
+<p class="font-data-md text-data-md text-error font-bold">-$4,200.00</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Overlay / Backdrop -->
+<div class="fixed inset-0 bg-primary/40 backdrop-blur-[2px] z-[60] opacity-0 pointer-events-none transition-opacity duration-300" id="backdrop"></div>
+<!-- Bottom Sheet -->
+<div class="fixed bottom-0 left-0 right-0 z-[70] bottom-sheet-enter" id="bottomSheet">
+<div class="bg-surface-container-lowest rounded-t-[24px] max-w-xl mx-auto shadow-2xl border-t border-outline-variant max-h-[751px] flex flex-col">
+<!-- Drag Handle -->
+<div class="flex justify-center p-md">
+<div class="w-12 h-1.5 bg-outline-variant rounded-full"></div>
+</div>
+<!-- Header -->
+<div class="px-lg pb-md">
+<h2 class="font-headline-md text-headline-md text-primary">Select Transaction Type</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Choose an action to record in the ledger</p>
+</div>
+<!-- Scrollable List -->
+<div class="overflow-y-auto px-lg pb-xl custom-scrollbar flex-1">
+<!-- Group 1: Common -->
+<div class="mb-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-md tracking-widest">COMMON</p>
+<div class="space-y-xs">
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-secondary-container/10 text-secondary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">call_received</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Receive from Customer</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Inbound cash or bank credit</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-secondary-container/10 text-secondary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">outbox</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Pay Agent</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Settlement payment to partner agents</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-secondary-container/10 text-secondary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Expense</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Record operational costs and fees</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-secondary-container/10 text-secondary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Account Transfer</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Move funds between internal accounts</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Group 2: FX Deals -->
+<div class="mb-lg">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-md tracking-widest">FX DEALS</p>
+<div class="space-y-xs">
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-tertiary-container text-on-tertiary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person_add</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">New Customer Deal</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Create a fresh FX transaction</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-tertiary-container text-on-tertiary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">currency_exchange</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Currency Buy / Sell</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Standard pair exchange at spot rate</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-tertiary-container text-on-tertiary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">swap_horiz</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Cross Currency</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Exchange between non-base currencies</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Group 3: Advanced -->
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-md tracking-widest">ADVANCED</p>
+<div class="space-y-xs">
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">rule</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Settlement</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mark deals as fully settled and cleared</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">troubleshoot</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Revaluation</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Update portfolio value to market rates</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left p-md flex items-center gap-md bg-white hover:bg-surface-container-low transition-colors rounded-xl border border-transparent hover:border-outline-variant group">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">settings_backup_restore</span>
+</div>
+<div class="flex-1">
+<p class="font-body-md text-body-md font-bold text-on-surface">Opening Balances</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Initialize ledger with legacy data</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Cancel Area -->
+<div class="p-md border-t border-outline-variant flex justify-center">
+<button class="w-full py-4 text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-high rounded-lg transition-colors" onclick="toggleSheet()">CLOSE MENU</button>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (Active) -->
+<button class="fixed bottom-[24px] right-[24px] w-14 h-14 bg-secondary text-on-secondary rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-105 active:scale-95 transition-all" id="fab" onclick="toggleSheet()">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<!-- Bottom Navigation (From Shared Components) -->
+<nav class="fixed bottom-0 w-full h-[56px] z-[55] flex justify-around items-center px-container-margin bg-surface border-t border-outline-variant">
+<div class="flex flex-col items-center justify-center text-secondary border-t-2 border-secondary pt-1">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:bg-surface-container-high">
+<span class="material-symbols-outlined">sync_alt</span>
+<span class="font-label-caps text-label-caps">Deals</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:bg-surface-container-high">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:bg-surface-container-high">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:bg-surface-container-high">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</div>
+</nav>
+<script>
+        const sheet = document.getElementById('bottomSheet');
+        const backdrop = document.getElementById('backdrop');
+        const fab = document.getElementById('fab');
+        let isOpen = false;
+
+        function toggleSheet() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                sheet.classList.remove('bottom-sheet-enter');
+                sheet.classList.add('bottom-sheet-active');
+                backdrop.classList.remove('opacity-0', 'pointer-events-none');
+                backdrop.classList.add('opacity-100', 'pointer-events-auto');
+                fab.classList.add('rotate-45', 'opacity-0', 'pointer-events-none');
+            } else {
+                sheet.classList.remove('bottom-sheet-active');
+                sheet.classList.add('bottom-sheet-enter');
+                backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                backdrop.classList.add('opacity-0', 'pointer-events-none');
+                fab.classList.remove('rotate-45', 'opacity-0', 'pointer-events-none');
+            }
+        }
+
+        backdrop.addEventListener('click', toggleSheet);
+
+        // Auto-open on load to showcase the menu
+        setTimeout(() => {
+            toggleSheet();
+        }, 800);
+    </script>
+</body></html>

@@ -3,11 +3,12 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_currency_tile.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_daily_closing_card.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_hero_balance_card.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
-import 'package:accounts_manager/core/widgets/rates/fx_current_rates_strip.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_bottom_sheet.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_table.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/rates/fx_current_rates_strip.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_transaction_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/fx_opening_balance_batch.dart';
 import 'package:accounts_manager/domain/models/fx_rate.dart';
@@ -120,13 +121,13 @@ class DashboardScreen extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
+              color: context.fx.tertiaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+              border: Border.all(color: context.fx.tertiary.withValues(alpha: 0.35)),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 20),
+                Icon(Icons.check_circle_outline, color: context.fx.tertiary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -281,57 +282,51 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _recentSection(BuildContext context, AsyncValue<List<FxTransaction>> todayAsync, NumberFormat fmt) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.fx.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: context.fx.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Recent Transactions', style: AppTypography.headlineMd(Theme.of(context).colorScheme.onSurface, context: context)),
-                TextButton(
-                  onPressed: () => context.go('/ledger'),
-                  child: Text('VIEW ALL', style: AppTypography.labelCaps(Theme.of(context).colorScheme.onSurfaceVariant, context: context)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FxSectionHeader(
+          label: 'Recent transactions',
+          trailing: TextButton(
+            onPressed: () => context.go('/ledger'),
+            child: const Text('View all'),
+          ),
+        ),
+        todayAsync.when(
+          loading: () => const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
+          error: (e, _) => Padding(padding: const EdgeInsets.all(24), child: Text('Error: $e')),
+          data: (items) {
+            if (items.isEmpty) {
+              return FxPremiumCard(
+                child: Text(
+                  'No transactions posted today.',
+                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
                 ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: context.fx.outlineVariant),
-          todayAsync.when(
-            loading: () => const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
-            error: (e, _) => Padding(padding: const EdgeInsets.all(24), child: Text('Error: $e')),
-            data: (items) {
-              final rows = items.map((tx) {
-                return FxLedgerTableRow(
-                  id: tx.id,
-                  timestamp: tx.postedAt ?? tx.createdAt,
-                  type: tx.transactionType,
-                  currencyCode: tx.currencyCode,
-                  amount: tx.totalForeignAmount,
-                  rate: tx.rateUsed,
-                  status: tx.status,
-                );
-              }).toList();
-              return FxLedgerTable(
-                rows: rows,
-                onRowTap: (id) => context.push('/transactions/$id'),
               );
-            },
-          ),
-        ],
-      ),
+            }
+            final preview = items.take(5).toList();
+            return FxPremiumCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < preview.length; i++)
+                    FxTransactionCard(
+                      transaction: preview[i],
+                      compact: true,
+                      showDivider: i < preview.length - 1,
+                      onTap: () => context.push('/transactions/${preview[i].id}'),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
   void _showNewMenu(BuildContext context) {
-    FxObsidianBottomSheet.showTransactionTypes(context);
+    FxTransactionMenuSheet.show(context);
   }
 
   Future<void> _exportTodayCsv(

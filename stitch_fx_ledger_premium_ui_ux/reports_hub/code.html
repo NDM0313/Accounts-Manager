@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .report-card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 32, 69, 0.05);
+    }
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed": "#d8e2ff",
+            "on-error-container": "#93000a",
+            "primary-fixed": "#d6e3ff",
+            "on-secondary-fixed-variant": "#004395",
+            "secondary-container": "#2170e4",
+            "surface-container-low": "#eff4ff",
+            "surface-bright": "#f8f9ff",
+            "primary-container": "#1a365d",
+            "surface-container-highest": "#d5e3fd",
+            "inverse-on-surface": "#ebf1ff",
+            "inverse-primary": "#adc7f7",
+            "on-primary-container": "#86a0cd",
+            "on-secondary-container": "#fefcff",
+            "tertiary-fixed": "#6ffbbe",
+            "on-secondary": "#ffffff",
+            "on-background": "#0d1c2f",
+            "secondary-fixed-dim": "#adc6ff",
+            "outline": "#74777f",
+            "surface": "#f8f9ff",
+            "secondary": "#0058be",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-surface": "#233144",
+            "tertiary": "#002617",
+            "surface-container": "#e6eeff",
+            "on-surface-variant": "#43474e",
+            "tertiary-container": "#003e28",
+            "on-secondary-fixed": "#001a42",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-primary-fixed": "#001b3c",
+            "on-tertiary-container": "#00b47d",
+            "surface-container-high": "#dde9ff",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-primary-fixed-variant": "#2d476f",
+            "on-primary": "#ffffff",
+            "outline-variant": "#c4c6cf",
+            "surface-variant": "#d5e3fd",
+            "primary-fixed-dim": "#adc7f7",
+            "surface-tint": "#455f88",
+            "surface-dim": "#ccdbf4",
+            "primary": "#002045",
+            "on-surface": "#0d1c2f",
+            "on-tertiary-fixed": "#002113",
+            "background": "#f8f9ff",
+            "surface-container-lowest": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "base": "4px",
+            "xl": "32px",
+            "lg": "24px",
+            "sm": "8px",
+            "gutter": "12px",
+            "xs": "4px",
+            "md": "16px",
+            "container-margin": "16px"
+          },
+          "fontFamily": {
+            "label-caps": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "data-md": ["Inter"],
+            "headline-md": ["Manrope"],
+            "data-lg": ["Inter"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-[56px] pt-[64px]">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface dark:bg-primary border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<button class="active:scale-95 transition-transform text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Reports</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="active:scale-95 transition-transform text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional high-resolution avatar of a young corporate executive in a crisp navy blue suit. The background is a soft, out-of-focus modern office environment with neutral lighting. The style is clean, minimalist, and exudes confidence and precision, fitting for a financial technology application's user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDowKZgplAwu31_ZueLO1QM3Pz8Ecfw7u7uJ5p6mLlW7TacD35twyuKOaG062ODyRFc-tdZXn4YkfupGOn2Cu4yWg48QJSR2TeHuGCcBjq9abwVxUxlteUEKBZ1P80KdUKc_6aqgybp8aicY2qz2iHGrhcMWwbiMco8jK6UaAKofhR8B00nIYhC9bn5RUHidy_yTrpECzqfkgIkcolsx6hEFKm94Wk1EA7OgIp4-dso7Q5sBS5AC3i-7k0Z-doMBbuFPS_TmJdTeiQx"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="max-w-[1140px] mx-auto px-container-margin py-lg">
+<!-- Hero Section / Search -->
+<section class="mb-xl">
+<div class="bg-surface-container-low p-lg rounded-xl border border-outline-variant/20 flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary mb-xs">Financial Intelligence</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time settlement visibility and performance metrics.</p>
+</div>
+<div class="relative flex-1 max-w-sm">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface rounded-lg border border-outline-variant focus:ring-1 focus:ring-secondary focus:border-secondary outline-none transition-all font-body-sm text-body-sm" placeholder="Search reports..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Bento Grid of Reports -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Trial Balance -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">account_balance</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Trial Balance</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Comprehensive listing of all ledger balances for audit reconciliation.</p>
+</div>
+<!-- Profit & Loss -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" data-weight="fill">trending_up</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Profit & Loss</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Summary of revenues, costs, and expenses during a specific period.</p>
+</div>
+<!-- Balance Sheet -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">account_balance_wallet</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Balance Sheet</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Financial position including assets, liabilities, and equity.</p>
+</div>
+<!-- General Ledger -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">menu_book</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">General Ledger</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detailed record of all transactions categorized by account.</p>
+</div>
+<!-- Customer Statements -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">person</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Customer Statements</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Transaction history and outstanding balances for key accounts.</p>
+</div>
+<!-- Agent Statements -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">support_agent</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Agent Statements</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detailed breakdown of agent commissions and deal volume.</p>
+</div>
+<!-- Currency Position -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">currency_exchange</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Currency Position</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Real-time exposure and balances across all active FX currencies.</p>
+</div>
+<!-- Deal Profit Report -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="fill">receipt_long</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Deal Profit Report</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Profitability analysis per transaction and currency pair.</p>
+</div>
+<!-- Daily Closing -->
+<div class="report-card-hover group bg-surface-container-lowest border border-outline-variant/40 p-md rounded-xl transition-all cursor-pointer">
+<div class="flex items-start justify-between mb-sm">
+<div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined" data-weight="fill">event_available</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-secondary transition-colors">chevron_right</span>
+</div>
+<h3 class="font-data-lg text-data-lg text-primary mb-xs">Daily Closing</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">End-of-day summary and automated ledger reconciliation checks.</p>
+</div>
+</section>
+<!-- Visual Divider / Decorative element -->
+<div class="mt-xl h-[240px] relative rounded-2xl overflow-hidden group">
+<div class="absolute inset-0 bg-primary/80 z-10 flex items-center justify-center p-xl">
+<div class="text-center">
+<h4 class="font-display-lg text-display-lg text-white mb-sm">Custom Analytics</h4>
+<p class="font-body-lg text-body-lg text-primary-fixed mb-md max-w-lg">Can't find the report you need? Generate a custom SQL export or request a tailored visualization.</p>
+<button class="px-lg py-sm bg-secondary text-white font-label-caps text-label-caps rounded-full hover:bg-secondary-container transition-colors shadow-lg">Request Custom Report</button>
+</div>
+</div>
+<img alt="Financial Charts" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 transition-transform duration-700" data-alt="A sophisticated digital rendering of high-end financial dashboard analytics. Complex line charts and candlestick graphs glow in soft blues and cyans against a dark charcoal background. The lighting is low-key with a cinematic focus, emphasizing depth and data precision. The overall aesthetic is professional, modern, and data-heavy, perfectly complementing a corporate ledger environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAa86Xx-41D_zuaXX6duCR1zRBO8TBWoFqKgWXeg1j3xGQIST6P8njyni6M-a1zYYpjfkWEU4PLwM5hmrVTVfJTar9HMxMjleSzglsycnO320i8bjWtMlYbXnpu1NNYQGgot6OtRc9Zq7Eh47NsswhYd_c4GwgLGtrBY85J-AIi43Rg5QO9IuL2lm2wcFFwUV43L0kWrASAealRxsDNQv8z0bzeRcx_3ZsBkk-XImoeEmQhfAH4eWqMW6Iz1YPHaDEOPr-JVuacJu5X"/>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full h-[56px] z-50 flex justify-around items-center px-container-margin bg-surface dark:bg-primary border-t border-outline-variant dark:border-outline">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out px-4" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<!-- Deals -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out px-4" href="#">
+<span class="material-symbols-outlined">sync_alt</span>
+<span class="font-label-caps text-label-caps">Deals</span>
+</a>
+<!-- Ledger -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out px-4" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</a>
+<!-- Reports (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed border-t-2 border-secondary dark:border-secondary-fixed pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out px-4" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high dark:hover:bg-primary-container transition-colors duration-200 ease-in-out px-4" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<script>
+    // Micro-interactions for report cards
+    document.querySelectorAll('.report-card-hover').forEach(card => {
+      card.addEventListener('mousedown', () => {
+        card.style.transform = 'scale(0.98) translateY(0px)';
+      });
+      card.addEventListener('mouseup', () => {
+        card.style.transform = 'translateY(-2px)';
+      });
+    });
+  </script>
+</body></html>

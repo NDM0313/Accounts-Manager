@@ -112,9 +112,9 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      FxDealStatus.completed => Colors.green,
-      FxDealStatus.sourcingRequired || FxDealStatus.sourcingInProgress => Colors.orange,
-      FxDealStatus.cancelled || FxDealStatus.voided => Colors.red,
+      FxDealStatus.completed => context.fx.tertiary,
+      FxDealStatus.sourcingRequired || FxDealStatus.sourcingInProgress => context.fx.warning,
+      FxDealStatus.cancelled || FxDealStatus.voided => context.fx.error,
       _ => context.fx.primary,
     };
     return Container(

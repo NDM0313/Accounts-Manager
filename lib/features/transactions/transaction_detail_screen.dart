@@ -9,6 +9,8 @@ import 'package:accounts_manager/core/export/fx_document_export.dart';
 import 'package:accounts_manager/core/export/report_pdf_builder.dart';
 import 'package:accounts_manager/core/utils/transaction_receipt.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
+import 'package:accounts_manager/features/messaging/widgets/entity_chat_panel.dart';
+import 'package:accounts_manager/domain/models/fx_conversation.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,6 +75,12 @@ class TransactionDetailScreen extends ConsumerWidget {
                         ),
                         Row(
                           children: [
+                            EntityChatPanel(
+                              type: FxConversationType.transaction,
+                              transactionId: tx.id,
+                              title: tx.transactionNo,
+                            ),
+                            const SizedBox(width: 8),
                             _IconBtn(
                               icon: Icons.ios_share,
                               onTap: () => _exportReceipt(context, tx),
@@ -386,7 +394,27 @@ class _LinkedExchangeBanner extends ConsumerWidget {
 }
 
 Future<void> _exportReceipt(BuildContext context, FxTransaction tx) async {
-  final text = formatTransactionReceipt(tx);
+  final mode = await showModalBottomSheet<bool>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: const Text('Customer copy'),
+            onTap: () => Navigator.pop(ctx, true),
+          ),
+          ListTile(
+            title: const Text('Internal copy'),
+            onTap: () => Navigator.pop(ctx, false),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (mode == null || !context.mounted) return;
+  final customerCopy = mode;
+  final text = formatTransactionReceipt(tx, customerCopy: customerCopy);
   final pdf = await buildReceiptPdf(
     receiptText: text,
     title: 'Receipt ${tx.transactionNo ?? tx.id.substring(0, 8).toUpperCase()}',
@@ -394,6 +422,7 @@ Future<void> _exportReceipt(BuildContext context, FxTransaction tx) async {
   if (!context.mounted) return;
   await showFxExportSheet(
     context,
+    mode: customerCopy ? FxExportMode.customerFacing : FxExportMode.internal,
     document: FxExportDocument(
       title: 'Transaction Receipt',
       textBody: text,

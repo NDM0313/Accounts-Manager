@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.da
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_proof_attachments_section.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_timeline_step_card.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/services/deal_leg_permissions.dart';
@@ -13,6 +14,8 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/deals/widgets/deal_detail_quick_links.dart';
 import 'package:accounts_manager/features/deals/widgets/deal_workflow_panel.dart';
 import 'package:accounts_manager/features/deals/widgets/deal_workflow_summary.dart';
+import 'package:accounts_manager/features/messaging/widgets/entity_chat_panel.dart';
+import 'package:accounts_manager/domain/models/fx_conversation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -102,6 +105,8 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
                       }
                     },
                   ),
+                  const SizedBox(height: 8),
+                  EntityChatPanel(type: FxConversationType.deal, dealId: dealId, title: deal.dealNo ?? 'Deal'),
                   const SizedBox(height: 16),
                   DealWorkflowSummary(deal: deal, legs: legs),
                   const SizedBox(height: 16),
@@ -322,6 +327,58 @@ class _TimelineTile extends ConsumerWidget {
     }
   }
 
+  String _subtitle(NumberFormat fmt) {
+    final parts = <String>[];
+    if (leg.counterpartyName != null) parts.add(leg.counterpartyName!);
+    if (leg.receiveAmount > 0 && leg.receiveCurrency != null) {
+      parts.add('Recv ${fmt.format(leg.receiveAmount)} ${leg.receiveCurrency}');
+    }
+    if (leg.payAmount > 0 && leg.payCurrency != null) {
+      parts.add('Pay ${fmt.format(leg.payAmount)} ${leg.payCurrency}');
+    }
+    if (leg.proofReference != null && leg.proofReference!.isNotEmpty) {
+      parts.add('Ref: ${leg.proofReference}');
+    }
+    if (leg.linkedTransactionNo != null) parts.add('Tx ${leg.linkedTransactionNo}');
+    return parts.isEmpty ? leg.legType.label : parts.join(' · ');
+  }
+
+  void _showLegMenu(BuildContext context, WidgetRef ref, {required bool canEdit, required bool canDelete, required String? editRoute}) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.fx.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canEdit && editRoute != null)
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.push(editRoute);
+                },
+              ),
+            if (canDelete)
+              ListTile(
+                leading: Icon(Icons.delete_outline, color: context.fx.error),
+                title: Text('Delete', style: TextStyle(color: context.fx.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmDelete(context, ref);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final action = DealLegTimelineActions.forLeg(
@@ -335,103 +392,52 @@ class _TimelineTile extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: FxObsidianReportPanel(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: context.fx.primary.withValues(alpha: 0.2),
-              child: Text('${leg.legNo}', style: TextStyle(fontSize: 11, color: context.fx.primary)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FxTimelineStepCard(
+            title: 'Step ${leg.legNo} · ${leg.legType.label}',
+            subtitle: _subtitle(fmt),
+            statusLabel: leg.status.label,
+            proofCount: leg.attachmentCount,
+            isActive: leg.status == FxDealLegStatus.pending || leg.status == FxDealLegStatus.partial,
+            onTap: leg.linkedTransactionNo != null
+                ? () => _openTransaction(context, ref)
+                : (branchId != null && leg.attachmentCount > 0 ? () => _showProof(context) : null),
+            onMenu: (canEdit || canDelete)
+                ? () => _showLegMenu(context, ref, canEdit: canEdit, canDelete: canDelete, editRoute: editRoute)
+                : null,
+          ),
+          if (branchId != null || action != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, top: 2),
+              child: Wrap(
+                spacing: 4,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(leg.legType.label, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
-                      ),
-                      if (leg.attachmentCount > 0)
-                        InkWell(
-                          onTap: () => _showProof(context),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.attach_file, size: 16, color: context.fx.primary),
-                              Text(' ${leg.attachmentCount}', style: TextStyle(fontSize: 11, color: context.fx.primary)),
-                            ],
-                          ),
-                        ),
-                      if (canEdit || canDelete)
-                        PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert, size: 18, color: context.fx.onSurfaceVariant),
-                          onSelected: (value) {
-                            switch (value) {
-                              case 'edit':
-                                if (editRoute != null) context.push(editRoute);
-                              case 'delete':
-                                _confirmDelete(context, ref);
-                            }
-                          },
-                          itemBuilder: (_) => [
-                            if (canEdit && editRoute != null)
-                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            if (canDelete)
-                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                          ],
-                        ),
-                    ],
-                  ),
-                  if (leg.counterpartyName != null)
-                    Text(leg.counterpartyName!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                  if (leg.receiveAmount > 0 && leg.receiveCurrency != null)
-                    Text('Recv ${fmt.format(leg.receiveAmount)} ${leg.receiveCurrency}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                  if (leg.payAmount > 0 && leg.payCurrency != null)
-                    Text('Pay ${fmt.format(leg.payAmount)} ${leg.payCurrency}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                  if (leg.proofReference != null && leg.proofReference!.isNotEmpty)
-                    Text('Ref: ${leg.proofReference}', style: AppTypography.bodyMd(context.fx.outline, context: context).copyWith(fontSize: 11)),
-                  if (leg.linkedTransactionNo != null)
-                    InkWell(
-                      onTap: () => _openTransaction(context, ref),
-                      child: Text(
-                        'Tx ${leg.linkedTransactionNo} →',
-                        style: AppTypography.bodyMd(context.fx.primary, context: context).copyWith(fontSize: 11),
-                      ),
+                  if (branchId != null)
+                    TextButton.icon(
+                      onPressed: () => _showProof(context),
+                      icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
+                      label: Text(leg.attachmentCount > 0 ? 'View proof' : 'Add proof'),
                     ),
-                  Text(leg.status.label, style: AppTypography.labelCaps(context.fx.tertiary, context: context).copyWith(fontSize: 9)),
-                  Wrap(
-                    spacing: 4,
-                    children: [
-                      TextButton.icon(
-                        onPressed: branchId != null ? () => _showProof(context) : null,
-                        icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
-                        label: Text(leg.attachmentCount > 0 ? 'View proof' : 'Add proof'),
-                      ),
-                      if (action != null)
-                        TextButton(
-                          onPressed: () {
-                            switch (action.onTapKind) {
-                              case DealLegActionKind.viewCustomerStatement:
-                                context.push('/parties/${deal.customerPartyId}/ledger');
-                              case DealLegActionKind.viewProof:
-                                _showProof(context);
-                              case null:
-                                if (action.route != null) context.push(action.route!);
-                            }
-                          },
-                          child: Text(action.label),
-                        ),
-                    ],
-                  ),
+                  if (action != null)
+                    TextButton(
+                      onPressed: () {
+                        switch (action.onTapKind) {
+                          case DealLegActionKind.viewCustomerStatement:
+                            context.push('/parties/${deal.customerPartyId}/ledger');
+                          case DealLegActionKind.viewProof:
+                            _showProof(context);
+                          case null:
+                            if (action.route != null) context.push(action.route!);
+                        }
+                      },
+                      child: Text(action.label),
+                    ),
                 ],
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

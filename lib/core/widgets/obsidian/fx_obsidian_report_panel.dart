@@ -1,9 +1,10 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
 import 'package:flutter/material.dart';
 
-/// Bordered Obsidian container for report rows and summary cards.
+/// Bordered premium container for report rows and summary cards.
 class FxObsidianReportPanel extends StatelessWidget {
   const FxObsidianReportPanel({
     super.key,
@@ -11,35 +12,18 @@ class FxObsidianReportPanel extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.sectionLabel,
     this.onTap,
+    this.color,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final String? sectionLabel;
   final VoidCallback? onTap;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final panel = Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: context.fx.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: context.fx.outlineVariant),
-      ),
-      child: child,
-    );
-
-    if (onTap == null) return panel;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        child: panel,
-      ),
-    );
+    return FxPremiumCard(padding: padding, onTap: onTap, color: color, child: child);
   }
 }
 

@@ -12,11 +12,12 @@ void main() {
     expect(labels, contains('Customer Refund'));
   });
 
-  test('menu has three groups', () {
+  test('menu has four groups', () {
     final groups = buildTransactionMenuGroups();
-    expect(groups.length, 3);
+    expect(groups.length, 4);
     expect(groups[0].title, 'Common');
-    expect(groups[1].title, 'FX Deals');
-    expect(groups[2].title, 'Settlement / Advanced');
+    expect(groups[1].title, 'Remittance');
+    expect(groups[2].title, 'FX Deals');
+    expect(groups[3].title, 'Advanced');
   });
 }

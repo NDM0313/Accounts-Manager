@@ -81,7 +81,7 @@ class FxRatePairCard extends StatelessWidget {
 
             border: Border.all(
 
-              color: pair.isStale ? Colors.orange.withValues(alpha: 0.5) : fx.outlineVariant,
+              color: pair.isStale ? fx.warning.withValues(alpha: 0.5) : fx.outlineVariant,
 
             ),
 
@@ -117,7 +117,7 @@ class FxRatePairCard extends StatelessWidget {
 
                   if (pair.isStale)
 
-                    Icon(Icons.schedule, size: 14, color: Colors.orange.shade700),
+                    Icon(Icons.schedule, size: 14, color: fx.warning),
 
                   if (pair.isDerived)
 

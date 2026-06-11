@@ -137,6 +137,12 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
     return FxPageScaffold(
       fallbackRoute: '/deals/${widget.dealId}',
       title: Text(_isEdit ? 'Edit Agent Source' : 'Agent Source Leg'),
+      bottomBar: FxObsidianActionBar(
+        onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
+        onSave: _busy ? null : _confirmAndSubmit,
+        saveLabel: _isEdit ? 'Save changes' : 'Save leg',
+        busy: _busy,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -211,13 +217,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
               const SizedBox(height: 12),
               FxPendingProofPicker(key: _proofPickerKey),
             ],
-            const SizedBox(height: 24),
-            FxObsidianActionBar(
-              onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
-              onSave: _busy ? null : _confirmAndSubmit,
-              saveLabel: _isEdit ? 'Save changes' : 'Save leg',
-              busy: _busy,
-            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

@@ -396,7 +396,7 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.check_circle_outline, size: 48, color: Colors.green.shade700),
+            Icon(Icons.check_circle_outline, size: 48, color: context.fx.tertiary),
             const SizedBox(height: 12),
             Text(
               'Opening balance posted',

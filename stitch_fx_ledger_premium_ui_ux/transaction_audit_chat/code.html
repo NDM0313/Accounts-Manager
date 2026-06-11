@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FX Cash Ledger - Transaction Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#fefcff",
+                        "background": "#f8f9ff",
+                        "surface-tint": "#455f88",
+                        "outline-variant": "#c4c6cf",
+                        "surface-container": "#e6eeff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#adc7f7",
+                        "secondary-container": "#2170e4",
+                        "on-tertiary-fixed": "#002113",
+                        "primary-fixed": "#d6e3ff",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "tertiary": "#002617",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "inverse-surface": "#233144",
+                        "on-surface-variant": "#43474e",
+                        "secondary": "#0058be",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-container-highest": "#d5e3fd",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "inverse-on-surface": "#ebf1ff",
+                        "on-surface": "#0d1c2f",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-container": "#86a0cd",
+                        "surface-variant": "#d5e3fd",
+                        "primary-container": "#1a365d",
+                        "inverse-primary": "#adc7f7",
+                        "primary": "#002045",
+                        "on-tertiary-container": "#00b47d",
+                        "surface-dim": "#ccdbf4",
+                        "on-secondary-fixed-variant": "#004395",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#003e28",
+                        "on-background": "#0d1c2f",
+                        "error": "#ba1a1a",
+                        "outline": "#74777f",
+                        "surface-container-high": "#dde9ff",
+                        "surface": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "gutter": "12px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "container-margin": "16px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "data-lg": ["Inter"],
+                        "headline-sm": ["Manrope"],
+                        "headline-md": ["Manrope"],
+                        "body-sm": ["Inter"],
+                        "data-md": ["Inter"],
+                        "display-lg": ["Manrope"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                        "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chat-bubble-received {
+            border-bottom-left-radius: 4px;
+        }
+        .chat-bubble-sent {
+            border-bottom-right-radius: 4px;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c4c6cf;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface dark:bg-primary shadow-sm border-b border-outline-variant/30">
+<div class="flex items-center gap-md">
+<button class="active:scale-95 transition-transform hover:opacity-80 flex items-center justify-center p-base text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed leading-tight">Deal #FX-9942</h1>
+<p class="text-[10px] font-label-caps uppercase tracking-widest text-secondary flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+                    Verification In Progress
+                </p>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="active:scale-95 transition-transform hover:opacity-80 text-primary dark:text-primary-fixed p-base">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional corporate headshot of a financial officer in a minimalist digital environment. The lighting is high-key and soft, highlighting the professional attire and serious but approachable expression. The color palette is composed of soft blues, whites, and greys to maintain a modern light-mode corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN2yH1bSwbAHH93gKI0jtEgIyQ6qeCxJ8VnXn6GitgfWSFXh9JpuX_A1zOAM30Df2bC6frZGqvbbda2vMiTFdcyTOwoHOcbGw5hRCpNRxoa4uZFmJAK9_rFRp1DipKb-XK10-0ShcZtWauiO8p07IRGdfJWDDR31P_e5gPVl_AgMNfO0rPAUqe_jpIya6yaMr7Gp4Fymt6ClBWrXk9-XZjJx-ggT7eccz10FC1tCYmIg_GSHWfKniJghPN-n1IuIuhLpZXrgcSOpqk"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[64px] pb-[80px] w-full max-w-4xl mx-auto px-container-margin">
+<div class="flex flex-col space-y-lg py-lg">
+<!-- Audit Trail Badge -->
+<div class="flex justify-center">
+<span class="px-md py-xs bg-surface-container text-on-surface-variant font-label-caps text-[10px] rounded-full border border-outline-variant/50">
+                    Audit Trail Active • Thread ID: TR-Chat-9942
+                </span>
+</div>
+<!-- Message Group: Received -->
+<div class="flex flex-col items-start gap-xs max-w-[85%]">
+<div class="flex items-center gap-sm mb-base">
+<span class="font-data-md text-[12px] text-on-surface-variant">Sarah Miller (Treasury)</span>
+<span class="text-[10px] text-outline">10:24 AM</span>
+</div>
+<div class="chat-bubble-received bg-white border border-outline-variant p-md shadow-sm rounded-xl">
+<p class="text-body-md text-on-surface">Can someone verify the spot rate for the HKD/USD leg? It looks slightly off compared to the morning fix.</p>
+</div>
+</div>
+<!-- Message Group: Received (Reference Attachment) -->
+<div class="flex flex-col items-start gap-xs max-w-[85%]">
+<div class="chat-bubble-received bg-white border border-outline-variant p-md shadow-sm rounded-xl space-y-sm">
+<p class="text-body-md text-on-surface">Referencing the ledger entry from the liquidity pool:</p>
+<div class="bg-surface-container-low border border-outline-variant/50 p-sm rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 bg-secondary-container text-on-secondary-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-[12px] font-bold text-primary">L-9942-HKD</p>
+<p class="text-[11px] text-on-surface-variant">Amount: 5,420,000.00 HKD</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+</div>
+<!-- System Event -->
+<div class="flex justify-center">
+<p class="text-[11px] text-outline italic">Mark Thompson joined the verification channel</p>
+</div>
+<!-- Message Group: Sent -->
+<div class="flex flex-col items-end gap-xs ml-auto max-w-[85%]">
+<div class="flex items-center gap-sm mb-base">
+<span class="text-[10px] text-outline">10:31 AM</span>
+<span class="font-data-md text-[12px] text-primary">Mark Thompson (Verifier)</span>
+</div>
+<div class="chat-bubble-sent bg-primary text-on-primary p-md shadow-md rounded-xl">
+<p class="text-body-md">Checking now. The fix was delayed by 15 minutes due to the exchange holiday in HK. I've recorded a voice memo explaining the variance.</p>
+</div>
+</div>
+<!-- Message Group: Sent (Voice Attachment) -->
+<div class="flex flex-col items-end gap-xs ml-auto max-w-[85%]">
+<div class="chat-bubble-sent bg-primary text-on-primary p-md shadow-md rounded-xl w-full">
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 bg-white/10 hover:bg-white/20 transition-colors rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex-grow">
+<div class="h-1 bg-white/20 rounded-full w-full relative">
+<div class="absolute top-0 left-0 h-full w-1/3 bg-tertiary-fixed-dim rounded-full"></div>
+</div>
+<div class="flex justify-between mt-xs">
+<span class="text-[10px] opacity-70">0:14 / 0:42</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="graphic_eq">graphic_eq</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Status Update -->
+<div class="flex flex-col items-start gap-xs max-w-[85%]">
+<div class="chat-bubble-received bg-surface-container-high border-l-4 border-secondary p-md shadow-sm rounded-r-xl">
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-secondary text-[16px]" data-icon="verified_user">verified_user</span>
+<p class="text-[11px] font-bold text-secondary uppercase tracking-wider">Internal Audit Note</p>
+</div>
+<p class="text-body-md text-on-surface italic">Verified HKD leg variance against delayed liquidity fix. Audit flag cleared.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Message Input Area -->
+<div class="fixed bottom-[56px] left-0 w-full bg-white border-t border-outline-variant p-sm z-40">
+<div class="max-w-4xl mx-auto flex items-center gap-sm">
+<button class="p-sm text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<div class="flex-grow relative">
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-sm px-lg focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none text-body-md" placeholder="Add a comment for audit..." type="text"/>
+<button class="absolute right-sm top-1/2 -translate-y-1/2 text-outline">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+</div>
+<button class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full h-[56px] z-50 flex justify-around items-center px-container-margin bg-surface dark:bg-primary border-t border-outline-variant dark:border-outline">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-[10px] mt-0.5">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="sync_alt">sync_alt</span>
+<span class="font-label-caps text-[10px] mt-0.5">Deals</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed border-t-2 border-secondary dark:border-secondary-fixed pt-1" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-label-caps text-[10px] mt-0.5">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="font-label-caps text-[10px] mt-0.5">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-[10px] mt-0.5">Settings</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for playback simulation
+        const playBtn = document.querySelector('[data-icon="play_arrow"]');
+        if (playBtn) {
+            playBtn.parentElement.addEventListener('click', function() {
+                const icon = this.querySelector('.material-symbols-outlined');
+                if (icon.textContent === 'play_arrow') {
+                    icon.textContent = 'pause';
+                } else {
+                    icon.textContent = 'play_arrow';
+                }
+            });
+        }
+    </script>
+</body></html>

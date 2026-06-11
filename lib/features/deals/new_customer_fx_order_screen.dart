@@ -82,6 +82,12 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
     return FxPageScaffold(
       fallbackRoute: '/deals',
       title: const Text('New Customer FX Order'),
+      bottomBar: FxObsidianActionBar(
+        onCancel: () => fxSafePop(context, fallbackRoute: '/deals'),
+        onSave: _busy ? null : _submit,
+        saveLabel: 'Book Order',
+        busy: _busy,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -241,7 +247,10 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                     Text('${displayCurrencyCode(selectedCurrency)} position', style: AppTypography.labelCaps(context.fx.outline, context: context)),
                     Text('Available: ${fmt.format(available)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
                     if (required != null && required > 0)
-                      Text('Required / to source: ${fmt.format(required)}', style: AppTypography.bodyMd(Colors.orange, context: context)),
+                      Text(
+                        'Required / to source: ${fmt.format(required)}',
+                        style: AppTypography.dataMd(context.fx.warning, context: context),
+                      ),
                   ],
                 ),
               ),
@@ -249,14 +258,15 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             if (insufficient) ...[
               const SizedBox(height: 8),
               FxObsidianReportPanel(
+                color: context.fx.warningContainer,
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: Colors.orange, size: 20),
+                    Icon(Icons.warning_amber, color: context.fx.warning, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Insufficient ${displayCurrencyCode(selectedCurrency!)} available. A sourcing requirement will be created automatically.',
-                        style: AppTypography.bodyMd(Colors.orange, context: context).copyWith(fontSize: 12),
+                        style: AppTypography.bodyMd(context.fx.warning, context: context).copyWith(fontSize: 12),
                       ),
                     ),
                   ],
@@ -274,10 +284,23 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             FxObsidianReportPanel(
               padding: const EdgeInsets.all(12),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Total payable: PKR ${fmt.format(_payable)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                  Text('Receivable: PKR ${fmt.format(_receivable.clamp(0, double.infinity))}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                  _amountRow(context, 'Total payable', 'PKR ${fmt.format(_payable)}', emphasized: true),
+                  const SizedBox(height: 8),
+                  _amountRow(
+                    context,
+                    'Customer paid now',
+                    'PKR ${fmt.format(_paid ?? 0)}',
+                  ),
+                  const Divider(height: 16),
+                  _amountRow(
+                    context,
+                    'Outstanding receivable',
+                    'PKR ${fmt.format(_receivable.clamp(0, double.infinity))}',
+                    emphasized: true,
+                    accent: context.fx.secondary,
+                  ),
                 ],
               ),
             ),
@@ -291,16 +314,37 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             ),
             const SizedBox(height: 8),
             FxObsidianFormField(controller: _notesCtrl, label: 'Notes', maxLines: 2),
-            const SizedBox(height: 24),
-            FxObsidianActionBar(
-              onCancel: () => fxSafePop(context, fallbackRoute: '/deals'),
-              onSave: _busy ? null : _submit,
-              saveLabel: 'Book Order',
-              busy: _busy,
-            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _amountRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool emphasized = false,
+    Color? accent,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+          ),
+        ),
+        Text(
+          value,
+          textAlign: TextAlign.end,
+          style: emphasized
+              ? AppTypography.dataLg(accent ?? context.fx.onSurface, context: context)
+              : AppTypography.dataMd(context.fx.onSurface, context: context),
+        ),
+      ],
     );
   }
 

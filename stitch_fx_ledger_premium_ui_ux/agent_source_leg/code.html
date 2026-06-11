@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Sourcing Leg</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d8e2ff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#d6e3ff",
+                    "on-secondary-fixed-variant": "#004395",
+                    "secondary-container": "#2170e4",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "primary-container": "#1a365d",
+                    "surface-container-highest": "#d5e3fd",
+                    "inverse-on-surface": "#ebf1ff",
+                    "inverse-primary": "#adc7f7",
+                    "on-primary-container": "#86a0cd",
+                    "on-secondary-container": "#fefcff",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#0d1c2f",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "outline": "#74777f",
+                    "surface": "#f8f9ff",
+                    "secondary": "#0058be",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "inverse-surface": "#233144",
+                    "tertiary": "#002617",
+                    "surface-container": "#e6eeff",
+                    "on-surface-variant": "#43474e",
+                    "tertiary-container": "#003e28",
+                    "on-secondary-fixed": "#001a42",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-primary-fixed": "#001b3c",
+                    "on-tertiary-container": "#00b47d",
+                    "surface-container-high": "#dde9ff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c4c6cf",
+                    "surface-variant": "#d5e3fd",
+                    "primary-fixed-dim": "#adc7f7",
+                    "surface-tint": "#455f88",
+                    "surface-dim": "#ccdbf4",
+                    "primary": "#002045",
+                    "on-surface": "#0d1c2f",
+                    "on-tertiary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "12px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "container-margin": "16px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "data-md": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "data-lg": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f8f9ff;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .custom-input-group:focus-within {
+            border-color: #0058be;
+            box-shadow: 0 0 0 1px #0058be;
+        }
+        .step-node-active {
+            box-shadow: 0 0 0 4px rgba(0, 88, 190, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface dark:bg-primary">
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed active:scale-95 transition-transform">arrow_back</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Agent Sourcing</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity">refresh</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-[12px]">JD</div>
+</div>
+</header>
+<main class="mt-[80px] px-container-margin max-w-[1140px] mx-auto">
+<!-- Workflow Timeline (Subtle Indicator) -->
+<div class="mb-lg flex items-center gap-sm">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-caps text-label-caps text-secondary">Deal Setup</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant"></div>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary step-node-active"></span>
+<span class="font-label-caps text-label-caps text-secondary">Agent Leg</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant"></div>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Review</span>
+</div>
+</div>
+<div class="bento-grid">
+<!-- Agent Selection & Primary Input -->
+<section class="col-span-4 md:col-span-2 space-y-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs">SELECT AGENT</label>
+<div class="relative">
+<select class="w-full h-12 bg-surface-container-low border border-outline-variant rounded-lg px-md appearance-none font-body-md text-on-surface focus:ring-2 focus:ring-secondary outline-none">
+<option>Standard Chartered Treasury</option>
+<option>HSBC Global Liquidity</option>
+<option>Barclays FX Prime</option>
+<option>Revolut Business (Wholesale)</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm space-y-lg">
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs">RECEIVE FROM AGENT</label>
+<div class="flex gap-sm">
+<div class="flex-1 custom-input-group border border-outline-variant rounded-lg flex items-center px-md bg-surface-container-low transition-all">
+<span class="font-data-md text-on-surface-variant mr-sm">$</span>
+<input class="w-full bg-transparent border-none focus:ring-0 font-data-lg text-on-surface py-base" placeholder="0.00" type="number" value="50000.00"/>
+</div>
+<div class="w-24 border border-outline-variant rounded-lg flex items-center justify-center bg-surface-container-high">
+<span class="font-bold text-primary">USD</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-center relative py-xs">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant border-dashed"></div>
+</div>
+<button class="relative z-10 w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md hover:rotate-180 transition-transform duration-500">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+</button>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs">PAY TO AGENT</label>
+<div class="flex gap-sm">
+<div class="flex-1 custom-input-group border border-outline-variant rounded-lg flex items-center px-md bg-surface-container-low transition-all">
+<span class="font-data-md text-on-surface-variant mr-sm">€</span>
+<input class="w-full bg-transparent border-none focus:ring-0 font-data-lg text-on-surface py-base" placeholder="0.00" type="number" value="46240.50"/>
+</div>
+<div class="w-24 border border-outline-variant rounded-lg flex items-center justify-center bg-surface-container-high">
+<span class="font-bold text-primary">EUR</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Rate Intelligence & Warnings -->
+<section class="col-span-4 md:col-span-2 space-y-md">
+<!-- Comparison Card -->
+<div class="bg-primary-container text-on-primary-container rounded-xl p-md border border-primary/20 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-white">Rate Comparison</h3>
+<p class="font-body-sm text-on-primary-container opacity-80">Deal vs Ref Market</p>
+</div>
+<span class="material-symbols-outlined text-tertiary-fixed text-[32px]">trending_up</span>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="p-sm bg-white/5 rounded-lg">
+<p class="font-label-caps text-label-caps text-white/60 mb-xs">DEAL RATE</p>
+<p class="font-data-lg text-data-lg text-white">1.0813</p>
+</div>
+<div class="p-sm bg-white/5 rounded-lg">
+<p class="font-label-caps text-label-caps text-white/60 mb-xs">REF RATE</p>
+<p class="font-data-lg text-data-lg text-white">1.0809</p>
+</div>
+</div>
+<div class="mt-md flex items-center gap-xs">
+<span class="bg-tertiary text-on-tertiary px-sm py-0.5 rounded-full font-label-caps text-[10px]">+0.04% SPREAD</span>
+<span class="text-on-primary-container font-body-sm italic">Within tolerance</span>
+</div>
+</div>
+<!-- PKR Equivalent (Auto Calc) -->
+<div class="bg-surface-container-high border border-outline-variant rounded-xl p-md flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary">calculate</span>
+</div>
+<div class="flex-1">
+<label class="block font-label-caps text-label-caps text-on-surface-variant">PKR EQUIVALENT</label>
+<p class="font-display-lg text-display-lg text-primary">13,912,500.00</p>
+<p class="font-body-sm text-on-surface-variant">Est. Val: 1 USD = 278.25 PKR</p>
+</div>
+</div>
+<!-- Warning Card (Contextual) -->
+<div class="bg-error-container text-on-error-container rounded-xl p-md border border-error/10 flex items-start gap-md">
+<span class="material-symbols-outlined text-error mt-1">warning</span>
+<div>
+<h4 class="font-bold text-body-lg">Low Balance Alert</h4>
+<p class="font-body-sm">Your current EUR balance in Treasury is 42,100.00. This deal requires 46,240.50. Please fund the account before confirmation.</p>
+</div>
+</div>
+</section>
+<!-- Delivery Target Selection -->
+<section class="col-span-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-md">DELIVERY TARGET SELECTION</label>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<label class="relative flex items-center p-md border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input checked="" class="hidden peer" name="delivery" type="radio"/>
+<div class="peer-checked:border-secondary peer-checked:bg-secondary-container/10 absolute inset-0 rounded-xl border-2 border-transparent transition-all"></div>
+<span class="material-symbols-outlined text-on-surface-variant mr-md group-hover:text-secondary">account_balance</span>
+<div class="relative z-10">
+<p class="font-bold text-on-surface">Our Account</p>
+<p class="font-body-sm text-on-surface-variant">Credit Main Treasury</p>
+</div>
+</label>
+<label class="relative flex items-center p-md border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input class="hidden peer" name="delivery" type="radio"/>
+<div class="peer-checked:border-secondary peer-checked:bg-secondary-container/10 absolute inset-0 rounded-xl border-2 border-transparent transition-all"></div>
+<span class="material-symbols-outlined text-on-surface-variant mr-md group-hover:text-secondary">person</span>
+<div class="relative z-10">
+<p class="font-bold text-on-surface">Direct to Customer</p>
+<p class="font-body-sm text-on-surface-variant">Bypass Internal Pool</p>
+</div>
+</label>
+<label class="relative flex items-center p-md border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input class="hidden peer" name="delivery" type="radio"/>
+<div class="peer-checked:border-secondary peer-checked:bg-secondary-container/10 absolute inset-0 rounded-xl border-2 border-transparent transition-all"></div>
+<span class="material-symbols-outlined text-on-surface-variant mr-md group-hover:text-secondary">bolt</span>
+<div class="relative z-10">
+<p class="font-bold text-on-surface">Telegraphic Transfer (TT)</p>
+<p class="font-body-sm text-on-surface-variant">Urgent Settlement</p>
+</div>
+</label>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer CTA -->
+<div class="mt-xl flex flex-col md:flex-row gap-md justify-end">
+<button class="h-12 px-xl rounded-lg border border-secondary text-secondary font-bold text-body-md hover:bg-secondary-container/10 transition-colors active:scale-95">
+                Save Leg
+            </button>
+<button class="h-12 px-xl rounded-lg bg-secondary text-white font-bold text-body-md shadow-lg hover:bg-primary transition-all active:scale-95 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Confirm Received
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full h-[56px] z-50 flex justify-around items-center px-container-margin bg-surface dark:bg-primary border-t border-outline-variant dark:border-outline">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">sync_alt</span>
+<span class="font-label-caps text-label-caps">Deals</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed border-t-2 border-secondary dark:border-secondary-fixed pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-primary-container pt-1 transition-colors duration-200 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary-container" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<!-- Background Atmospheric Effect (Inline Vanilla JS for Micro-interaction) -->
+<script>
+        document.addEventListener('mousemove', (e) => {
+            const blob = document.getElementById('bg-blob');
+            if (blob) {
+                const x = e.clientX;
+                const y = e.clientY;
+                blob.style.transform = `translate(${x/50}px, ${y/50}px)`;
+            }
+        });
+    </script>
+<div class="fixed -top-24 -left-24 w-96 h-96 bg-secondary-container/5 rounded-full blur-[100px] pointer-events-none z-[-1]" id="bg-blob"></div>
+<div class="fixed bottom-24 -right-24 w-[500px] h-[500px] bg-tertiary-fixed/5 rounded-full blur-[120px] pointer-events-none z-[-1]"></div>
+</body></html>

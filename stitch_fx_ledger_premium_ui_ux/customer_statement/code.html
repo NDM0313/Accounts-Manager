@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customer Ledger - Malik International Corp</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d8e2ff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#d6e3ff",
+                        "on-secondary-fixed-variant": "#004395",
+                        "secondary-container": "#2170e4",
+                        "surface-container-low": "#eff4ff",
+                        "surface-bright": "#f8f9ff",
+                        "primary-container": "#1a365d",
+                        "surface-container-highest": "#d5e3fd",
+                        "inverse-on-surface": "#ebf1ff",
+                        "inverse-primary": "#adc7f7",
+                        "on-primary-container": "#86a0cd",
+                        "on-secondary-container": "#fefcff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#0d1c2f",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "outline": "#74777f",
+                        "surface": "#f8f9ff",
+                        "secondary": "#0058be",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "inverse-surface": "#233144",
+                        "tertiary": "#002617",
+                        "surface-container": "#e6eeff",
+                        "on-surface-variant": "#43474e",
+                        "tertiary-container": "#003e28",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-primary-fixed": "#001b3c",
+                        "on-tertiary-container": "#00b47d",
+                        "surface-container-high": "#dde9ff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c4c6cf",
+                        "surface-variant": "#d5e3fd",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface-tint": "#455f88",
+                        "surface-dim": "#ccdbf4",
+                        "primary": "#002045",
+                        "on-surface": "#0d1c2f",
+                        "on-tertiary-fixed": "#002113",
+                        "background": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter": "12px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "container-margin": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-sm": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "data-md": ["Inter"],
+                        "headline-md": ["Manrope"],
+                        "data-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f8f9ff;
+            color: #0d1c2f;
+            -webkit-font-smoothing: antialiased;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        @media (min-width: 768px) {
+            .bento-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface transition-colors duration-200 border-none shadow-sm">
+<div class="flex items-center gap-md">
+<button class="active:scale-95 transition-transform text-primary">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Customer Ledger</h1>
+</div>
+<button class="active:scale-95 transition-transform text-primary p-2">
+<span class="material-symbols-outlined">share</span>
+</button>
+</header>
+<main class="pt-[80px] pb-[100px] px-container-margin max-w-[1140px] mx-auto space-y-lg">
+<!-- Profile Summary -->
+<section class="bg-surface-container-low border border-outline-variant rounded-xl p-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 opacity-10">
+<span class="material-symbols-outlined text-[128px] text-primary">account_balance</span>
+</div>
+<div class="relative z-10">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary font-extrabold">Malik International Corp</h2>
+<div class="flex items-center gap-sm mt-xs">
+<span class="bg-tertiary-container text-on-tertiary-container text-label-caps font-label-caps px-md py-1 rounded-full border border-on-tertiary-container/20">PREMIUM CLIENT</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span> Active
+                            </span>
+</div>
+</div>
+<div class="text-right mt-md md:mt-0">
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider">Net Balance</p>
+<p class="font-display-lg text-display-lg text-secondary">PKR 1.2M <span class="text-body-lg font-body-lg">Receivable</span></p>
+</div>
+</div>
+</div>
+</section>
+<!-- Currency Exposure Chips -->
+<section class="space-y-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase ml-1">Exposure Portfolio</h3>
+<div class="flex gap-sm overflow-x-auto no-scrollbar pb-1">
+<div class="flex-shrink-0 bg-surface-container-high border border-outline-variant px-md py-sm rounded-lg flex items-center gap-md">
+<img alt="USA Flag" class="w-6 h-4 rounded-sm object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6fGfrnBgo0BWPfMlLn3PpMa-fTugXqiM4IPfdsTG8QstbCwPMa6IK799q9YwU6BUTutZHrC_-ti6zZW6wdr-IynfTo3FnruPDDN6fUIhgU7wxslWF1jmnEaRVQzRjvZPArCb7Ef1rt0VeEp14Ap9OQSQKtwnGPFMdTNDUKMkmHmvUQkpepeU82bC0o7jNUw9JuGFJkQSsjhuHByJo5u17aHnLqlYnUafufoUM6sD650H4b0B6qgJBBEECF218c3VxuPXh2iIlZKUa"/>
+<div>
+<p class="font-data-md text-data-md text-primary">USD</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">$45,200.00</p>
+</div>
+</div>
+<div class="flex-shrink-0 bg-surface-container-high border border-outline-variant px-md py-sm rounded-lg flex items-center gap-md">
+<img alt="UAE Flag" class="w-6 h-4 rounded-sm object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrwlMhnW6BmnwctbUxQedQT2HZjDZAxYvPeRV_kHAlNFb8Yw0kSNHTvo6NX6bHn1sn8hMCSM_s27zFHHhOSN_KS4O0PHRJoIijN8t8xvq64czwVH_bU0-mCctjDvuApPWpke3OzcLmFBkMmpN7mLnokO3b9yYMI7WBSiTUzKS5mnF0C5bK01Hq6pMnZT_aG8kBsSLTY9DSu1CuhiHITyKFBmHw2kaKqD0aUFZMeE7kg6004omLlHtMl6kYyHAqIRd7MGkTRD-l-usK"/>
+<div>
+<p class="font-data-md text-data-md text-primary">AED</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">د.إ 12,000.00</p>
+</div>
+</div>
+<div class="flex-shrink-0 bg-surface-container-high border border-outline-variant px-md py-sm rounded-lg flex items-center gap-md">
+<img alt="China Flag" class="w-6 h-4 rounded-sm object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvnKqc9zSmV4NUpqd6beTBC1jEwhJ-lcau3lwcFJBu7MuSlP8YAq8j607sGu-06lmqx1OPGilSFy26SgYU3Qck4PD74ynR1hd80ZPXg-r3MlHzM-e8q04ABFeBT6Sx5GPtmCKZNnGXZHxdNCyqSceO2UkzPCaqEk2y3RqxSLM790-Q1ztqInjUNlAZVnLZl3jcPeGOCHflKriEZQtQIqvnf3KQsYcH_cyoCVeVskR1BepSdaB2WUXXOsfUMNO5GaGb6pYkW2E6viks"/>
+<div>
+<p class="font-data-md text-data-md text-primary">CNY</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">¥125,900.00</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Summary Cards Grid -->
+<section class="bento-grid">
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Opening Balance</p>
+<p class="font-data-lg text-data-lg text-primary mt-sm">PKR 850,000</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Total Debit</p>
+<p class="font-data-lg text-data-lg text-error mt-sm">PKR 520,000</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Total Credit</p>
+<p class="font-data-lg text-data-lg text-tertiary-container mt-sm">PKR 170,000</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl ring-2 ring-primary-fixed-dim">
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Closing Balance</p>
+<p class="font-data-lg text-data-lg text-primary mt-sm">PKR 1,200,000</p>
+</div>
+</section>
+<!-- Statement List -->
+<section class="space-y-md">
+<div class="flex items-center justify-between px-1">
+<h3 class="font-headline-sm text-headline-sm text-primary font-bold">Statement Activity</h3>
+<button class="text-secondary font-data-md text-data-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">filter_list</span> Filter
+                </button>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<!-- Transaction Headers (Desktop) -->
+<div class="hidden md:grid grid-cols-6 gap-md p-md bg-surface-container font-label-caps text-label-caps text-on-surface-variant uppercase border-b border-outline-variant">
+<div>Date / Ref</div>
+<div class="col-span-2">Type / Detail</div>
+<div class="text-right">Debit</div>
+<div class="text-right">Credit</div>
+<div class="text-right">Balance</div>
+</div>
+<!-- Transaction Row 1 -->
+<div class="p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-sm md:gap-md items-center">
+<div class="md:col-span-1">
+<p class="font-data-md text-data-md text-primary">Oct 12, 2023</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">#FX-9942</p>
+</div>
+<div class="md:col-span-2">
+<div class="flex items-center gap-xs">
+<span class="bg-primary-container text-white px-2 py-0.5 rounded text-[10px] font-bold">SOLD CNY</span>
+<span class="text-primary font-data-md text-data-md">10,000 CNY @ 42.50</span>
+</div>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-error">425,000</p>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-on-surface-variant">—</p>
+</div>
+<div class="text-right">
+<p class="font-data-md text-data-md text-primary">PKR 425,000</p>
+</div>
+<!-- Mobile Specific Detail -->
+<div class="col-span-2 md:hidden flex justify-between pt-2 border-t border-dashed border-outline-variant mt-2">
+<span class="text-error font-data-md text-data-md">Debit: 425,000</span>
+<span class="text-on-surface-variant font-data-md text-data-md">No Credit</span>
+</div>
+</div>
+</div>
+<!-- Transaction Row 2 -->
+<div class="p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors group">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-sm md:gap-md items-center">
+<div class="md:col-span-1">
+<p class="font-data-md text-data-md text-primary">Oct 14, 2023</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">#PY-1022</p>
+</div>
+<div class="md:col-span-2">
+<div class="flex items-center gap-xs">
+<span class="bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded text-[10px] font-bold">PAYMENT</span>
+<span class="text-primary font-data-md text-data-md flex items-center gap-1">
+                                    Bank Transfer 
+                                    <span class="material-symbols-outlined text-[18px] text-secondary cursor-pointer">poker_chip</span>
+</span>
+</div>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-on-surface-variant">—</p>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-tertiary-container">150,000</p>
+</div>
+<div class="text-right">
+<p class="font-data-md text-data-md text-primary">PKR 275,000</p>
+</div>
+<!-- Mobile Specific Detail -->
+<div class="col-span-2 md:hidden flex justify-between pt-2 border-t border-dashed border-outline-variant mt-2">
+<span class="text-on-surface-variant font-data-md text-data-md">No Debit</span>
+<span class="text-tertiary-container font-data-md text-data-md">Credit: 150,000</span>
+</div>
+</div>
+</div>
+<!-- Empty State Row (Example of no data in specific col) -->
+<div class="p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-sm md:gap-md items-center">
+<div class="md:col-span-1">
+<p class="font-data-md text-data-md text-primary">Oct 15, 2023</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">#FX-9951</p>
+</div>
+<div class="md:col-span-2">
+<div class="flex items-center gap-xs">
+<span class="bg-primary-container text-white px-2 py-0.5 rounded text-[10px] font-bold">SOLD USD</span>
+<span class="text-primary font-data-md text-data-md">5,000 USD @ 285.00</span>
+</div>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-error">1,425,000</p>
+</div>
+<div class="text-right hidden md:block">
+<p class="font-data-md text-data-md text-on-surface-variant">—</p>
+</div>
+<div class="text-right">
+<p class="font-data-md text-data-md text-primary">PKR 1,700,000</p>
+</div>
+<!-- Mobile -->
+<div class="col-span-2 md:hidden flex justify-between pt-2 border-t border-dashed border-outline-variant mt-2">
+<span class="text-error font-data-md text-data-md">Debit: 1.42M</span>
+<span class="text-on-surface-variant font-data-md text-data-md">No Credit</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State / Load More Button -->
+<div class="flex justify-center pt-md">
+<button class="px-lg py-md border border-secondary text-secondary font-data-md text-data-md rounded-lg active:scale-95 transition-all">Load Earlier Transactions</button>
+</div>
+</section>
+</main>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 w-full h-[80px] bg-white border-t border-outline-variant z-50 flex items-center justify-between px-container-margin shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+<button class="flex flex-col items-center justify-center text-secondary active:scale-95 transition-transform flex-1">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+<span class="font-label-caps text-[10px] uppercase mt-1">Receive Payment</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant active:scale-95 transition-transform flex-1">
+<span class="material-symbols-outlined text-[24px]">undo</span>
+<span class="font-label-caps text-[10px] uppercase mt-1">Send Refund</span>
+</button>
+<div class="h-10 w-[1px] bg-outline-variant mx-sm"></div>
+<button class="flex items-center gap-sm bg-primary text-white px-lg py-md rounded-xl active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+<span class="font-data-md text-data-md">Export PDF</span>
+</button>
+</div>
+<!-- Floating Atmosphere -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-fixed-dim/20 blur-[100px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-secondary-fixed/30 blur-[100px] rounded-full"></div>
+</div>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('.active\\:scale-95').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

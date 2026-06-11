@@ -1,9 +1,12 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_filter_chip_row.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_ledger_card.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_bottom_sheet.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_filter_chips.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_search_field.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_shell.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_transaction_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +79,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
     final picked = await showModalBottomSheet<String?>(
       context: context,
-      backgroundColor: context.fx.surfaceContainerHigh,
+      backgroundColor: context.fx.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
       ),
@@ -87,17 +90,17 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Text('Filter by currency', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+              child: Text('Filter by currency', style: AppTypography.headlineSm(context.fx.onSurface, context: context)),
             ),
             ListTile(
-              title: Text('All currencies', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-              trailing: _currencyFilter == null ? Icon(Icons.check, color: context.fx.tertiary) : null,
+              title: const Text('All currencies'),
+              trailing: _currencyFilter == null ? Icon(Icons.check, color: context.fx.primary) : null,
               onTap: () => Navigator.pop(context, '__all__'),
             ),
             for (final code in codes)
               ListTile(
-                title: Text(code, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                trailing: _currencyFilter == code ? Icon(Icons.check, color: context.fx.tertiary) : null,
+                title: Text(code),
+                trailing: _currencyFilter == code ? Icon(Icons.check, color: context.fx.primary) : null,
                 onTap: () => Navigator.pop(context, code),
               ),
             const SizedBox(height: 8),
@@ -134,18 +137,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
+        FxPremiumSearchField(
           controller: _searchCtrl,
-          decoration: InputDecoration(
-            hintText: 'Search by Party or Reference…',
-            prefixIcon: const Icon(Icons.search),
-            filled: true,
-            fillColor: context.fx.surfaceContainerLow,
-          ),
+          hintText: 'Search party or reference…',
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 16),
-        FxFilterChipRow(
+        const SizedBox(height: 10),
+        FxPremiumFilterChips(
           selected: _filter,
           onChanged: (f) => setState(() => _filter = f),
           showLast30Days: true,
@@ -157,7 +155,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           sortOrder: _sortOrder,
           onSortChanged: (s) => setState(() => _sortOrder = s),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Expanded(
           child: switch (_filter) {
             FxLedgerFilter.draft => _buildList(draftsAsync, query, emptyLabel: 'No drafts.'),
@@ -169,23 +167,21 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       ],
     );
 
-    final fab = FloatingActionButton(
-      onPressed: () => FxObsidianBottomSheet.showTransactionTypes(context),
-      backgroundColor: context.fx.tertiary,
-      foregroundColor: context.fx.onTertiary,
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
-      child: const Icon(Icons.add, size: 28),
-    );
-
     if (widget.embeddedInHub) {
       return body;
     }
 
+    final fab = FloatingActionButton(
+      onPressed: () => FxTransactionMenuSheet.show(context),
+      backgroundColor: context.fx.primary,
+      foregroundColor: context.fx.onPrimary,
+      child: const Icon(Icons.add),
+    );
+
     if (widget.inShell) {
       return Stack(
         children: [
-          FxObsidianPage(
+          FxPremiumPage(
             padding: EdgeInsets.fromLTRB(
               MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
               16,
@@ -263,65 +259,43 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       keys.sort();
     }
 
-    final slivers = <Widget>[];
-    for (var gi = 0; gi < keys.length; gi++) {
-      final key = keys[gi];
-      final dayItems = groups[key]!;
-      final headerDate = DateTime.parse(key);
-      final headerLabel = formatLedgerDateHeader(headerDate).toUpperCase();
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: keys.length,
+      itemBuilder: (context, gi) {
+        final key = keys[gi];
+        final dayItems = groups[key]!;
+        final headerDate = DateTime.parse(key);
+        final headerLabel = formatLedgerDateHeader(headerDate);
 
-      slivers.add(
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: _StickyDateHeaderDelegate(label: headerLabel),
-        ),
-      );
-      slivers.add(
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, i) {
-              final tx = dayItems[i];
-              return Padding(
-                padding: EdgeInsets.only(bottom: i == dayItems.length - 1 ? 16 : 8),
-                child: FxLedgerCard(
-                  transaction: tx,
-                  onTap: () => context.push('/transactions/${tx.id}'),
-                ),
-              );
-            },
-            childCount: dayItems.length,
-          ),
-        ),
-      );
-    }
-
-    return CustomScrollView(
-      slivers: slivers,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(2, gi == 0 ? 0 : 12, 2, 6),
+              child: Text(
+                headerLabel.toUpperCase(),
+                style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
+              ),
+            ),
+            FxPremiumCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < dayItems.length; i++)
+                    FxTransactionCard(
+                      transaction: dayItems[i],
+                      compact: true,
+                      showDivider: i < dayItems.length - 1,
+                      onTap: () => context.push('/transactions/${dayItems[i].id}'),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
     );
   }
-}
-
-class _StickyDateHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _StickyDateHeaderDelegate({required this.label});
-
-  final String label;
-
-  @override
-  double get minExtent => 36;
-
-  @override
-  double get maxExtent => 36;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: context.fx.background.withValues(alpha: 0.95),
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
-      child: Text(label, style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context)),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyDateHeaderDelegate old) => old.label != label;
 }

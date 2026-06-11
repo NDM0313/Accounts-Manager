@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Receive Payment - FX Cash Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "on-background": "#0d1c2f",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-surface-variant": "#43474e",
+                    "on-error-container": "#93000a",
+                    "on-primary-container": "#86a0cd",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "inverse-primary": "#adc7f7",
+                    "primary-fixed-dim": "#adc7f7",
+                    "error-container": "#ffdad6",
+                    "inverse-surface": "#233144",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "tertiary-container": "#003e28",
+                    "primary": "#002045",
+                    "secondary": "#0058be",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "primary-fixed": "#d6e3ff",
+                    "tertiary": "#002617",
+                    "on-secondary-fixed-variant": "#004395",
+                    "on-surface": "#0d1c2f",
+                    "on-secondary-container": "#fefcff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#00b47d",
+                    "on-secondary-fixed": "#001a42",
+                    "surface": "#f8f9ff",
+                    "surface-dim": "#ccdbf4",
+                    "primary-container": "#1a365d",
+                    "secondary-fixed": "#d8e2ff",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#001b3c",
+                    "surface-container-low": "#eff4ff",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#2170e4",
+                    "outline-variant": "#c4c6cf",
+                    "outline": "#74777f",
+                    "surface-tint": "#455f88",
+                    "surface-container-high": "#dde9ff",
+                    "surface-container": "#e6eeff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#002113",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "inverse-on-surface": "#ebf1ff",
+                    "surface-container-highest": "#d5e3fd",
+                    "surface-variant": "#d5e3fd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "container-margin": "16px",
+                    "xs": "4px",
+                    "gutter": "12px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Inter"],
+                    "headline-md": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "data-md": ["Inter"],
+                    "data-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                    "data-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .input-focus-ring:focus-within {
+            box-shadow: 0 0 0 2px #adc7f7;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E9ECEF;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- TopAppBar Shell (Suppressed on transactional flow but here requested by user prompt specifically) -->
+<header class="fixed top-0 w-full h-[64px] z-50 flex items-center justify-between px-container-margin bg-surface">
+<div class="flex items-center gap-md">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high transition-colors" onclick="window.history.back()">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary font-bold">Receive Payment</h1>
+</div>
+<button class="material-symbols-outlined text-primary p-2 active:scale-95 transition-transform" data-icon="refresh">refresh</button>
+</header>
+<main class="pt-[80px] pb-[120px] px-container-margin max-w-[1140px] mx-auto space-y-md">
+<!-- Customer Selection -->
+<section class="space-y-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Customer</label>
+<div class="relative flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg p-md input-focus-ring transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm" data-icon="search">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-body-lg font-body-lg" placeholder="Select Customer (e.g. Malik International Corp)" type="text" value="Malik International Corp"/>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+</section>
+<!-- Main Form Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-md">
+<!-- Left Column: Payment Details -->
+<div class="md:col-span-8 space-y-md">
+<div class="glass-card rounded-xl p-lg shadow-sm space-y-lg">
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Amount Received</label>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">AED</span>
+<input class="w-full text-display-lg font-display-lg bg-transparent border-none focus:ring-0 text-primary placeholder-primary-fixed-dim" placeholder="0.00" type="number" value="25500.00"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Currency</label>
+<select class="w-full border border-outline-variant rounded-lg p-sm bg-surface-container-low font-data-md text-data-md">
+<option>AED - UAE Dirham</option>
+<option>USD - US Dollar</option>
+<option>PKR - Pakistani Rupee</option>
+<option>SAR - Saudi Riyal</option>
+</select>
+</div>
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Payment Method</label>
+<select class="w-full border border-outline-variant rounded-lg p-sm bg-surface-container-low font-data-md text-data-md">
+<option>Bank Transfer</option>
+<option>Cash</option>
+<option>Cheque</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Allocation & Reference -->
+<div class="glass-card rounded-xl p-lg shadow-sm space-y-lg">
+<div class="flex items-center justify-between border-b border-outline-variant pb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="link">link</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Allocation</h3>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Outstanding</p>
+<p class="font-data-lg text-data-lg text-error">AED 84,200.00</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Link to Deal</label>
+<div class="relative border border-outline-variant rounded-lg p-sm bg-surface-container-low">
+<input class="w-full bg-transparent border-none focus:ring-0 font-data-md text-data-md" type="text" value="#FX-9942"/>
+</div>
+</div>
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Reference Number</label>
+<div class="relative border border-outline-variant rounded-lg p-sm bg-surface-container-low">
+<input class="w-full bg-transparent border-none focus:ring-0 font-data-md text-data-md" placeholder="TXN-1092384" type="text"/>
+</div>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-sm border-2 border-dashed border-outline-variant rounded-lg py-md text-on-surface-variant hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="attach_file">attach_file</span>
+<span class="font-body-md text-body-md">Attach Proof of Payment (PDF, JPG)</span>
+</button>
+</div>
+</div>
+<!-- Right Column: Summary Card -->
+<div class="md:col-span-4 space-y-md">
+<div class="bg-primary text-on-primary rounded-xl p-lg shadow-lg relative overflow-hidden">
+<!-- Subtle background abstract shape -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-20 blur-3xl -mr-16 -mt-16 rounded-full"></div>
+<h3 class="font-label-caps text-label-caps text-secondary-fixed uppercase opacity-80 mb-md">Payment Summary</h3>
+<div class="space-y-md">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-primary-fixed">Original Balance</span>
+<span class="font-data-md text-data-md">AED 84,200.00</span>
+</div>
+<div class="flex justify-between items-center text-tertiary-fixed">
+<span class="font-body-md text-body-md">Payment Applied</span>
+<span class="font-data-md text-data-md">- AED 25,500.00</span>
+</div>
+<hr class="border-on-primary-fixed-variant opacity-20"/>
+<div class="flex justify-between items-end">
+<span class="font-body-md text-body-md text-primary-fixed">Remaining Balance</span>
+<span class="font-display-lg text-display-lg">AED 58,700.00</span>
+</div>
+</div>
+<div class="mt-lg pt-md flex items-center gap-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-container text-on-tertiary-container font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="check_circle">check_circle</span>
+                            PARTIAL PAYMENT
+                        </span>
+</div>
+</div>
+<!-- Action Button Container -->
+<div class="space-y-sm">
+<button class="w-full h-[56px] bg-secondary hover:bg-secondary-container text-white rounded-xl font-headline-sm text-headline-sm flex items-center justify-center gap-sm shadow-md active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+                        Post to Ledger
+                    </button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant">Transaction will be recorded in Ledger ID #LED-882</p>
+</div>
+<!-- Visualization/Graphic -->
+<div class="h-40 rounded-xl relative overflow-hidden border border-outline-variant">
+
+<div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent flex flex-col justify-end p-md">
+<p class="font-label-caps text-label-caps text-primary uppercase">Flow Analysis</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Payment contributes to 15% of monthly target.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Suppressed for transactional flow as per instructions, but placeholder logic if needed) -->
+<!-- Navigation Shell (BottomNavBar suppressed as this is a focused sub-page) -->
+<script>
+        // Micro-interactions
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('focus', () => {
+                el.closest('.input-focus-ring')?.classList.add('ring-2', 'ring-secondary-fixed');
+            });
+            el.addEventListener('blur', () => {
+                el.closest('.input-focus-ring')?.classList.remove('ring-2', 'ring-secondary-fixed');
+            });
+        });
+
+        // Simple calculation logic simulation
+        const amountInput = document.querySelector('input[type="number"]');
+        const summaryRemaining = document.querySelector('.font-display-lg');
+        const originalBalance = 84200.00;
+
+        amountInput?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value) || 0;
+            const remaining = originalBalance - val;
+            summaryRemaining.textContent = `AED ${remaining.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            
+            const badge = document.querySelector('.bg-tertiary-container');
+            if (remaining <= 0) {
+                badge.innerHTML = '<span class="material-symbols-outlined text-[14px] mr-1" data-icon="check_circle">check_circle</span> FULL SETTLEMENT';
+                badge.classList.replace('bg-tertiary-container', 'bg-tertiary');
+                badge.classList.replace('text-on-tertiary-container', 'text-tertiary-fixed');
+            } else {
+                badge.innerHTML = '<span class="material-symbols-outlined text-[14px] mr-1" data-icon="check_circle">check_circle</span> PARTIAL PAYMENT';
+                badge.classList.replace('bg-tertiary', 'bg-tertiary-container');
+                badge.classList.replace('text-tertiary-fixed', 'text-on-tertiary-container');
+            }
+        });
+    </script>
+</body></html>
