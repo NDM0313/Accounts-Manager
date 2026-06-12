@@ -49,6 +49,10 @@ import 'package:accounts_manager/features/remittance/remittance_detail_screen.da
 import 'package:accounts_manager/features/remittance/remittance_customer_payment_screen.dart';
 import 'package:accounts_manager/features/remittance/remittance_workflow_screens.dart';
 import 'package:accounts_manager/features/remittance/remittance_reports_screen.dart';
+import 'package:accounts_manager/features/remittance/agent/agent_remittance_inbox_screen.dart';
+import 'package:accounts_manager/features/remittance/agent/agent_remittance_detail_screen.dart';
+import 'package:accounts_manager/features/remittance/agent/agent_confirm_payout_screen.dart';
+import 'package:accounts_manager/features/notifications/notifications_inbox_screen.dart';
 import 'package:accounts_manager/features/messaging/messages_inbox_screen.dart';
 import 'package:accounts_manager/features/messaging/conversation_room_screen.dart';
 import 'package:accounts_manager/features/ledger/ledger_hub_screen.dart';
@@ -227,6 +231,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/remittance/reports',
         builder: (context, state) => const AuthGate(child: RemittanceReportsScreen()),
+      ),
+      GoRoute(
+        path: '/remittance/agent',
+        builder: (context, state) => const AuthGate(child: AgentRemittanceInboxScreen()),
+      ),
+      GoRoute(
+        path: '/remittance/agent/:id/confirm',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: AgentConfirmPayoutScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/remittance/agent/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AuthGate(child: AgentRemittanceDetailScreen(remittanceId: id));
+        },
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const AuthGate(child: NotificationsInboxScreen()),
       ),
       GoRoute(
         path: '/remittance/:id/payment',

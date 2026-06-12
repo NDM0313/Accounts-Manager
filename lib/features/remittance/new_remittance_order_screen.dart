@@ -4,6 +4,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.da
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
+import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,14 @@ class _NewRemittanceOrderScreenState extends ConsumerState<NewRemittanceOrderScr
   final _notes = TextEditingController();
   String _receiveCurrency = 'PKR';
   String _payoutCurrency = 'PKR';
+  FxRemittanceCommissionMode _commissionMode = FxRemittanceCommissionMode.customerPaid;
   bool _saving = false;
+
+  double get _totalPayablePreview {
+    final recv = double.tryParse(_receiveAmount.text) ?? 0;
+    final comm = double.tryParse(_commission.text) ?? 0;
+    return recv + (_commissionMode == FxRemittanceCommissionMode.customerPaid ? comm : 0);
+  }
 
   @override
   void dispose() {
@@ -82,6 +90,7 @@ class _NewRemittanceOrderScreenState extends ConsumerState<NewRemittanceOrderScr
             payoutAmount: payout,
             exchangeRate: rate,
             commissionAmount: comm,
+            commissionMode: _commissionMode,
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           );
       ref.read(remittancesRefreshProvider.notifier).refresh();
@@ -187,6 +196,20 @@ class _NewRemittanceOrderScreenState extends ConsumerState<NewRemittanceOrderScr
           ),
           FxObsidianFormField(controller: _exchangeRate, label: 'Exchange rate', keyboardType: const TextInputType.numberWithOptions(decimal: true)),
           FxObsidianFormField(controller: _commission, label: 'Commission', keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+          const SizedBox(height: 8),
+          SegmentedButton<FxRemittanceCommissionMode>(
+            segments: const [
+              ButtonSegment(value: FxRemittanceCommissionMode.customerPaid, label: Text('Customer pays')),
+              ButtonSegment(value: FxRemittanceCommissionMode.internal, label: Text('Internal')),
+            ],
+            selected: {_commissionMode},
+            onSelectionChanged: (s) => setState(() => _commissionMode = s.first),
+          ),
+          const SizedBox(height: 4),
+          Text(_commissionMode.label, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+          const SizedBox(height: 8),
+          Text('Total payable preview: ${_totalPayablePreview.toStringAsFixed(2)} $_receiveCurrency',
+              style: AppTypography.headlineSm(context.fx.primary, context: context).copyWith(fontSize: 14)),
           FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
         ],
       ),

@@ -3,12 +3,6 @@ import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
 
 class RemittanceRepository {
-  static const _select =
-      'id, remittance_no, tracking_id, sender_party_id, receiver_name, receiver_phone, '
-      'receiver_city, receiver_country, payout_agent_party_id, receive_currency, receive_amount, '
-      'payout_currency, payout_amount, exchange_rate, commission_amount, total_payable, paid_amount, '
-      'status, payout_status, settlement_status, notes, booked_at, completed_at, created_at';
-
   Future<List<FxRemittance>> fetchList(String branchId, {bool openOnly = false}) async {
     final rows = await supabase.rpc('fx_list_remittances', params: {
       'p_branch_id': branchId,
@@ -17,10 +11,16 @@ class RemittanceRepository {
     return (rows as List).cast<Map<String, dynamic>>().map(FxRemittance.fromJson).toList();
   }
 
-  Future<FxRemittance?> fetchOne(String id) async {
-    final row = await supabase.from('fx_remittances').select(_select).eq('id', id).maybeSingle();
+  Future<FxRemittance?> fetchDetail(String id) async {
+    final row = await supabase.rpc('fx_get_remittance_detail', params: {'p_remittance_id': id});
     if (row == null) return null;
-    return FxRemittance.fromJson(row);
+    return FxRemittance.fromJson(row as Map<String, dynamic>);
+  }
+
+  Future<FxRemittance?> fetchAgentDetail(String id) async {
+    final row = await supabase.rpc('fx_get_agent_remittance_detail', params: {'p_remittance_id': id});
+    if (row == null) return null;
+    return FxRemittance.fromJson(row as Map<String, dynamic>);
   }
 
   Future<List<FxRemittanceEvent>> fetchTimeline(String remittanceId) async {
@@ -28,6 +28,13 @@ class RemittanceRepository {
       'p_remittance_id': remittanceId,
     });
     return (rows as List).cast<Map<String, dynamic>>().map(FxRemittanceEvent.fromJson).toList();
+  }
+
+  Future<List<FxRemittance>> fetchAgentList({String? query}) async {
+    final rows = await supabase.rpc('fx_list_agent_remittances', params: {
+      'p_query': query,
+    });
+    return (rows as List).cast<Map<String, dynamic>>().map(FxRemittance.fromJson).toList();
   }
 
   Future<String> createRemittance({
@@ -44,6 +51,7 @@ class RemittanceRepository {
     required double payoutAmount,
     required double exchangeRate,
     double commissionAmount = 0,
+    FxRemittanceCommissionMode commissionMode = FxRemittanceCommissionMode.customerPaid,
     String? notes,
   }) async {
     final id = await supabase.rpc('fx_create_remittance', params: {
@@ -60,6 +68,7 @@ class RemittanceRepository {
       'p_payout_amount': payoutAmount,
       'p_exchange_rate': exchangeRate,
       'p_commission_amount': commissionAmount,
+      'p_commission_mode': commissionMode.dbValue,
       'p_notes': notes,
       'p_book_immediately': true,
     });
@@ -97,9 +106,28 @@ class RemittanceRepository {
     required String remittanceId,
     String? proofReference,
     String? notes,
+    String? payoutMethod,
   }) async {
     final txId = await supabase.rpc('fx_confirm_remittance_payout', params: {
       'p_remittance_id': remittanceId,
+      'p_proof_reference': proofReference,
+      'p_notes': notes,
+      'p_payout_method': payoutMethod,
+    });
+    return txId as String;
+  }
+
+  Future<String> agentConfirmPayout({
+    required String remittanceId,
+    String? payoutMethod,
+    DateTime? payoutAt,
+    String? proofReference,
+    String? notes,
+  }) async {
+    final txId = await supabase.rpc('fx_agent_confirm_remittance_payout', params: {
+      'p_remittance_id': remittanceId,
+      'p_payout_method': payoutMethod,
+      'p_payout_at': payoutAt?.toUtc().toIso8601String(),
       'p_proof_reference': proofReference,
       'p_notes': notes,
     });
@@ -121,23 +149,45 @@ class RemittanceRepository {
     return txId as String;
   }
 
-  Future<String> refund({
-    required String remittanceId,
-    required double amount,
-    String? notes,
-  }) async {
-    final txId = await supabase.rpc('fx_refund_remittance', params: {
-      'p_remittance_id': remittanceId,
-      'p_amount': amount,
-      'p_notes': notes,
-    });
-    return txId as String;
-  }
-
   Future<void> cancel(String remittanceId, {String? notes}) async {
     await supabase.rpc('fx_cancel_remittance', params: {
       'p_remittance_id': remittanceId,
       'p_notes': notes,
     });
+  }
+
+  Future<Map<String, dynamic>> fetchCashFlowSummary(String branchId, DateTime date) async {
+    final row = await supabase.rpc('fx_remittance_cash_flow_summary', params: {
+      'p_branch_id': branchId,
+      'p_date': date.toIso8601String().split('T').first,
+    });
+    return (row as Map<String, dynamic>?) ?? {};
+  }
+
+  Future<Map<String, dynamic>> fetchAgentStatement(String agentPartyId, DateTime from, DateTime to) async {
+    final row = await supabase.rpc('fx_remittance_agent_statement', params: {
+      'p_agent_party_id': agentPartyId,
+      'p_from': from.toIso8601String().split('T').first,
+      'p_to': to.toIso8601String().split('T').first,
+    });
+    return (row as Map<String, dynamic>?) ?? {};
+  }
+
+  Future<Map<String, dynamic>> fetchCustomerStatement(String partyId, DateTime from, DateTime to) async {
+    final row = await supabase.rpc('fx_remittance_customer_statement', params: {
+      'p_party_id': partyId,
+      'p_from': from.toIso8601String().split('T').first,
+      'p_to': to.toIso8601String().split('T').first,
+    });
+    return (row as Map<String, dynamic>?) ?? {};
+  }
+
+  Future<Map<String, dynamic>> fetchBranchStatement(String branchId, DateTime from, DateTime to) async {
+    final row = await supabase.rpc('fx_remittance_branch_statement', params: {
+      'p_branch_id': branchId,
+      'p_from': from.toIso8601String().split('T').first,
+      'p_to': to.toIso8601String().split('T').first,
+    });
+    return (row as Map<String, dynamic>?) ?? {};
   }
 }

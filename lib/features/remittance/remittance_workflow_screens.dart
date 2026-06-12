@@ -90,6 +90,7 @@ class RemittanceConfirmPayoutScreen extends ConsumerStatefulWidget {
 class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfirmPayoutScreen> {
   final _proof = TextEditingController();
   final _notes = TextEditingController();
+  String _method = 'cash';
   bool _saving = false;
 
   @override
@@ -106,6 +107,7 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
             remittanceId: widget.remittanceId,
             proofReference: _proof.text.trim().isEmpty ? null : _proof.text.trim(),
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+            payoutMethod: _method,
           );
       ref.read(remittancesRefreshProvider.notifier).refresh();
       if (mounted) context.pop();
@@ -126,6 +128,16 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            DropdownButtonFormField<String>(
+              value: _method,
+              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Payout method'),
+              items: const [
+                DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                DropdownMenuItem(value: 'bank', child: Text('Bank transfer')),
+                DropdownMenuItem(value: 'mobile', child: Text('Mobile wallet')),
+              ],
+              onChanged: (v) => setState(() => _method = v ?? 'cash'),
+            ),
             FxObsidianFormField(controller: _proof, label: 'Proof / reference'),
             FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
           ],

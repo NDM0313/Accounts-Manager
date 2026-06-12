@@ -45,6 +45,10 @@ class FxRemittanceEvent {
     this.proofReference,
     this.notes,
     this.createdAt,
+    this.createdByName,
+    this.branchName,
+    this.actorRole,
+    this.attachmentCount = 0,
   });
 
   final String id;
@@ -57,6 +61,10 @@ class FxRemittanceEvent {
   final String? proofReference;
   final String? notes;
   final DateTime? createdAt;
+  final String? createdByName;
+  final String? branchName;
+  final String? actorRole;
+  final int attachmentCount;
 
   factory FxRemittanceEvent.fromJson(Map<String, dynamic> json) {
     return FxRemittanceEvent(
@@ -70,6 +78,10 @@ class FxRemittanceEvent {
       proofReference: json['proof_reference'] as String?,
       notes: json['notes'] as String?,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      createdByName: json['created_by_name'] as String?,
+      branchName: json['branch_name'] as String?,
+      actorRole: json['actor_role'] as String?,
+      attachmentCount: (json['attachment_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -31,6 +31,25 @@ class RemittanceListScreen extends ConsumerWidget {
         backgroundColor: context.fx.background,
         title: const Text('Remittance'),
         actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final unread = ref.watch(unreadNotificationsCountProvider);
+              final count = unread.value ?? 0;
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: count > 0,
+                  label: Text('$count'),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => context.push('/notifications'),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.support_agent_outlined),
+            tooltip: 'Agent workspace',
+            onPressed: () => context.push('/remittance/agent'),
+          ),
           IconButton(
             icon: const Icon(Icons.assessment_outlined),
             onPressed: () => context.push('/remittance/reports'),

@@ -7,6 +7,7 @@ import 'package:accounts_manager/core/widgets/premium/fx_timeline_step_card.dart
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
+import 'package:accounts_manager/features/remittance/widgets/remittance_attachments_section.dart';
 import 'package:accounts_manager/features/remittance/widgets/remittance_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,8 @@ class RemittanceDetailScreen extends ConsumerWidget {
 
   final String remittanceId;
 
+  static final _dtFmt = DateFormat('dd MMM yyyy, HH:mm');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final remAsync = ref.watch(remittanceDetailProvider(remittanceId));
@@ -27,18 +30,14 @@ class RemittanceDetailScreen extends ConsumerWidget {
     return FxPageScaffold(
       fallbackRoute: '/remittance',
       title: remAsync.when(
-        data: (r) => Text(r?.trackingId ?? 'Remittance'),
+        data: (r) => Text(r?.remittanceNo ?? r?.trackingId ?? 'Remittance'),
         loading: () => const Text('Remittance'),
         error: (_, _) => const Text('Remittance'),
       ),
       actions: [
         IconButton(
           icon: const Icon(Icons.ios_share_outlined),
-          onPressed: () async {
-            final r = remAsync.value;
-            if (r == null) return;
-            await _shareReceipt(context, r, customerCopy: true);
-          },
+          onPressed: () => _showExportPicker(context, remAsync.value),
         ),
       ],
       body: remAsync.when(
@@ -52,6 +51,8 @@ class RemittanceDetailScreen extends ConsumerWidget {
               RemittanceSummaryCard(remittance: r, fmt: fmt),
               const SizedBox(height: 12),
               _actionButtons(context, ref, r),
+              const SizedBox(height: 16),
+              RemittanceAttachmentsSection(remittanceId: remittanceId, branchId: r.branchId ?? '', title: 'Remittance proofs'),
               const SizedBox(height: 16),
               Text('Timeline', style: AppTypography.labelCaps(context.fx.outline, context: context)),
               const SizedBox(height: 8),
@@ -70,87 +71,104 @@ class RemittanceDetailScreen extends ConsumerWidget {
   }
 
   Widget _actionButtons(BuildContext context, WidgetRef ref, FxRemittance r) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        if (r.status == FxRemittanceStatus.booked || r.status == FxRemittanceStatus.customerPaid)
-          FilledButton(
-            onPressed: () => context.push('/remittance/$remittanceId/payment'),
-            child: const Text('Customer payment'),
-          ),
-        if (r.status == FxRemittanceStatus.customerPaid)
-          OutlinedButton(
-            onPressed: () => context.push('/remittance/$remittanceId/assign-agent'),
-            child: const Text('Send to agent'),
-          ),
-        if (r.status == FxRemittanceStatus.sentToAgent || r.status == FxRemittanceStatus.readyForPayout)
-          FilledButton(
-            onPressed: () => context.push('/remittance/$remittanceId/payout'),
-            child: const Text('Confirm payout'),
-          ),
-        if (r.status == FxRemittanceStatus.paidOut)
-          FilledButton(
-            onPressed: () => context.push('/remittance/$remittanceId/settlement'),
-            child: const Text('Agent settlement'),
-          ),
-        if (r.status == FxRemittanceStatus.booked)
-          TextButton(
-            onPressed: () async {
-              final ok = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Cancel remittance?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-                    FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Cancel order')),
-                  ],
-                ),
-              );
-              if (ok == true && context.mounted) {
-                await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
-                ref.read(remittancesRefreshProvider.notifier).refresh();
-              }
-            },
-            child: const Text('Cancel order'),
-          ),
-      ],
-    );
+    final actions = <Widget>[];
+
+    if (r.status == FxRemittanceStatus.booked && r.balanceDue > 0) {
+      actions.add(FilledButton(onPressed: () => context.push('/remittance/$remittanceId/payment'), child: const Text('Receive Payment')));
+    }
+    if (r.status == FxRemittanceStatus.customerPaid && r.isFullyPaid) {
+      actions.add(FilledButton(onPressed: () => context.push('/remittance/$remittanceId/assign-agent'), child: const Text('Send to Agent')));
+    }
+    if (r.status == FxRemittanceStatus.sentToAgent || r.status == FxRemittanceStatus.readyForPayout) {
+      actions.add(FilledButton(onPressed: () => context.push('/remittance/$remittanceId/payout'), child: const Text('Confirm Payout')));
+    }
+    if (r.status == FxRemittanceStatus.paidOut) {
+      actions.add(FilledButton(onPressed: () => context.push('/remittance/$remittanceId/settlement'), child: const Text('Mark Settled')));
+    }
+    if (r.status == FxRemittanceStatus.completed || r.status == FxRemittanceStatus.cancelled) {
+      actions.add(OutlinedButton(onPressed: () => _showExportPicker(context, r), child: const Text('View / Print')));
+    }
+    if (r.status == FxRemittanceStatus.booked && r.paidAmount <= 0) {
+      actions.add(TextButton(
+        onPressed: () async {
+          final ok = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Cancel remittance?'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Cancel order')),
+              ],
+            ),
+          );
+          if (ok == true && context.mounted) {
+            await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
+            ref.read(remittancesRefreshProvider.notifier).refresh();
+          }
+        },
+        child: const Text('Cancel order'),
+      ));
+    }
+
+    if (actions.isEmpty) return const SizedBox.shrink();
+    return Wrap(spacing: 8, runSpacing: 8, children: actions);
   }
 
   Widget _eventTile(BuildContext context, FxRemittanceEvent e, NumberFormat fmt) {
-    final subtitle = [
-      if (e.amount != null && e.currencyCode != null) '${e.currencyCode} ${fmt.format(e.amount)}',
+    final lines = <String>[
+      if (e.createdAt != null) _dtFmt.format(e.createdAt!.toLocal()),
+      if (e.createdByName != null) 'By ${e.createdByName}${e.actorRole != null ? ' (${e.actorRole})' : ''}',
+      if (e.branchName != null) 'Branch: ${e.branchName}',
+      if (e.statusAfter != null) 'Status: ${e.statusAfter!.label}',
+      if (e.amount != null && e.currencyCode != null) 'Amount: ${e.currencyCode} ${fmt.format(e.amount)}',
       if (e.proofReference != null) 'Ref: ${e.proofReference}',
-      if (e.notes != null && e.notes!.isNotEmpty) e.notes,
-    ].join(' · ');
+      if (e.notes != null && e.notes!.isNotEmpty) e.notes!,
+    ];
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: FxTimelineStepCard(
         title: '${e.eventNo}. ${e.eventType.label}',
-        subtitle: subtitle.isEmpty ? e.eventType.label : subtitle,
+        subtitle: lines.join(' · '),
         statusLabel: e.statusAfter?.label ?? e.eventType.label,
+        proofCount: e.attachmentCount,
         onTap: e.linkedTransactionId != null
             ? () => context.push('/transactions/${e.linkedTransactionId}')
-            : null,
+            : (e.attachmentCount > 0 ? () {} : null),
       ),
     );
   }
-}
 
-Future<void> _shareReceipt(BuildContext context, FxRemittance r, {required bool customerCopy}) async {
-  final text = formatRemittanceReceipt(r, customerCopy: customerCopy);
-  final pdf = await buildRemittanceReceiptPdf(r, customerCopy: customerCopy);
-  if (!context.mounted) return;
-  await showFxExportSheet(
-    context,
-    mode: customerCopy ? FxExportMode.customerFacing : FxExportMode.internal,
-    document: FxExportDocument(
-      title: 'Remittance ${r.trackingId}',
-      textBody: text,
-      pdfBytes: pdf,
-      subject: 'Remittance ${r.trackingId}',
-    ),
-  );
+  Future<void> _showExportPicker(BuildContext context, FxRemittance? r) async {
+    if (r == null) return;
+    final choice = await showModalBottomSheet<RemittanceReceiptType>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(title: const Text('Customer copy'), onTap: () => Navigator.pop(ctx, RemittanceReceiptType.customer)),
+            ListTile(title: const Text('Internal copy'), onTap: () => Navigator.pop(ctx, RemittanceReceiptType.internal)),
+            if (r.status.index >= FxRemittanceStatus.sentToAgent.index)
+              ListTile(title: const Text('Agent payout slip'), onTap: () => Navigator.pop(ctx, RemittanceReceiptType.agentSlip)),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !context.mounted) return;
+    final customerCopy = choice == RemittanceReceiptType.customer;
+    final text = formatRemittanceReceipt(r, receiptType: choice);
+    final pdf = await buildRemittanceReceiptPdf(r, receiptType: choice);
+    if (!context.mounted) return;
+    await showFxExportSheet(
+      context,
+      mode: customerCopy ? FxExportMode.customerFacing : FxExportMode.internal,
+      document: FxExportDocument(
+        title: 'Remittance ${r.trackingId}',
+        textBody: text,
+        pdfBytes: pdf,
+        subject: 'Remittance ${r.trackingId}',
+      ),
+    );
+  }
 }
