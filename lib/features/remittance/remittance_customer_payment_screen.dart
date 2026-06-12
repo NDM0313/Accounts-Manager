@@ -1,6 +1,8 @@
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_amount_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_bottom_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_help_tip_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
 import 'package:accounts_manager/features/remittance/widgets/remittance_attachments_section.dart';
@@ -72,13 +74,15 @@ class _RemittanceCustomerPaymentScreenState
     );
     final profile = ref.watch(currentProfileProvider).value;
 
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('Customer Payment'),
       fallbackRoute: '/remittance/${widget.remittanceId}',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Post Payment',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Post Payment',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -92,11 +96,18 @@ class _RemittanceCustomerPaymentScreenState
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                'Balance due: ${r.balanceDue.toStringAsFixed(2)} ${r.receiveCurrency}',
+              FxAmountCard(
+                label: 'Balance due',
+                amountLabel:
+                    '${r.balanceDue.toStringAsFixed(2)} ${r.receiveCurrency}',
+                trendLabel: r.commissionMode.label,
               ),
-              const SizedBox(height: 8),
-              Text(r.commissionMode.label),
+              const SizedBox(height: 12),
+              const FxHelpTipCard(
+                title: 'Full payment required',
+                body:
+                    'Partial payments keep status Awaiting Payment. Send to Agent is only enabled after paid amount equals total payable.',
+              ),
               const SizedBox(height: 12),
               FxObsidianFormField(
                 controller: _amount,

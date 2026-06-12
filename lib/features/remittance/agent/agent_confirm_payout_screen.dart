@@ -1,6 +1,6 @@
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_bottom_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
 import 'package:accounts_manager/features/remittance/widgets/remittance_attachments_section.dart';
@@ -63,13 +63,15 @@ class _AgentConfirmPayoutScreenState
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(currentProfileProvider).value;
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('Confirm Payout'),
       fallbackRoute: '/remittance/agent',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Confirm',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Confirm',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

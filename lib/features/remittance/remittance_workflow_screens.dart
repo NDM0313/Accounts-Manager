@@ -1,6 +1,6 @@
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_bottom_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
@@ -62,13 +62,15 @@ class _RemittanceAssignAgentScreenState
   @override
   Widget build(BuildContext context) {
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('Send to Agent'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Send',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Send',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -155,13 +157,15 @@ class _RemittanceConfirmPayoutScreenState
 
   @override
   Widget build(BuildContext context) {
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('Confirm Payout'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Confirm',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Confirm',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -251,13 +255,15 @@ class _RemittanceAgentSettlementScreenState
 
   @override
   Widget build(BuildContext context) {
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('Agent Settlement'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Settle',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Settle',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

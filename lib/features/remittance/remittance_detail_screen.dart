@@ -1,8 +1,8 @@
-import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/export/fx_document_export.dart';
 import 'package:accounts_manager/core/export/remittance_receipt_builder.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_action_tile.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_timeline_step_card.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
@@ -27,7 +27,7 @@ class RemittanceDetailScreen extends ConsumerWidget {
     final timelineAsync = ref.watch(remittanceTimelineProvider(remittanceId));
     final fmt = NumberFormat('#,##0.00');
 
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       fallbackRoute: '/remittance',
       title: remAsync.when(
         data: (r) => Text(r?.remittanceNo ?? r?.trackingId ?? 'Remittance'),
@@ -60,13 +60,7 @@ class RemittanceDetailScreen extends ConsumerWidget {
                 title: 'Remittance proofs',
               ),
               const SizedBox(height: 16),
-              Text(
-                'Timeline',
-                style: AppTypography.labelCaps(
-                  context.fx.outline,
-                  context: context,
-                ),
-              ),
+              const FxSectionHeader(label: 'Timeline'),
               const SizedBox(height: 8),
               timelineAsync.when(
                 loading: () => const CircularProgressIndicator(),
@@ -85,83 +79,105 @@ class RemittanceDetailScreen extends ConsumerWidget {
   }
 
   Widget _actionButtons(BuildContext context, WidgetRef ref, FxRemittance r) {
-    final actions = <Widget>[];
+    final tiles = <Widget>[];
 
-    if (r.status == FxRemittanceStatus.booked && r.balanceDue > 0) {
-      actions.add(
-        FilledButton(
-          onPressed: () => context.push('/remittance/$remittanceId/payment'),
-          child: const Text('Receive Payment'),
+    void addTile(
+      String title,
+      String subtitle,
+      IconData icon,
+      VoidCallback onTap,
+    ) {
+      tiles.add(
+        FxActionTile(
+          title: title,
+          subtitle: subtitle,
+          icon: icon,
+          onTap: onTap,
         ),
       );
     }
+
+    if (r.status == FxRemittanceStatus.booked && r.balanceDue > 0) {
+      addTile(
+        'Receive Payment',
+        'Balance due ${r.balanceDue.toStringAsFixed(2)}',
+        Icons.payments_outlined,
+        () => context.push('/remittance/$remittanceId/payment'),
+      );
+    }
     if (r.status == FxRemittanceStatus.customerPaid && r.isFullyPaid) {
-      actions.add(
-        FilledButton(
-          onPressed: () =>
-              context.push('/remittance/$remittanceId/assign-agent'),
-          child: const Text('Send to Agent'),
-        ),
+      addTile(
+        'Send to Agent',
+        'Assign payout agent',
+        Icons.send_outlined,
+        () => context.push('/remittance/$remittanceId/assign-agent'),
       );
     }
     if (r.status == FxRemittanceStatus.sentToAgent ||
         r.status == FxRemittanceStatus.readyForPayout) {
-      actions.add(
-        FilledButton(
-          onPressed: () => context.push('/remittance/$remittanceId/payout'),
-          child: const Text('Confirm Payout'),
-        ),
+      addTile(
+        'Confirm Payout',
+        'Branch payout confirmation',
+        Icons.check_circle_outline,
+        () => context.push('/remittance/$remittanceId/payout'),
       );
     }
     if (r.status == FxRemittanceStatus.paidOut) {
-      actions.add(
-        FilledButton(
-          onPressed: () => context.push('/remittance/$remittanceId/settlement'),
-          child: const Text('Mark Settled'),
-        ),
+      addTile(
+        'Mark Settled',
+        'Complete agent settlement',
+        Icons.done_all_outlined,
+        () => context.push('/remittance/$remittanceId/settlement'),
       );
     }
     if (r.status == FxRemittanceStatus.completed ||
         r.status == FxRemittanceStatus.cancelled) {
-      actions.add(
-        OutlinedButton(
-          onPressed: () => _showExportPicker(context, r),
-          child: const Text('View / Print'),
-        ),
+      addTile(
+        'View / Print',
+        'Customer, internal, or agent slip',
+        Icons.receipt_long_outlined,
+        () => _showExportPicker(context, r),
       );
     }
     if (r.status == FxRemittanceStatus.booked && r.paidAmount <= 0) {
-      actions.add(
-        TextButton(
-          onPressed: () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Cancel remittance?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('No'),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Cancel order'),
-                  ),
-                ],
-              ),
-            );
-            if (ok == true && context.mounted) {
-              await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
-              ref.read(remittancesRefreshProvider.notifier).refresh();
-            }
-          },
-          child: const Text('Cancel order'),
-        ),
+      addTile(
+        'Cancel order',
+        'Void before any payment',
+        Icons.cancel_outlined,
+        () async {
+          final ok = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Cancel remittance?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('No'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Cancel order'),
+                ),
+              ],
+            ),
+          );
+          if (ok == true && context.mounted) {
+            await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
+            ref.read(remittancesRefreshProvider.notifier).refresh();
+          }
+        },
       );
     }
 
-    if (actions.isEmpty) return const SizedBox.shrink();
-    return Wrap(spacing: 8, runSpacing: 8, children: actions);
+    if (tiles.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const FxSectionHeader(label: 'Actions'),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, runSpacing: 8, children: tiles),
+      ],
+    );
   }
 
   Widget _eventTile(

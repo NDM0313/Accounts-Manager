@@ -1,8 +1,11 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_amount_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_bottom_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_help_tip_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -129,24 +132,20 @@ class _NewRemittanceOrderScreenState
     final customersAsync = ref.watch(partiesProvider(FxPartyType.customer));
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
 
-    return FxPageScaffold(
+    return FxPremiumScaffold(
       title: const Text('New Remittance'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => context.pop(),
-        onSave: _saving ? null : _save,
-        saveLabel: 'Book Order',
+      bottomBar: FxBottomActionBar(
+        primaryLabel: 'Book Order',
+        onPrimary: _saving ? null : _save,
+        secondaryLabel: 'Cancel',
+        onSecondary: () => context.pop(),
+        isLoading: _saving,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            'Sender / customer',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
+          const FxSectionHeader(label: 'Sender / customer'),
           const SizedBox(height: 8),
           customersAsync.when(
             loading: () => const LinearProgressIndicator(),
@@ -166,13 +165,7 @@ class _NewRemittanceOrderScreenState
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Receiver',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
+          const FxSectionHeader(label: 'Receiver'),
           const SizedBox(height: 8),
           FxObsidianFormField(
             controller: _receiverName,
@@ -182,13 +175,7 @@ class _NewRemittanceOrderScreenState
           FxObsidianFormField(controller: _receiverCity, label: 'City'),
           FxObsidianFormField(controller: _receiverCountry, label: 'Country'),
           const SizedBox(height: 16),
-          Text(
-            'Payout agent (optional)',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
+          const FxSectionHeader(label: 'Payout agent (optional)'),
           agentsAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, _) => const SizedBox.shrink(),
@@ -211,13 +198,7 @@ class _NewRemittanceOrderScreenState
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Amounts',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
+          const FxSectionHeader(label: 'Amounts'),
           Row(
             children: [
               Expanded(
@@ -307,13 +288,19 @@ class _NewRemittanceOrderScreenState
             ).copyWith(fontSize: 12),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Total payable preview: ${_totalPayablePreview.toStringAsFixed(2)} $_receiveCurrency',
-            style: AppTypography.headlineSm(
-              context.fx.primary,
-              context: context,
-            ).copyWith(fontSize: 14),
+          FxAmountCard(
+            label: 'Total payable preview',
+            amountLabel:
+                '${_totalPayablePreview.toStringAsFixed(2)} $_receiveCurrency',
+            trendLabel: _commissionMode.label,
           ),
+          const SizedBox(height: 8),
+          const FxHelpTipCard(
+            title: 'Commission mode',
+            body:
+                'Customer pays: total includes commission. Internal: customer pays receive amount only; commission tracked internally.',
+          ),
+          const SizedBox(height: 8),
           FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
         ],
       ),

@@ -1,6 +1,9 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_amount_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_responsive_grid.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
@@ -103,95 +106,98 @@ class _RemittanceReportsScreenState
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
     final customersAsync = ref.watch(partiesProvider(FxPartyType.customer));
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        title: const Text('Remittance Reports'),
-        backgroundColor: context.fx.background,
-        bottom: TabBar(
-          controller: _tabs,
-          isScrollable: true,
-          onTap: (i) {
-            if (i == 0) _loadCashFlow();
-            if (i == 1) _loadBranch();
-          },
-          tabs: const [
-            Tab(text: 'Cash Flow'),
-            Tab(text: 'Branch'),
-            Tab(text: 'Agent'),
-            Tab(text: 'Customer'),
-          ],
-        ),
+    return FxPremiumScaffold(
+      fallbackRoute: '/remittance',
+      title: const Text('Remittance Reports'),
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabs,
+            isScrollable: true,
+            onTap: (i) {
+              if (i == 0) _loadCashFlow();
+              if (i == 1) _loadBranch();
+            },
+            tabs: const [
+              Tab(text: 'Cash Flow'),
+              Tab(text: 'Branch'),
+              Tab(text: 'Agent'),
+              Tab(text: 'Customer'),
+            ],
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabs,
+                    children: [
+                      _cashFlowTab(context),
+                      _kvPanel(context, _branchStmt),
+                      Column(
+                        children: [
+                          agentsAsync.when(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data: (parties) => Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Agent',
+                                ),
+                                items: parties
+                                    .map(
+                                      (p) => DropdownMenuItem(
+                                        value: p.id,
+                                        child: Text(p.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() => _agentId = v);
+                                  _loadAgent();
+                                },
+                              ),
+                            ),
+                          ),
+                          Expanded(child: _kvPanel(context, _agentStmt)),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          customersAsync.when(
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
+                            data: (parties) => Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Customer / sender',
+                                ),
+                                items: parties
+                                    .map(
+                                      (p) => DropdownMenuItem(
+                                        value: p.id,
+                                        child: Text(p.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() => _customerId = v);
+                                  _loadCustomer();
+                                },
+                              ),
+                            ),
+                          ),
+                          Expanded(child: _kvPanel(context, _customerStmt)),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+        ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabs,
-              children: [
-                _cashFlowTab(context),
-                _kvPanel(context, _branchStmt),
-                Column(
-                  children: [
-                    agentsAsync.when(
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                      data: (parties) => Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Agent',
-                          ),
-                          items: parties
-                              .map(
-                                (p) => DropdownMenuItem(
-                                  value: p.id,
-                                  child: Text(p.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) {
-                            setState(() => _agentId = v);
-                            _loadAgent();
-                          },
-                        ),
-                      ),
-                    ),
-                    Expanded(child: _kvPanel(context, _agentStmt)),
-                  ],
-                ),
-                Column(
-                  children: [
-                    customersAsync.when(
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                      data: (parties) => Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Customer / sender',
-                          ),
-                          items: parties
-                              .map(
-                                (p) => DropdownMenuItem(
-                                  value: p.id,
-                                  child: Text(p.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) {
-                            setState(() => _customerId = v);
-                            _loadCustomer();
-                          },
-                        ),
-                      ),
-                    ),
-                    Expanded(child: _kvPanel(context, _customerStmt)),
-                  ],
-                ),
-              ],
-            ),
     );
   }
 
@@ -200,26 +206,31 @@ class _RemittanceReportsScreenState
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _stat(
-          context,
-          'Today customer received',
-          _fmt.format((d['today_customer_received'] as num?) ?? 0),
+        FxResponsiveGrid(
+          children: [
+            FxAmountCard(
+              label: 'Today received',
+              amountLabel: _fmt.format(
+                (d['today_customer_received'] as num?) ?? 0,
+              ),
+            ),
+            FxAmountCard(
+              label: 'Today payouts',
+              amountLabel: _fmt.format((d['today_agent_payouts'] as num?) ?? 0),
+            ),
+            FxAmountCard(
+              label: 'Today commission',
+              amountLabel: _fmt.format((d['today_commission'] as num?) ?? 0),
+            ),
+            FxAmountCard(
+              label: 'Pending liability',
+              amountLabel: _fmt.format(
+                (d['pending_payout_liability'] as num?) ?? 0,
+              ),
+            ),
+          ],
         ),
-        _stat(
-          context,
-          'Today agent payouts',
-          _fmt.format((d['today_agent_payouts'] as num?) ?? 0),
-        ),
-        _stat(
-          context,
-          'Today commission',
-          _fmt.format((d['today_commission'] as num?) ?? 0),
-        ),
-        _stat(
-          context,
-          'Pending payout liability',
-          _fmt.format((d['pending_payout_liability'] as num?) ?? 0),
-        ),
+        const SizedBox(height: 12),
         _stat(
           context,
           'Pending agent settlement',
@@ -256,7 +267,7 @@ class _RemittanceReportsScreenState
   Widget _stat(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: FxObsidianReportPanel(
+      child: FxPremiumCard(
         padding: const EdgeInsets.all(12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
