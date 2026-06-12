@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/pending_proof_upload.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/services/deal_workflow_guide.dart';
@@ -39,12 +39,12 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
     );
     final fx = context.fx;
 
-    return FxObsidianReportPanel(
+    return FxStitchCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'WORKFLOW',
+            'DEAL LIFECYCLE',
             style: AppTypography.labelCaps(fx.primary, context: context),
           ),
           const SizedBox(height: 8),

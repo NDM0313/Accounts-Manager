@@ -794,7 +794,7 @@ final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
-  ThemeMode build() => ThemeMode.system;
+  ThemeMode build() => ThemeMode.light;
 
   void toggle() {
     state = switch (state) {

@@ -56,6 +56,15 @@ class AttachmentRepository {
   static const _selectCols =
       'id, transaction_id, deal_id, deal_leg_id, message_id, remittance_id, remittance_event_id, storage_path, file_name, mime_type, file_size_bytes, attachment_type';
 
+  Future<FxAttachment> fetchById(String id) async {
+    final row = await supabase
+        .from('fx_attachments')
+        .select(_selectCols)
+        .eq('id', id)
+        .single();
+    return FxAttachment.fromJson(row);
+  }
+
   Future<List<FxAttachment>> fetchForTransaction(String transactionId) async {
     final rows = await supabase
         .from('fx_attachments')

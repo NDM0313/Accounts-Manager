@@ -1,5 +1,4 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_help_tip_card.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_segmented_tabs.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
 import 'package:accounts_manager/features/ledger/account_statement_screen.dart';
@@ -17,13 +16,6 @@ class LedgerHubScreen extends StatefulWidget {
 
 class _LedgerHubScreenState extends State<LedgerHubScreen> {
   LedgerHubTab _tab = LedgerHubTab.transactions;
-
-  static const _helpBody =
-      '• Buy = foreign cash in; PKR or payable out.\n'
-      '• Sell = foreign cash out; PKR or receivable in.\n'
-      '• Customer FX Deal = order first, source from agents later.\n'
-      '• PKR → USD → AED: use Chained Exchange.\n'
-      '• Add currencies in Settings → Currencies.';
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +43,6 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
                     onChanged: (i) =>
                         setState(() => _tab = LedgerHubTab.values[i]),
                   ),
-                  if (_tab == LedgerHubTab.transactions) ...[
-                    const SizedBox(height: 10),
-                    const FxHelpTipCard(title: 'How FX works', body: _helpBody),
-                  ],
                   const SizedBox(height: 12),
                   Expanded(
                     child: _tab == LedgerHubTab.transactions

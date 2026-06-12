@@ -4,20 +4,19 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+enum PremiumNav { home, deals, ledger, reports, settings }
 
-enum PremiumNav { home, ledger, accounts, audit, settings }
-
-/// Main app shell: top bar + premium bottom navigation with active pill.
+/// Main app shell: Stitch 64px top bar + 5-tab bottom navigation.
 class FxPremiumShell extends ConsumerWidget {
   const FxPremiumShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   static const _tabs = [
-    (Icons.dashboard_outlined, Icons.dashboard, 'Home'),
-    (Icons.receipt_long_outlined, Icons.receipt_long, 'Ledger'),
-    (Icons.account_balance_outlined, Icons.account_balance, 'Accounts'),
-    (Icons.history_outlined, Icons.history, 'Audit'),
+    (Icons.home_outlined, Icons.home, 'Home'),
+    (Icons.sync_alt, Icons.sync_alt, 'Deals'),
+    (Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Ledger'),
+    (Icons.bar_chart_outlined, Icons.bar_chart, 'Reports'),
     (Icons.settings_outlined, Icons.settings, 'Settings'),
   ];
 
@@ -66,35 +65,41 @@ class FxPremiumShell extends ConsumerWidget {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Executive FX Ledger',
+                      'FX Cash Ledger',
                       style: AppTypography.headlineSm(
-                        context.fx.onSurface,
+                        context.fx.primary,
                         context: context,
-                      ).copyWith(fontSize: 17),
+                      ).copyWith(fontSize: 17, fontWeight: FontWeight.w700),
                     ),
                     if (isDesktop) ...[
                       const SizedBox(width: 40),
-                      _navLink(context, PremiumNav.home, 'Dashboard'),
+                      _navLink(context, PremiumNav.home, 'Home'),
+                      const SizedBox(width: 20),
+                      _navLink(context, PremiumNav.deals, 'Deals'),
                       const SizedBox(width: 20),
                       _navLink(context, PremiumNav.ledger, 'Ledger'),
                       const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.accounts, 'Accounts'),
-                      const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.audit, 'Audit'),
+                      _navLink(context, PremiumNav.reports, 'Reports'),
                       const SizedBox(width: 20),
                       _navLink(context, PremiumNav.settings, 'Settings'),
                     ],
                     const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.refresh, color: context.fx.primary),
+                      onPressed: () {
+                        ref.invalidate(cashBalancesProvider);
+                        ref.invalidate(ratesProvider);
+                        ref.invalidate(dealsListProvider);
+                      },
+                    ),
                     if (profile != null)
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor: context.fx.primary.withValues(
-                          alpha: 0.12,
-                        ),
+                        backgroundColor: context.fx.secondaryContainer,
                         child: Text(
                           initials,
                           style: AppTypography.labelCaps(
-                            context.fx.primary,
+                            context.fx.onSecondaryContainer,
                             context: context,
                           ).copyWith(fontSize: 10),
                         ),
@@ -121,54 +126,45 @@ class FxPremiumShell extends ConsumerWidget {
                 child: SizedBox(
                   height: 56,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: List.generate(_tabs.length, (i) {
                       final tab = _tabs[i];
                       final active = navigationShell.currentIndex == i;
                       return Expanded(
                         child: InkWell(
                           onTap: () => _goBranch(i),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
                                   color: active
-                                      ? context.fx.primary.withValues(
-                                          alpha: 0.12,
-                                        )
+                                      ? context.fx.secondary
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(999),
+                                  width: 2,
                                 ),
-                                child: Icon(
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
                                   active ? tab.$2 : tab.$1,
                                   size: 22,
                                   color: active
-                                      ? context.fx.primary
+                                      ? context.fx.secondary
                                       : context.fx.onSurfaceVariant,
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                tab.$3,
-                                style:
-                                    AppTypography.bodyMd(
-                                      active
-                                          ? context.fx.primary
-                                          : context.fx.onSurfaceVariant,
-                                      context: context,
-                                    ).copyWith(
-                                      fontSize: 10,
-                                      fontWeight: active
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                    ),
-                              ),
-                            ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  tab.$3.toUpperCase(),
+                                  style: AppTypography.labelCaps(
+                                    active
+                                        ? context.fx.secondary
+                                        : context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 9),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -189,21 +185,20 @@ class FxPremiumShell extends ConsumerWidget {
         children: [
           Text(
             label,
-            style:
-                AppTypography.bodyMd(
-                  active ? context.fx.primary : context.fx.onSurfaceVariant,
-                  context: context,
-                ).copyWith(
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                  fontSize: 13,
-                ),
+            style: AppTypography.bodyMd(
+              active ? context.fx.secondary : context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(
+              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 4),
           Container(
             height: 2,
             width: active ? 24 : 0,
             decoration: BoxDecoration(
-              color: context.fx.primary,
+              color: context.fx.secondary,
               borderRadius: BorderRadius.circular(999),
             ),
           ),

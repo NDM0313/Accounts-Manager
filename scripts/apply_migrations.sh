@@ -48,4 +48,4 @@ ENC_PASS=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.arg
 DB_URL="postgresql://postgres.${REF}:${ENC_PASS}@${POOLER}:5432/postgres?sslmode=require"
 
 echo "Applying migrations via session pooler (IPv4)..."
-supabase db push --db-url "$DB_URL" --yes
+supabase db push --db-url "$DB_URL" --include-all --yes

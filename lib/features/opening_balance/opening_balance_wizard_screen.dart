@@ -1,11 +1,10 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/opening_balance_summary.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
+import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_bottom_action_bar.dart';
+import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_opening_balance_widgets.dart';
 import 'package:accounts_manager/data/repositories/profile_repository.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_opening_balance_batch.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
@@ -28,15 +27,6 @@ class OpeningBalanceWizardScreen extends ConsumerStatefulWidget {
 
 class _OpeningBalanceWizardScreenState
     extends ConsumerState<OpeningBalanceWizardScreen> {
-  static const _stepTitles = [
-    'Opening Setup',
-    'Cash & Bank',
-    'Currency Positions',
-    'Party / Agent',
-    'Review',
-    'Post',
-  ];
-
   int _step = 0;
   bool _busy = false;
   String? _batchId;
@@ -208,9 +198,99 @@ class _OpeningBalanceWizardScreenState
     final accountsAsync = ref.watch(accountsProvider);
     final branchAsync = ref.watch(branchContextProvider);
 
-    return FxPageScaffold(
-      fallbackRoute: '/opening-balances',
-      title: Text('Opening Balance — ${_stepTitles[_step]}'),
+    final profileInitials = profileAsync.whenOrNull(
+          data: (p) => p?.fullName
+              ?.split(' ')
+              .map((s) => s.isNotEmpty ? s[0] : '')
+              .take(2)
+              .join()
+              .toUpperCase(),
+        ) ??
+        '?';
+
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: AppBar(
+        backgroundColor: context.fx.surface,
+        foregroundColor: context.fx.primary,
+        title: Text(
+          'FX Cash Ledger',
+          style: AppTypography.headlineSm(
+            context.fx.primary,
+            context: context,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.canPop()
+              ? context.pop()
+              : context.go('/opening-balances'),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(openingBalanceStatusProvider);
+              ref.invalidate(accountsProvider);
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: context.fx.secondaryContainer,
+              child: Text(
+                profileInitials,
+                style: AppTypography.labelCaps(
+                  context.fx.onSecondaryContainer,
+                  context: context,
+                ).copyWith(fontSize: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: profileAsync.whenOrNull(
+            data: (profile) => profile != null && _step < 5
+                ? FxStitchBottomActionBar(
+                    actions: [
+                      if (_step > 0)
+                        FxStitchBottomAction(
+                          label: 'Back',
+                          icon: Icons.arrow_back,
+                          onTap: _busy ? () {} : () => setState(() => _step--),
+                        ),
+                      if (_step < 4)
+                        FxStitchBottomAction(
+                          label: 'Save draft',
+                          icon: Icons.save_outlined,
+                          onTap: _busy ? () {} : () => _saveDraft(profile),
+                        ),
+                      FxStitchBottomAction(
+                        label: _step == 4
+                            ? 'Post Opening Balance'
+                            : 'Next',
+                        icon: _step == 4
+                            ? Icons.check_circle_outline
+                            : Icons.arrow_forward,
+                        primary: true,
+                        onTap: _busy ? () {} : () => _nextStep(profile),
+                      ),
+                    ],
+                  )
+                : _step == 5
+                    ? FxStitchBottomActionBar(
+                        actions: [
+                          FxStitchBottomAction(
+                            label: 'Done',
+                            icon: Icons.check,
+                            primary: true,
+                            onTap: () => context.go('/opening-balances'),
+                          ),
+                        ],
+                      )
+                    : null,
+          ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
@@ -229,40 +309,29 @@ class _OpeningBalanceWizardScreenState
                     .firstOrNull,
               );
 
+              final stepperStep = _step > 4 ? 4 : _step;
               return Column(
                 children: [
-                  _StepIndicator(current: _step, total: _stepTitles.length),
+                  if (_step < 5)
+                    FxStitchOpeningBalanceStepper(
+                      currentStep: stepperStep,
+                      completedThrough: _step >= 5 ? 4 : null,
+                    ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
-                      child: switch (_step) {
-                        0 => _buildSetupStep(context, branchAsync, accounts),
-                        1 => _buildCashBankStep(context, accounts),
-                        2 => _buildPositionStep(context, accounts),
-                        3 => _buildPartyStep(context, accounts),
-                        4 => _buildReviewStep(context, accounts),
-                        _ => _buildPostStep(context, ref),
-                      },
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 640),
+                        child: switch (_step) {
+                          0 => _buildSetupStep(context, branchAsync, accounts),
+                          1 => _buildCashBankStep(context, accounts),
+                          2 => _buildPositionStep(context, accounts),
+                          3 => _buildPartyStep(context, accounts),
+                          4 => _buildReviewStep(context, accounts),
+                          _ => _buildPostStep(context, ref),
+                        },
+                      ),
                     ),
-                  ),
-                  _WizardActionBar(
-                    busy: _busy,
-                    primaryLabel: _step == 4
-                        ? 'Post Opening Balance'
-                        : _step == 5
-                        ? 'Done'
-                        : 'Next',
-                    onPrimary: () {
-                      if (_step == 5) {
-                        context.go('/opening-balances');
-                      } else {
-                        _nextStep(profile);
-                      }
-                    },
-                    showBack: _step > 0 && _step < 5,
-                    onBack: () => setState(() => _step--),
-                    showSaveDraft: _step < 4,
-                    onSaveDraft: () => _saveDraft(profile),
                   ),
                 ],
               );
@@ -284,39 +353,106 @@ class _OpeningBalanceWizardScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _WarningBanner(
+        Text(
+          'Opening Setup',
+          style: AppTypography.headlineMd(
+            context.fx.primary,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Configure the opening date and balancing account for your branch.',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const FxStitchOpeningBalanceWarning(
           text:
-              'Opening balances should be entered once before real transactions.',
+              'Opening balances must be posted before real transactions. This process is irreversible once finalized.',
         ),
         const SizedBox(height: 16),
         if (branchLabel != null)
-          ListTile(
-            title: const Text('Company / Branch'),
-            subtitle: Text(branchLabel),
+          FxStitchCard(
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'COMPANY / BRANCH',
+                style: AppTypography.labelCaps(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
+              subtitle: Text(branchLabel),
+            ),
           ),
-        ListTile(
-          title: const Text('Opening date'),
-          subtitle: Text(DateFormat.yMMMd().format(_openingDate)),
-          trailing: const Icon(Icons.calendar_today_outlined),
-          onTap: () async {
-            final picked = await FxObsidianPickers.showDate(
-              context,
-              initialDate: _openingDate,
-            );
-            if (picked != null) setState(() => _openingDate = picked);
-          },
-        ),
-        const ListTile(title: Text('Base currency'), subtitle: Text('PKR')),
-        const SizedBox(height: 8),
-        FxObsidianFormField(
-          controller: _descriptionCtrl,
-          label: 'Description (optional)',
+        const SizedBox(height: 12),
+        FxStitchOpeningBalanceField(
+          label: 'Opening date',
+          child: InkWell(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _openingDate,
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+              if (picked != null) setState(() => _openingDate = picked);
+            },
+            child: FxStitchCard(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(DateFormat.yMMMd().format(_openingDate)),
+                  ),
+                  Icon(Icons.calendar_today_outlined,
+                      color: context.fx.secondary),
+                ],
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
-        FxObsidianFormField(
-          controller: _notesCtrl,
+        FxStitchOpeningBalanceField(
+          label: 'Base currency',
+          child: FxStitchCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: const Text('PKR'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FxStitchOpeningBalanceField(
+          label: 'Description (optional)',
+          child: TextField(
+            controller: _descriptionCtrl,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: context.fx.surfaceContainerLowest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                borderSide: BorderSide(color: context.fx.outlineVariant),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FxStitchOpeningBalanceField(
           label: 'Notes (optional)',
-          maxLines: 2,
+          child: TextField(
+            controller: _notesCtrl,
+            maxLines: 2,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: context.fx.surfaceContainerLowest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                borderSide: BorderSide(color: context.fx.outlineVariant),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Text(
@@ -335,8 +471,19 @@ class _OpeningBalanceWizardScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const FxSectionLabel(label: 'Cash & bank balances'),
-        const SizedBox(height: 8),
+        Text(
+          'Cash & Bank',
+          style: AppTypography.headlineMd(context.fx.primary, context: context),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Enter opening balances for cash drawers and bank accounts.',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 12),
         ..._cashLines.asMap().entries.map(
           (e) => _LineCard(
             line: e.value,
@@ -361,23 +508,38 @@ class _OpeningBalanceWizardScreenState
 
   Widget _buildPositionStep(BuildContext context, List<FxAccount> accounts) {
     final cashAccounts = OpeningBalanceLineMapper.cashAndBankAccounts(accounts);
+    final fmt = NumberFormat('#,##0.00');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const FxSectionLabel(label: 'Currency positions'),
         Text(
-          'Foreign currency held with average cost and location.',
+          'Currency Positions',
+          style: AppTypography.headlineMd(context.fx.primary, context: context),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Enter the opening quantities and current exchange rates for your existing currency holdings.',
           style: AppTypography.bodyMd(
             context.fx.onSurfaceVariant,
             context: context,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
+        const FxStitchOpeningBalanceWarning(
+          text:
+              'Opening balances must be posted before real transactions. This process is irreversible once finalized.',
+        ),
+        const SizedBox(height: 12),
         ..._positionLines.asMap().entries.map(
-          (e) => _LineCard(
-            line: e.value,
-            accounts: accounts,
-            onDelete: () => setState(() => _positionLines.removeAt(e.key)),
+          (e) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: FxStitchOpeningBalanceCurrencyLine(
+              currencyCode: e.value.currencyCode,
+              amountLabel: fmt.format(e.value.foreignAmount),
+              pkrLabel: 'PKR ${fmt.format(e.value.pkrAmount)}',
+              locationLabel: e.value.locationLabel,
+              onDelete: () => setState(() => _positionLines.removeAt(e.key)),
+            ),
           ),
         ),
         OutlinedButton.icon(
@@ -400,8 +562,19 @@ class _OpeningBalanceWizardScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const FxSectionLabel(label: 'Party & agent balances'),
-        const SizedBox(height: 8),
+        Text(
+          'Party & Agent Balances',
+          style: AppTypography.headlineMd(context.fx.primary, context: context),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Record receivables and payables for customers and settlement agents.',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 12),
         ..._partyLines.asMap().entries.map(
           (e) => _LineCard(
             line: e.value,
@@ -429,30 +602,60 @@ class _OpeningBalanceWizardScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(
+          'Review',
+          style: AppTypography.headlineMd(context.fx.primary, context: context),
+        ),
+        const SizedBox(height: 12),
         if (!_isBalanced && _allLines.isNotEmpty)
-          _WarningBanner(
+          FxStitchOpeningBalanceWarning(
             text: 'Batch is unbalanced by PKR ${fmt.format(diff)}',
           ),
         if (_allLines.isEmpty)
-          _WarningBanner(text: 'Add at least one line before posting'),
+          const FxStitchOpeningBalanceWarning(
+            text: 'Add at least one line before posting',
+          ),
         const SizedBox(height: 16),
-        _SummaryRow(
-          label: 'Total debits (PKR)',
-          value: fmt.format(totals.totalDebit),
+        FxStitchCard(
+          child: Column(
+            children: [
+              FxStitchOpeningBalanceSummaryRow(
+                label: 'Total debits (PKR)',
+                value: fmt.format(totals.totalDebit),
+              ),
+              FxStitchOpeningBalanceSummaryRow(
+                label: 'Total credits (PKR)',
+                value: fmt.format(totals.totalCredit),
+              ),
+              FxStitchOpeningBalanceSummaryRow(
+                label: 'Difference',
+                value: fmt.format(diff),
+              ),
+            ],
+          ),
         ),
-        _SummaryRow(
-          label: 'Total credits (PKR)',
-          value: fmt.format(totals.totalCredit),
-        ),
-        _SummaryRow(label: 'Difference', value: fmt.format(diff)),
         const SizedBox(height: 16),
-        const FxSectionLabel(label: 'Balancing account'),
+        Text(
+          'BALANCING ACCOUNT',
+          style: AppTypography.labelCaps(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(
           'Owner Capital (${OpeningBalanceLineMapper.equityCode}) — Opening Balance Equity',
           style: AppTypography.bodyMd(context.fx.onSurface, context: context),
         ),
         const SizedBox(height: 16),
-        const FxSectionLabel(label: 'All lines'),
+        Text(
+          'ALL LINES',
+          style: AppTypography.labelCaps(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: 8),
         ..._allLines.map(
           (l) => _LineCard(line: l, accounts: accounts, onDelete: null),
         ),
@@ -814,161 +1017,6 @@ class _OpeningBalanceWizardScreenState
 
 extension _Let<T> on T {
   R let<R>(R Function(T) fn) => fn(this);
-}
-
-class _WizardActionBar extends StatelessWidget {
-  const _WizardActionBar({
-    required this.busy,
-    required this.primaryLabel,
-    required this.onPrimary,
-    required this.showBack,
-    required this.onBack,
-    required this.showSaveDraft,
-    required this.onSaveDraft,
-  });
-
-  final bool busy;
-  final String primaryLabel;
-  final VoidCallback onPrimary;
-  final bool showBack;
-  final VoidCallback onBack;
-  final bool showSaveDraft;
-  final VoidCallback onSaveDraft;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        12 + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: context.fx.surface,
-        border: Border(top: BorderSide(color: context.fx.outlineVariant)),
-      ),
-      child: Row(
-        children: [
-          if (showBack)
-            OutlinedButton(
-              onPressed: busy ? null : onBack,
-              child: const Text('Back'),
-            ),
-          if (showSaveDraft) ...[
-            if (showBack) const SizedBox(width: 8),
-            TextButton(
-              onPressed: busy ? null : onSaveDraft,
-              child: const Text('Save draft'),
-            ),
-          ],
-          const Spacer(),
-          FilledButton(
-            onPressed: busy ? null : onPrimary,
-            child: busy
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(primaryLabel),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepIndicator extends StatelessWidget {
-  const _StepIndicator({required this.current, required this.total});
-
-  final int current;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Row(
-        children: [
-          Text(
-            'Step ${current + 1} of $total',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: LinearProgressIndicator(value: (current + 1) / total),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WarningBanner extends StatelessWidget {
-  const _WarningBanner({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.fx.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: context.fx.error.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: context.fx.error, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTypography.bodyMd(
-                context.fx.onSurface,
-                context: context,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: AppTypography.bodyMd(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
-          Text(
-            value,
-            style: AppTypography.bodyMd(context.fx.onSurface, context: context),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _LineCard extends StatelessWidget {

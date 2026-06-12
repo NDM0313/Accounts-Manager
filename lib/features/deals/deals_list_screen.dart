@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -26,14 +26,12 @@ class DealsListScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
-        title: const Text('FX Deals'),
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/deals/new'),
+        backgroundColor: context.fx.secondary,
+        foregroundColor: context.fx.onSecondary,
         icon: const Icon(Icons.add),
-        label: const Text('Customer Order'),
+        label: const Text('New Deal'),
       ),
       body: dealsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -72,11 +70,10 @@ class _DealCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: FxObsidianReportPanel(
-        padding: const EdgeInsets.all(12),
-        child: InkWell(
-          onTap: () => context.push('/deals/${deal.id}'),
-          child: Column(
+      child: FxStitchCard(
+        onTap: () => context.push('/deals/${deal.id}'),
+        padding: const EdgeInsets.all(16),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -109,7 +106,6 @@ class _DealCard extends StatelessWidget {
                 ).copyWith(fontSize: 12),
               ),
             ],
-          ),
         ),
       ),
     );

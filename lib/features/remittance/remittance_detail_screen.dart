@@ -1,18 +1,20 @@
 import 'package:accounts_manager/core/export/fx_document_export.dart';
 import 'package:accounts_manager/core/export/remittance_receipt_builder.dart';
+import 'package:accounts_manager/app/theme/app_colors.dart';
+import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_action_tile.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_timeline_step_card.dart';
+import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_remittance_widgets.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
 import 'package:accounts_manager/features/remittance/widgets/remittance_attachments_section.dart';
-import 'package:accounts_manager/features/remittance/widgets/remittance_summary_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RemittanceDetailScreen extends ConsumerWidget {
   const RemittanceDetailScreen({super.key, required this.remittanceId});
@@ -27,19 +29,35 @@ class RemittanceDetailScreen extends ConsumerWidget {
     final timelineAsync = ref.watch(remittanceTimelineProvider(remittanceId));
     final fmt = NumberFormat('#,##0.00');
 
-    return FxPremiumScaffold(
-      fallbackRoute: '/remittance',
-      title: remAsync.when(
-        data: (r) => Text(r?.remittanceNo ?? r?.trackingId ?? 'Remittance'),
-        loading: () => const Text('Remittance'),
-        error: (_, _) => const Text('Remittance'),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.ios_share_outlined),
-          onPressed: () => _showExportPicker(context, remAsync.value),
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: AppBar(
+        backgroundColor: context.fx.surface,
+        title: Text(
+          'FX Cash Ledger',
+          style: AppTypography.headlineSm(
+            context.fx.primary,
+            context: context,
+          ).copyWith(fontWeight: FontWeight.w700),
         ),
-      ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(remittanceDetailProvider(remittanceId));
+              ref.invalidate(remittanceTimelineProvider(remittanceId));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.ios_share_outlined),
+            onPressed: () => _showExportPicker(
+              context,
+              remAsync.whenOrNull(data: (v) => v),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: remAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
@@ -47,30 +65,56 @@ class RemittanceDetailScreen extends ConsumerWidget {
           if (r == null) {
             return const Center(child: Text('Remittance not found.'));
           }
+          final tracking =
+              r.trackingId.isNotEmpty ? r.trackingId : (r.remittanceNo ?? '—');
+          final ready = r.status == FxRemittanceStatus.readyForPayout ||
+              r.status == FxRemittanceStatus.paidOut;
+
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              RemittanceSummaryCard(remittance: r, fmt: fmt),
-              const SizedBox(height: 12),
-              _actionButtons(context, ref, r),
-              const SizedBox(height: 16),
-              RemittanceAttachmentsSection(
-                remittanceId: remittanceId,
-                branchId: r.branchId ?? '',
-                title: 'Remittance proofs',
+              FxStitchRemittanceMtcnHeader(
+                trackingId: tracking,
+                statusLabel: r.status.label,
+                showReadyPill: ready,
               ),
               const SizedBox(height: 16),
-              const FxSectionHeader(label: 'Timeline'),
-              const SizedBox(height: 8),
-              timelineAsync.when(
-                loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('$e'),
-                data: (events) => Column(
-                  children: events
-                      .map((e) => _eventTile(context, e, fmt))
-                      .toList(),
+              FxStitchRemittancePayoutLayout(
+                remittance: r,
+                fmt: fmt,
+                onSharePickup: () {
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          'Pickup: ${r.payoutAgentName ?? 'Agent'} — ${r.trackingId}',
+                    ),
+                  );
+                },
+                actionSection: _actionButtons(context, ref, r),
+                timelineSection: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    RemittanceAttachmentsSection(
+                      remittanceId: remittanceId,
+                      branchId: r.branchId ?? '',
+                      title: 'Remittance proofs',
+                    ),
+                    const SizedBox(height: 16),
+                    const FxSectionHeader(label: 'Timeline'),
+                    const SizedBox(height: 8),
+                    timelineAsync.when(
+                      loading: () => const CircularProgressIndicator(),
+                      error: (e, _) => Text('$e'),
+                      data: (events) => Column(
+                        children: events
+                            .map((e) => _eventTile(context, e, fmt))
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const FxStitchRemittanceComplianceFooter(),
             ],
           );
         },

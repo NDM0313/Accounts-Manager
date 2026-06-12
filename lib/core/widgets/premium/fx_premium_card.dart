@@ -22,7 +22,7 @@ class FxPremiumCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: color ?? context.fx.surfaceContainerLow,
+        color: color ?? context.fx.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         border: Border.all(color: context.fx.outlineVariant),
       ),

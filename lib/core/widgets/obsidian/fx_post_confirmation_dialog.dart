@@ -1,4 +1,4 @@
-import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_confirm_transaction_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -31,56 +31,32 @@ Future<bool> showFxPostConfirmationDialog(
   FxPostConfirmationData data,
 ) async {
   final fmt = NumberFormat('#,##0.00');
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(data.title),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (data.partyLabel != null) _row('Party', data.partyLabel!),
-            if (data.dealNo != null) _row('Deal', data.dealNo!),
-            if (data.accountLabel != null) _row('Account', data.accountLabel!),
-            _row('Currency', data.currencyCode),
-            _row('Amount', fmt.format(data.amount)),
-            if (data.rate != null && data.rate! > 0)
-              _row('Rate', data.rate!.toStringAsFixed(4)),
-            if (data.pkrEquivalent != null)
-              _row('PKR equivalent', 'PKR ${fmt.format(data.pkrEquivalent!)}'),
-            if (data.notes != null && data.notes!.trim().isNotEmpty)
-              _row('Notes', data.notes!),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Confirm & Post'),
-        ),
-      ],
-    ),
+  final lines = <(String, String)>[
+  if (data.partyLabel != null) ('Party', data.partyLabel!),
+  if (data.dealNo != null) ('Deal', data.dealNo!),
+  if (data.accountLabel != null) ('Account', data.accountLabel!),
+  ('Base Amount', '${fmt.format(data.amount)} ${data.currencyCode}'),
+  if (data.notes != null && data.notes!.trim().isNotEmpty)
+    ('Notes', data.notes!),
+  ];
+  final total = data.pkrEquivalent != null
+      ? 'PKR ${fmt.format(data.pkrEquivalent!)}'
+      : '${fmt.format(data.amount)} ${data.currencyCode}';
+  final result = await FxConfirmTransactionDialog.show(
+    context,
+    title: data.title,
+    subtitle: 'Review details before final ledger posting.',
+    operationLabel: 'Operation',
+    operationValue: data.title,
+    rateLabel: 'Rate',
+    rateValue: data.rate != null && data.rate! > 0
+        ? data.rate!.toStringAsFixed(4)
+        : '—',
+    lines: lines,
+    totalLabel: 'Total Amount',
+    totalValue: total,
+    disclaimer:
+        'Funds will be locked immediately upon confirmation. This action cannot be undone once posted to the ledger.',
   );
   return result ?? false;
-}
-
-Widget _row(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 110,
-          child: Text(label, style: AppTypography.bodyMd(Colors.grey)),
-        ),
-        Expanded(child: Text(value)),
-      ],
-    ),
-  );
 }

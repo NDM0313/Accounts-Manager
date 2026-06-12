@@ -1,6 +1,6 @@
 # FX Internal Team Messaging
 
-**Status:** Schema proposed (not applied until migration approved)  
+**Status:** Deployed on Supabase Cloud (migration `202606230003` + RLS fix `202606260001`)  
 **Supabase project:** `ygidlcqhupmxvsdjmvnf` only
 
 ## Purpose
@@ -30,9 +30,10 @@ M2: `image`, `file`, `link` (voice deferred)
 
 ## RLS
 
-- SELECT: member of conversation OR `can_manage_messaging` (admin)
+- SELECT: member of conversation OR `can_manage_messaging` (admin, same branch)
 - INSERT message: member + same branch
 - Members managed by conversation creator or admin
+- **Fix (2026-06-13):** circular policy between `fx_conversations` ↔ `fx_conversation_members` caused Postgres `42P17`. Resolved via `fx_is_conversation_member()` and `fx_conversation_branch_id()` SECURITY DEFINER helpers in `202606260001_fx_messaging_rls_recursion_fix.sql`.
 
 ## Realtime
 
@@ -71,10 +72,13 @@ Feature flag: `FeatureFlags.messagingEnabled`.
 - `can_manage_messaging` — admin: all branch rooms
 - `can_access_fx_ledger` — join/send in rooms where member
 
-## Migration (proposal)
+## Migration
 
-`202606230003_fx_messaging_module.sql`  
-`202606230004_fx_attachments_remittance_message.sql`
+| File | Purpose |
+|------|---------|
+| `202606230003_fx_messaging_module.sql` | Tables, RPCs, initial RLS |
+| `202606230004_fx_attachments_remittance_message.sql` | Attachment FK to messages |
+| `202606260001_fx_messaging_rls_recursion_fix.sql` | Non-circular RLS policies |
 
 Verify: `supabase/scripts/verify_messaging_module.sql`
 

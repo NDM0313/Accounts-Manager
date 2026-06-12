@@ -1,8 +1,6 @@
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
+import 'package:accounts_manager/features/deals/widgets/deal_workflow_panel.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
@@ -11,7 +9,7 @@ import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/core/utils/pending_proof_upload.dart';
 import 'package:accounts_manager/domain/services/deal_leg_permissions.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
-import 'package:accounts_manager/features/deals/widgets/deal_workflow_panel.dart';
+import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_agent_source_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -47,15 +45,6 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
   bool get _isEdit => widget.legId != null;
 
   @override
-  void initState() {
-    super.initState();
-    if (_isEdit) {
-      _loadingLeg = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadLegForEdit());
-    }
-  }
-
-  @override
   void dispose() {
     _receiveAmountCtrl.dispose();
     _payAmountCtrl.dispose();
@@ -65,6 +54,40 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
   }
 
   double? get _receiveAmount => double.tryParse(_receiveAmountCtrl.text);
+  double? get _rate => double.tryParse(_rateCtrl.text);
+  double? _referenceRate;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEdit) {
+      _loadingLeg = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadLegForEdit());
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadReferenceRate());
+  }
+
+  Future<void> _loadReferenceRate() async {
+    final rc = _receiveCurrency;
+    final pc = _payCurrency ?? 'AED';
+    if (rc == null) return;
+    try {
+      final rates = await ref.read(rateRepositoryProvider).fetchRatesAsOf(DateTime.now());
+      final svc = ref.read(rateSuggestionServiceProvider);
+      final quote = rc == pc || pc == 'PKR'
+          ? svc.pkrQuote(rates, rc)
+          : svc.resolvePair(rates, rc, pc);
+      if (mounted) setState(() => _referenceRate = quote.rate);
+    } catch (_) {}
+  }
+
+  String? get _spreadLabel {
+    if (_referenceRate == null || _rate == null || _referenceRate == 0) {
+      return null;
+    }
+    final spread = ((_rate! - _referenceRate!) / _referenceRate! * 100);
+    return '${spread >= 0 ? '+' : ''}${spread.toStringAsFixed(2)}% SPREAD';
+  }
 
   Future<void> _loadLegForEdit() async {
     try {
@@ -138,132 +161,152 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
       });
     }
 
+    final profileAsync = ref.watch(currentProfileProvider);
+    final fmt = NumberFormat('#,##0.00');
+    final pkrEq = (_receiveAmount ?? 0) * (_rate ?? 0);
+
     if (_loadingLeg) {
-      return FxPageScaffold(
-        fallbackRoute: '/deals/${widget.dealId}',
-        title: Text(_isEdit ? 'Edit Agent Source' : 'Agent Source Leg'),
+      return Scaffold(
+        backgroundColor: context.fx.background,
+        appBar: AppBar(
+          backgroundColor: context.fx.background,
+          title: const Text('Agent Sourcing'),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    return FxPageScaffold(
-      fallbackRoute: '/deals/${widget.dealId}',
-      title: Text(_isEdit ? 'Edit Agent Source' : 'Agent Source Leg'),
-      bottomBar: FxObsidianActionBar(
-        onCancel: () =>
-            fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
-        onSave: _busy ? null : _confirmAndSubmit,
-        saveLabel: _isEdit ? 'Save changes' : 'Save leg',
-        busy: _busy,
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: AppBar(
+        backgroundColor: context.fx.background,
+        title: const Text('Agent Sourcing'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(dealTimelineProvider(widget.dealId));
+              _loadReferenceRate();
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: context.fx.secondaryContainer,
+              child: Text(
+                () {
+                  final name = profileAsync.value?.fullName ?? '';
+                  return name.isNotEmpty ? name[0].toUpperCase() : 'JD';
+                }(),
+                style: TextStyle(
+                  color: context.fx.onSecondaryContainer,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
           children: [
-            const FxSectionLabel(label: 'Agent'),
             agentsAsync.when(
               loading: () => const LinearProgressIndicator(),
-              data: (agents) => DropdownButtonFormField<String>(
-                initialValue: _agentId,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: agents
-                    .map(
-                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _agentId = v),
-                validator: (v) => v == null ? 'Select agent' : null,
-              ),
               error: (e, _) => Text('$e'),
-            ),
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Receive from agent'),
-            FxObsidianFormField(
-              controller: _receiveAmountCtrl,
-              label: 'Receive amount',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            DropdownButtonFormField<String>(
-              initialValue: receiveCurrency,
-              decoration: const InputDecoration(
-                labelText: 'Receive currency',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                'CNY',
-                'USD',
-                'AED',
-                'SAR',
-              ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setState(() => _receiveCurrency = v),
-            ),
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Pay to agent'),
-            DropdownButtonFormField<String>(
-              initialValue: payCurrency,
-              decoration: const InputDecoration(
-                labelText: 'Pay currency',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                'PKR',
-                'AED',
-                'USD',
-                'CNY',
-              ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setState(() => _payCurrency = v),
-            ),
-            FxObsidianFormField(
-              controller: _payAmountCtrl,
-              label: 'Pay amount',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            if (receiveCurrency != null) ...[
-              const SizedBox(height: 8),
-              FxRateValuationSection(
-                fromCurrency: receiveCurrency,
-                toCurrency: payCurrency,
-                dealRateController: _rateCtrl,
-                receiveAmount: _receiveAmount,
-                payAmountController: _payAmountCtrl,
-                rateSide: RateSide.reference,
-                asOfDate: DateTime.now(),
-                dealRateLabel:
-                    receiveCurrency == payCurrency || payCurrency == 'PKR'
-                    ? 'Rate (PKR per $receiveCurrency unit)'
-                    : 'Deal rate ($receiveCurrency per $payCurrency unit)',
-                onDealRateChanged: (_) => setState(() {}),
-              ),
-            ],
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Delivery to'),
-            DropdownButtonFormField<FxDeliveryTarget>(
-              initialValue: _deliveryTarget,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: FxDeliveryTarget.values
-                  .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
-                  .toList(),
-              onChanged: (v) => setState(
-                () => _deliveryTarget = v ?? FxDeliveryTarget.ourAccount,
+              data: (agents) => FxStitchAgentSourceForm(
+                agents: agents,
+                agentId: _agentId,
+                onAgentChanged: (v) => setState(() => _agentId = v),
+                receiveAmountCtrl: _receiveAmountCtrl,
+                payAmountCtrl: _payAmountCtrl,
+                receiveCurrency: receiveCurrency,
+                payCurrency: payCurrency,
+                onReceiveCurrencyChanged: (v) {
+                  setState(() => _receiveCurrency = v);
+                  _loadReferenceRate();
+                },
+                onPayCurrencyChanged: (v) {
+                  setState(() => _payCurrency = v);
+                  _loadReferenceRate();
+                },
+                dealRateLabel: _rate?.toStringAsFixed(4) ?? '—',
+                referenceRateLabel:
+                    _referenceRate?.toStringAsFixed(4) ?? '—',
+                spreadLabel: _spreadLabel,
+                pkrEquivalentLabel: fmt.format(pkrEq),
+                pkrCaption: receiveCurrency != null
+                    ? 'Est. Val: 1 $receiveCurrency = ${_rate?.toStringAsFixed(2) ?? '—'} PKR'
+                    : '',
+                deliveryTarget: _deliveryTarget,
+                onDeliveryChanged: (v) => setState(() => _deliveryTarget = v),
+                notesCtrl: _notesCtrl,
+                rateField: receiveCurrency != null
+                    ? FxRateValuationSection(
+                        fromCurrency: receiveCurrency,
+                        toCurrency: payCurrency,
+                        dealRateController: _rateCtrl,
+                        receiveAmount: _receiveAmount,
+                        payAmountController: _payAmountCtrl,
+                        rateSide: RateSide.reference,
+                        asOfDate: DateTime.now(),
+                        dealRateLabel:
+                            receiveCurrency == payCurrency || payCurrency == 'PKR'
+                            ? 'Rate (PKR per $receiveCurrency unit)'
+                            : 'Deal rate ($receiveCurrency per $payCurrency unit)',
+                        onDealRateChanged: (_) => setState(() {}),
+                      )
+                    : null,
+                proofSection: !_isEdit
+                    ? FxPendingProofPicker(key: _proofPickerKey)
+                    : null,
+                onSwap: () {
+                  final rc = _receiveCurrency;
+                  final pc = _payCurrency;
+                  final ra = _receiveAmountCtrl.text;
+                  final pa = _payAmountCtrl.text;
+                  setState(() {
+                    _receiveCurrency = pc;
+                    _payCurrency = rc ?? 'AED';
+                    _receiveAmountCtrl.text = pa;
+                    _payAmountCtrl.text = ra;
+                  });
+                  _loadReferenceRate();
+                },
               ),
             ),
-            FxObsidianFormField(
-              controller: _notesCtrl,
-              label: 'Notes / reference no.',
-              maxLines: 2,
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _busy ? null : _confirmAndSubmit,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: context.fx.secondary,
+                      side: BorderSide(color: context.fx.secondary),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(_isEdit ? 'Save changes' : 'Save Leg'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _busy ? null : _confirmAndSubmit,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: context.fx.secondary,
+                      foregroundColor: context.fx.onSecondary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Confirm Received'),
+                  ),
+                ),
+              ],
             ),
-            if (!_isEdit) ...[
-              const SizedBox(height: 12),
-              FxPendingProofPicker(key: _proofPickerKey),
-            ],
-            const SizedBox(height: 16),
           ],
         ),
       ),

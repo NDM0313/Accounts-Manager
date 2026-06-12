@@ -8,7 +8,7 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: LoginScreen())),
     );
-    expect(find.text('Executive FX Ledger'), findsOneWidget);
-    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
   });
 }

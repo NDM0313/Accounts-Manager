@@ -92,6 +92,12 @@ abstract final class AppTypography {
     Brightness? brightness,
   }) => _bodyStyle(fontSize: 14, height: 20 / 14, color: color);
 
+  static TextStyle bodySm(
+    Color color, {
+    BuildContext? context,
+    Brightness? brightness,
+  }) => _bodyStyle(fontSize: 13, height: 18 / 13, color: color);
+
   static TextStyle dataMd(
     Color color, {
     BuildContext? context,

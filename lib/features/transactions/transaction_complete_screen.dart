@@ -77,7 +77,7 @@ class TransactionCompleteScreen extends ConsumerWidget {
                       ),
                       child: Icon(
                         Icons.check_circle,
-                        color: context.fx.tertiary,
+                        color: context.fx.secondary,
                         size: 48,
                       ),
                     ),

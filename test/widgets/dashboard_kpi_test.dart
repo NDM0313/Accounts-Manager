@@ -5,31 +5,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Dashboard KPI row shows asset and TB labels', (tester) async {
+  testWidgets('Dashboard KPI row shows Stitch premium labels', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.dark(),
+        theme: AppTheme.light(),
         home: Scaffold(
-          body: SingleChildScrollView(
-            child: DashboardKpiRow(
-              kpi: const DashboardKpiTotals(
-                assets: 100000,
-                liabilities: 20000,
-                equity: 80000,
+          body: SizedBox(
+            width: 800,
+            child: SingleChildScrollView(
+              child: DashboardKpiRow(
+                kpi: const DashboardKpiTotals(
+                  assets: 100000,
+                  liabilities: 20000,
+                  equity: 80000,
+                ),
+                todayPl: 1500,
               ),
-              todayPl: 1500,
-              tbBalanced: true,
-              unpostedCount: 2,
-              pendingSettlements: 1,
             ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('ASSETS'), findsOneWidget);
-    expect(find.text('TRIAL BALANCE'), findsOneWidget);
-    expect(find.text('Balanced'), findsOneWidget);
-    expect(find.text('UNPOSTED'), findsOneWidget);
+    expect(find.text('TOTAL CASH BALANCE'), findsOneWidget);
+    expect(find.text('RECEIVABLES'), findsOneWidget);
+    expect(find.text('PAYABLES'), findsOneWidget);
+    expect(find.text("TODAY'S PROFIT"), findsOneWidget);
   });
 }

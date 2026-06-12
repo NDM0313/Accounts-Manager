@@ -34,6 +34,10 @@ import 'package:accounts_manager/features/transactions/chained_exchange_wizard_s
 import 'package:accounts_manager/features/transactions/transaction_audit_screen.dart';
 import 'package:accounts_manager/features/transactions/transaction_complete_screen.dart';
 import 'package:accounts_manager/features/transactions/draft_transaction_screen.dart';
+import 'package:accounts_manager/features/transactions/receive_payment_screen.dart';
+import 'package:accounts_manager/features/attachments/attachment_preview_screen.dart';
+import 'package:accounts_manager/features/share/share_secure_link_screen.dart';
+import 'package:accounts_manager/features/settings/settings_security_screen.dart';
 import 'package:accounts_manager/features/transactions/transaction_detail_screen.dart';
 import 'package:accounts_manager/features/deals/deal_settlement_leg_screen.dart';
 import 'package:accounts_manager/features/deals/agent_source_leg_screen.dart';
@@ -94,6 +98,48 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
       GoRoute(
+        path: '/transactions/receive-payment',
+        builder: (context, state) => AuthGate(
+          child: ReceivePaymentScreen(
+            initialPartyId: state.uri.queryParameters['partyId'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/attachments/:id/preview',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final q = state.uri.queryParameters;
+          return AuthGate(
+            child: AttachmentPreviewScreen(
+              attachmentId: id,
+              dealId: q['dealId'],
+              entityType: q['entityType'],
+              entityId: q['entityId'],
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/share/configure',
+        builder: (context, state) {
+          final q = state.uri.queryParameters;
+          return AuthGate(
+            child: ShareSecureLinkScreen(
+              entityType: q['entityType'] ?? 'party_ledger',
+              entityId: q['entityId'] ?? '',
+              title: q['title'],
+              subtitle: q['subtitle'],
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/settings/security',
+        builder: (context, state) =>
+            const AuthGate(child: SettingsSecurityScreen()),
+      ),
+      GoRoute(
         path: '/transactions/new',
         builder: (context, state) {
           final q = state.uri.queryParameters;
@@ -152,10 +198,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/transactions/chained-exchange',
         builder: (context, state) =>
             const AuthGate(child: ChainedExchangeWizardScreen()),
-      ),
-      GoRoute(
-        path: '/deals',
-        builder: (context, state) => const AuthGate(child: DealsListScreen()),
       ),
       GoRoute(
         path: '/deals/new',
@@ -366,6 +408,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             const AuthGate(child: ChartOfAccountsScreen()),
       ),
       GoRoute(
+        path: '/accounts-hub',
+        builder: (context, state) =>
+            const AuthGate(child: GeneralHubScreen()),
+      ),
+      GoRoute(
+        path: '/audit',
+        builder: (context, state) =>
+            const AuthGate(child: AuditLogScreen(inShell: false)),
+      ),
+      GoRoute(
         path: '/reports/general-ledger',
         builder: (context, state) =>
             const AuthGate(child: GeneralLedgerScreen()),
@@ -408,10 +460,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
-      ),
-      GoRoute(
-        path: '/reports',
-        builder: (context, state) => const AuthGate(child: ReportsHubScreen()),
       ),
       GoRoute(
         path: '/reports/audit-log',
@@ -481,6 +529,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/deals',
+                builder: (context, state) => const DealsListScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/ledger',
                 builder: (context, state) => const LedgerHubScreen(),
               ),
@@ -489,17 +545,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/accounts-hub',
-                builder: (context, state) => const GeneralHubScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/audit',
-                builder: (context, state) =>
-                    const AuditLogScreen(inShell: true),
+                path: '/reports',
+                builder: (context, state) => const ReportsHubScreen(),
               ),
             ],
           ),

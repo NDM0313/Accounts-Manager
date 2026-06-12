@@ -10,12 +10,16 @@ abstract final class AppTheme {
       colorScheme: ColorScheme.light(
         primary: AppColors.lightPrimary,
         onPrimary: AppColors.lightOnPrimary,
+        primaryContainer: AppColors.lightPrimaryContainer,
+        onPrimaryContainer: AppColors.lightOnPrimaryContainer,
         secondary: AppColors.lightSecondary,
         onSecondary: Colors.white,
+        secondaryContainer: AppColors.lightSecondaryContainer,
         tertiary: AppColors.lightTertiary,
         tertiaryContainer: AppColors.lightTertiaryContainer,
         onTertiary: AppColors.lightOnTertiary,
-        surface: AppColors.lightSurface,
+        onTertiaryContainer: AppColors.lightOnTertiaryContainer,
+        surface: AppColors.lightSurfaceContainerLowest,
         onSurface: AppColors.lightOnSurface,
         onSurfaceVariant: AppColors.lightOnSurfaceVariant,
         outline: AppColors.lightOutline,
@@ -41,13 +45,14 @@ abstract final class AppTheme {
         ),
       ),
       cardTheme: _cardTheme(
-        AppColors.lightSurface,
+        AppColors.lightSurfaceContainerLowest,
         AppColors.lightOutlineVariant,
       ),
       filledButtonTheme: _filledButtonTheme(
-        AppColors.lightPrimary,
+        AppColors.lightSecondary,
         AppColors.lightOnPrimary,
       ),
+      switchTheme: _switchTheme(AppColors.lightSecondary),
       outlinedButtonTheme: _outlinedButtonTheme(
         AppColors.lightPrimary,
         AppColors.lightOutlineVariant,
@@ -156,6 +161,7 @@ abstract final class AppTheme {
         labelColor: AppColors.darkOnSurfaceVariant,
         brightness: Brightness.dark,
       ),
+      switchTheme: _switchTheme(AppColors.darkPrimary),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.darkSurfaceContainerHigh,
         contentTextStyle: AppTypography.bodyMd(
@@ -250,6 +256,18 @@ abstract final class AppTheme {
           ),
         ),
       );
+
+  static SwitchThemeData _switchTheme(Color active) => SwitchThemeData(
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return Colors.white;
+      return Colors.white;
+    }),
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) return active;
+      return AppColors.lightOutlineVariant;
+    }),
+    trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+  );
 
   static InputDecorationTheme _inputTheme(
     Color fill,

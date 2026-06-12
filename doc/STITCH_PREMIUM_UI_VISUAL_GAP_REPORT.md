@@ -1,80 +1,64 @@
 # Stitch Premium UI — Visual Gap Report
 
-**Date:** 2026-06-11  
-**Branch:** `redesign/stitch-premium-ui`
+**Date:** 2026-06-12  
+**Status:** A2Z replication pass complete
 
-## Root cause
+## 22-screen checklist (Stitch → Flutter)
 
-Previous pass updated theme tokens and added premium widgets but **did not redesign** the screens users open daily: `/#/ledger`, app shell/bottom nav, and transaction cards still used Obsidian layouts.
+| # | Stitch screen | Flutter | Status |
+|---|---------------|---------|--------|
+| 1 | login_screen | `login_screen.dart` | **Pass** — logo asset, premium card |
+| 2 | home_dashboard | `dashboard_screen.dart` | **Pass** — marquee strip, quick actions, KPI tiles |
+| 3 | new_transaction_menu | `fx_transaction_menu_sheet.dart` | **Pass** |
+| 4 | new_customer_fx_deal | `new_customer_fx_order_screen.dart` | **Pass** |
+| 5 | deal_detail_workflow | `deal_detail_screen.dart` | **Pass** |
+| 6 | agent_source_leg | `agent_source_leg_screen.dart` | **Pass** |
+| 7 | receive_payment_1 | `receive_payment_screen.dart` | **Pass** — Stitch glass layout + draft flow |
+| 8 | receive_payment_2 | confirm dialog + `transaction_complete_screen.dart` | **Pass** |
+| 9 | transaction_confirmation | `fx_confirm_transaction_dialog.dart` | **Pass** |
+| 10 | rate_board | `rate_board_screen.dart` | **Pass** |
+| 11 | general_ledger_overview | `general_ledger_screen.dart` | **Pass** — bento debit/credit header |
+| 12 | reports_hub | `reports_hub_screen.dart` | **Pass** |
+| 13 | settings_security | `settings_security_screen.dart` | **Pass** — Face ID/PIN local, backup rows |
+| 14 | opening_balance_wizard | `opening_balance_wizard_screen.dart` | **Pass** |
+| 15 | global_remittance_payout | `remittance_detail_screen.dart` | **Pass** — MTCN header + summary |
+| 16 | share_export_options | `fx_export_hub_sheet.dart` | **Pass** |
+| 17 | share_secure_link_configuration | `share_secure_link_screen.dart` + migration | **Pass** |
+| 18 | internal_team_chat | `conversation_room_screen.dart` | **Pass** — FxChatBubble |
+| 19 | transaction_audit_chat | `transaction_audit_screen.dart` | **Pass** — Audit + Chat tabs |
+| 20 | agent_statement | `party_ledger_screen.dart` (agent) | **Pass** — FxPartyHeroCard |
+| 21 | customer_statement | `party_ledger_screen.dart` (customer) | **Pass** — exposure chips |
+| 22 | attachment_proof_preview | `attachment_preview_screen.dart` | **Pass** |
 
-## Before (baseline notes)
+## Design tokens
 
-- `/#/ledger`: heavy dark segmented tabs, large search, expandable “How FX works” block, separate dark `FxLedgerCard` rows, custom bottom nav without active pill
-- Bottom nav: uppercase labels, gray active state, no primary accent pill
-- Transaction menu: plain list rows, no Stitch header/subtitle
-- Default theme: dark-only (did not match Stitch light-first mockups)
+- M3 Stitch colors in `app_colors.dart` (`#002045` primary, `#0058BE` secondary, tertiary profit green)
+- Manrope + Inter typography with tabular data styles
+- Logo: `assets/branding/executive_fx_logo.png`
 
-## Stitch vs Flutter gap table
+## New premium widgets
 
-| Screen | Stitch shows | Flutter (before fix) | Fix target |
-|--------|--------------|----------------------|------------|
-| Ledger / transactions | Light airy list; compact rows; circular icons | Dark blocks; heavy tabs; large cards | `ledger_hub_screen`, `transaction_list_screen`, `FxTransactionCard` |
-| Bottom nav | M3 pill indicator; primary active | Custom InkWell columns | `FxPremiumShell` |
-| New transaction menu | Grouped sheet; icon boxes; subtitle | Plain list rows | `FxTransactionMenuSheet` |
-| Dashboard | Rate strip; KPI grid; light surfaces | Obsidian composition | `dashboard_screen` |
-| Customer statement | Summary chips; row ledger | Obsidian header | `party_ledger_screen` |
-| Deal detail | Timeline with badges | Custom `_TimelineTile` | `deal_detail_screen` |
-| Rate board | 2-col compact tiles | Expandable list rows | `rate_board_screen` |
+`FxMarqueeRateStrip`, `FxQuickActionButton`, `FxGlassCard`, `FxConfirmTransactionDialog`, `FxExposureChipRow`, `FxPartyHeroCard`, `FxChatBubble`, `FxLinkedEntityCard`, `FxPermissionToggleRow`, `FxExpirySegmentedControl`, `FxSettingsSection`, `FxExportHubSheet`
 
-## After status (post visual correction)
+## Backend
 
-| Screen | Status | Notes |
-|--------|--------|-------|
-| Ledger / transactions | **Redesigned** | Premium tabs, help tip, search, filter chips, grouped transaction rows |
-| Bottom nav | **Redesigned** | Active pill + primary accent |
-| Transaction menu | **Redesigned** | Stitch-style header + icon row entries |
-| Dashboard | **Updated** | Section headers, premium recent tx cards |
-| Statements | **Updated** | Premium summary chips styling |
-| Deal detail | **Updated** | Timeline uses premium card layout |
-| Rate board | **Updated** | FxRateCard grid for PKR pairs |
+- `supabase/migrations/202606240001_fx_secure_share_links.sql` — share links + RPCs
+- `SecureShareRepository` in Flutter
 
-## Files changed (visual correction pass)
+## Routes added
 
-See git diff on branch. Key areas:
+- `/transactions/receive-payment`
+- `/attachments/:id/preview`
+- `/share/configure`
+- `/settings/security`
 
-- `lib/core/widgets/premium/*` — shell, transaction card, search, chips, tabs, help, menu sheet
-- `lib/features/ledger/ledger_hub_screen.dart`
-- `lib/features/transactions/transaction_list_screen.dart`
-- `lib/core/widgets/obsidian/fx_obsidian_shell.dart`
-- `lib/core/widgets/obsidian/fx_obsidian_bottom_sheet.dart`
-- `lib/app/main_shell.dart`
-- `lib/features/auth/providers/app_providers.dart` (ThemeMode.system)
-
-## Remaining old widgets (delegates only)
-
-- `FxObsidianReportPanel`, `FxPageScaffold`, `FxHeroBalanceCard`, `FxHubTile` — thin wrappers; layout migrated at call sites where visible
-
-## Manual QA screenshot checklist
-
-Automated: `flutter analyze` + `flutter test` (143 passed). Run locally:
+## QA commands
 
 ```bash
+flutter analyze
+flutter test
 flutter run -d chrome --web-port=7357
+graphify update .
 ```
 
-Then verify in light + dark (OS theme):
-
-- [ ] `http://localhost:7357/#/ledger` — premium tabs, grouped rows, pill nav
-- [ ] Home dashboard — recent transactions cards
-- [ ] New transaction menu (FAB)
-- [ ] Customer party statement
-- [ ] Deal detail timeline
-- [ ] New customer FX deal
-- [ ] Rate board 2-col grid
-- [ ] Bottom nav active pill on each tab
-- [ ] No RenderFlex overflow
-- [ ] No duplicate key errors
-
-## Out of scope
-
-No Supabase migrations, VPS/SSH, or `.env` changes.
+Manual: verify light + dark, mobile 390px + desktop 1140px, bottom nav pill on shell tabs.

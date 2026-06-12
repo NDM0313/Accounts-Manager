@@ -1,16 +1,10 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
-import 'package:accounts_manager/data/repositories/report_repository.dart';
+import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_form_widgets.dart';
+import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
-import 'package:accounts_manager/core/widgets/rates/fx_rate_valuation_section.dart';
-import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
 import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -30,23 +24,24 @@ class NewCustomerFxOrderScreen extends ConsumerStatefulWidget {
 class _NewCustomerFxOrderScreenState
     extends ConsumerState<NewCustomerFxOrderScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _searchCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
   final _rateCtrl = TextEditingController();
   final _paidCtrl = TextEditingController(text: '0');
-  final _notesCtrl = TextEditingController();
 
   String? _customerId;
   String? _currencyCode;
   DateTime? _bookingDate;
-  FxDeliveryMethod _deliveryMethod = FxDeliveryMethod.agent;
+  int _deliveryIndex = 1;
   bool _busy = false;
+  double? _referenceRate;
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _amountCtrl.dispose();
     _rateCtrl.dispose();
     _paidCtrl.dispose();
-    _notesCtrl.dispose();
     super.dispose();
   }
 
@@ -54,7 +49,12 @@ class _NewCustomerFxOrderScreenState
   double? get _rate => double.tryParse(_rateCtrl.text.replaceAll(',', ''));
   double? get _paid => double.tryParse(_paidCtrl.text.replaceAll(',', ''));
   double get _payable => (_amount ?? 0) * (_rate ?? 0);
-  double get _receivable => _payable - (_paid ?? 0);
+
+  FxDeliveryMethod get _deliveryMethod => switch (_deliveryIndex) {
+        0 => FxDeliveryMethod.ownBalance,
+        1 => FxDeliveryMethod.agent,
+        _ => FxDeliveryMethod.later,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -62,112 +62,73 @@ class _NewCustomerFxOrderScreenState
     _bookingDate ??= DateTime(now.year, now.month, now.day);
     final customerChoicesAsync = ref.watch(customerOrderPartyChoicesProvider);
     final currenciesAsync = ref.watch(currenciesProvider);
-    final positionAsync = ref.watch(currencyPositionProvider);
     final fmt = NumberFormat('#,##0.00');
 
-    final selectedCurrency = _currencyCode;
-    final positionRows = positionAsync.whenOrNull(data: (d) => d) ?? [];
-    CurrencyPositionRow? positionRow;
-    if (selectedCurrency != null) {
-      final norm = normalizeFxCurrencyCode(selectedCurrency);
-      for (final r in positionRows) {
-        if (r.currencyCode == norm) {
-          positionRow = r;
-          break;
-        }
-      }
-    }
-    final available =
-        positionRow?.availableBalance ?? positionRow?.foreignBalance;
-    final required = positionRow?.requiredBalance;
-    final insufficient =
-        _amount != null && available != null && _amount! > available;
-
-    return FxPageScaffold(
-      fallbackRoute: '/deals',
-      title: const Text('New Customer FX Order'),
-      bottomBar: FxObsidianActionBar(
-        onCancel: () => fxSafePop(context, fallbackRoute: '/deals'),
-        onSave: _busy ? null : _submit,
-        saveLabel: 'Book Order',
-        busy: _busy,
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: AppBar(
+        backgroundColor: context.fx.background,
+        title: const Text('New Customer Deal'),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
           children: [
-            const FxSectionLabel(label: 'Customer'),
+            Text(
+              'Customer',
+              style: AppTypography.headlineSm(
+                context.fx.primary,
+                context: context,
+              ),
+            ),
+            const SizedBox(height: 8),
             customerChoicesAsync.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
               data: (choices) {
                 if (choices.parties.isEmpty) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'No parties yet. Add a customer to book FX orders.',
-                        style: AppTypography.bodyMd(
-                          context.fx.onSurfaceVariant,
-                          context: context,
-                        ).copyWith(fontSize: 12),
-                      ),
-                      const SizedBox(height: 8),
-                      OutlinedButton.icon(
-                        onPressed: _busy
-                            ? null
-                            : () => context.push('/parties/new'),
-                        icon: const Icon(Icons.person_add_outlined, size: 18),
-                        label: const Text('Add customer'),
-                      ),
-                    ],
+                  return OutlinedButton.icon(
+                    onPressed: _busy ? null : () => context.push('/parties/new'),
+                    icon: const Icon(Icons.person_add_outlined),
+                    label: const Text('Add customer'),
                   );
                 }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (choices.isFallback)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          'No Customer-type parties found. Showing all parties — add a Customer party for cleaner reporting.',
-                          style: AppTypography.bodyMd(
-                            context.fx.onSurfaceVariant,
-                            context: context,
-                          ).copyWith(fontSize: 12),
-                        ),
-                      ),
-                    DropdownButtonFormField<String>(
-                      initialValue: _customerId,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      hint: const Text('Select customer'),
-                      items: choices.parties
-                          .map(
-                            (p) => DropdownMenuItem(
-                              value: p.id,
-                              child: Text(
-                                choices.isFallback
-                                    ? '${p.code} · ${p.name} · ${p.partyType.label}'
-                                    : '${p.code} · ${p.name}',
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: _busy
-                          ? null
-                          : (v) => setState(() => _customerId = v),
-                      validator: (v) => v == null ? 'Select customer' : null,
+                return DropdownButtonFormField<String>(
+                  initialValue: _customerId,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search or select customer…',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: context.fx.surfaceContainerLowest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                     ),
-                  ],
+                  ),
+                  hint: const Text('Select customer'),
+                  items: choices.parties
+                      .map(
+                        (p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text('${p.code} · ${p.name}'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _busy ? null : (v) => setState(() => _customerId = v),
+                  validator: (v) => v == null ? 'Select customer' : null,
                 );
               },
             ),
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Currency & amount'),
+            const SizedBox(height: 20),
+            Text(
+              'Currency & Amount',
+              style: AppTypography.headlineSm(
+                context.fx.primary,
+                context: context,
+              ),
+            ),
+            const SizedBox(height: 8),
             currenciesAsync.when(
               loading: () => const SizedBox.shrink(),
               data: (List<FxCurrency> currencies) {
@@ -176,263 +137,225 @@ class _NewCustomerFxOrderScreenState
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted && _currencyCode == null) {
                       setState(() => _currencyCode = active.first.code);
+                      _loadReferenceRate();
                     }
                   });
                 }
-                return DropdownButtonFormField<String>(
-                  initialValue: _currencyCode,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: 'Currency customer wants',
-                  ),
-                  items: active
-                      .map(
-                        (c) => DropdownMenuItem<String>(
-                          value: c.code,
-                          child: Text(displayCurrencyCode(c.code)),
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _currencyCode,
+                        decoration: InputDecoration(
+                          labelText: 'Currency pair',
+                          filled: true,
+                          fillColor: context.fx.surfaceContainerLowest,
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusLg),
+                          ),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(
-                    () => _currencyCode = v != null
-                        ? normalizeFxCurrencyCode(v)
-                        : null,
-                  ),
-                  validator: (v) => v == null ? 'Select currency' : null,
+                        items: active
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.code,
+                                child: Text(
+                                  '${displayCurrencyCode(c.code)} / PKR',
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _currencyCode = v != null
+                                ? normalizeFxCurrencyCode(v)
+                                : null;
+                          });
+                          _loadReferenceRate();
+                        },
+                        validator: (v) => v == null ? 'Select currency' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        onTap: _busy ? null : () => _pickDate(context),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Booking date',
+                            filled: true,
+                            fillColor: context.fx.surfaceContainerLowest,
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusLg),
+                            ),
+                          ),
+                          child: Text(
+                            _bookingDate != null
+                                ? DateFormat.yMMMd().format(_bookingDate!)
+                                : 'Today',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
               error: (_, _) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 8),
-            InkWell(
-              onTap: _busy
-                  ? null
-                  : () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _bookingDate ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) setState(() => _bookingDate = picked);
-                    },
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Booking date',
-                          style: AppTypography.labelCaps(
-                            context.fx.outline,
-                            context: context,
-                          ),
-                        ),
-                        Text(
-                          _bookingDate != null
-                              ? DateFormat.yMMMd().format(_bookingDate!)
-                              : 'Today',
-                          style: AppTypography.bodyMd(
-                            context.fx.onSurface,
-                            context: context,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    color: context.fx.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            FxObsidianFormField(
+            TextFormField(
               controller: _amountCtrl,
-              label: 'Amount',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 32),
+              decoration: InputDecoration(
+                hintText: '0.00',
+                filled: true,
+                fillColor: context.fx.surfaceContainerLowest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                ),
               ),
               onChanged: (_) => setState(() {}),
               validator: (v) => (_amount ?? 0) <= 0 ? 'Enter amount' : null,
             ),
+            const SizedBox(height: 16),
             if (_currencyCode != null) ...[
-              const SizedBox(height: 8),
-              FxRateValuationSection(
-                key: ValueKey('rate_${_currencyCode}_PKR'),
-                fromCurrency: _currencyCode!,
-                toCurrency: 'PKR',
-                dealRateController: _rateCtrl,
-                receiveAmount: _amount,
-                rateSide: RateSide.sell,
-                asOfDate: _bookingDate,
-                dealRateLabel: 'Sale rate (PKR per unit)',
-                showPkrEquivalent: false,
-                validator: (v) => (_rate ?? 0) <= 0 ? 'Enter rate' : null,
-                onDealRateChanged: (_) => setState(() {}),
+              FxStitchExchangeRatesCard(
+                referenceRate: _referenceRate != null
+                    ? fmt.format(_referenceRate)
+                    : '—',
+                dealRate: _rateCtrl.text.isNotEmpty ? _rateCtrl.text : '—',
+                spreadLabel: _spreadLabel(),
               ),
-            ] else
-              FxObsidianFormField(
+              const SizedBox(height: 8),
+              TextFormField(
                 controller: _rateCtrl,
-                label: 'Sale rate (PKR)',
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Deal rate (PKR per unit)',
+                  filled: true,
+                  fillColor: context.fx.surfaceContainerLowest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  ),
                 ),
                 onChanged: (_) => setState(() {}),
                 validator: (v) => (_rate ?? 0) <= 0 ? 'Enter rate' : null,
               ),
-            if (selectedCurrency != null && available != null) ...[
-              const SizedBox(height: 8),
-              FxObsidianReportPanel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${displayCurrencyCode(selectedCurrency)} position',
-                      style: AppTypography.labelCaps(
-                        context.fx.outline,
-                        context: context,
-                      ),
-                    ),
-                    Text(
-                      'Available: ${fmt.format(available)}',
-                      style: AppTypography.bodyMd(
-                        context.fx.onSurface,
-                        context: context,
-                      ),
-                    ),
-                    if (required != null && required > 0)
-                      Text(
-                        'Required / to source: ${fmt.format(required)}',
-                        style: AppTypography.dataMd(
-                          context.fx.warning,
-                          context: context,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             ],
-            if (insufficient) ...[
-              const SizedBox(height: 8),
-              FxObsidianReportPanel(
-                color: context.fx.warningContainer,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber,
-                      color: context.fx.warning,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Insufficient ${displayCurrencyCode(selectedCurrency!)} available. A sourcing requirement will be created automatically.',
-                        style: AppTypography.bodyMd(
-                          context.fx.warning,
-                          context: context,
-                        ).copyWith(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 20),
+            Text(
+              'Delivery Method',
+              style: AppTypography.headlineSm(
+                context.fx.primary,
+                context: context,
               ),
-            ],
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Customer payment'),
-            FxObsidianFormField(
+            ),
+            const SizedBox(height: 8),
+            FxStitchDeliverySegments(
+              labels: const ['Own Balance', 'Agent Source', 'TT Later'],
+              selectedIndex: _deliveryIndex,
+              onChanged: (i) => setState(() => _deliveryIndex = i),
+            ),
+            const SizedBox(height: 20),
+            FxStitchTotalPayableCard(
+              amountLabel: 'PKR ${fmt.format(_payable)}',
+            ),
+            const SizedBox(height: 12),
+            FxStitchWhatHappensNextCard(
+              bullets: const [
+                'Customer receivable is posted to their ledger.',
+                'Currency position is reserved or sourcing is created.',
+                'Deal workflow opens for agent source and delivery steps.',
+              ],
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
               controller: _paidCtrl,
-              label: 'Customer paid now (PKR)',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Customer paid now (PKR)',
+                filled: true,
+                fillColor: context.fx.surfaceContainerLowest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                ),
               ),
               onChanged: (_) => setState(() {}),
             ),
-            FxObsidianReportPanel(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _amountRow(
-                    context,
-                    'Total payable',
-                    'PKR ${fmt.format(_payable)}',
-                    emphasized: true,
-                  ),
-                  const SizedBox(height: 8),
-                  _amountRow(
-                    context,
-                    'Customer paid now',
-                    'PKR ${fmt.format(_paid ?? 0)}',
-                  ),
-                  const Divider(height: 16),
-                  _amountRow(
-                    context,
-                    'Outstanding receivable',
-                    'PKR ${fmt.format(_receivable.clamp(0, double.infinity))}',
-                    emphasized: true,
-                    accent: context.fx.secondary,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const FxSectionLabel(label: 'Delivery method'),
-            DropdownButtonFormField<FxDeliveryMethod>(
-              initialValue: _deliveryMethod,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: FxDeliveryMethod.values
-                  .map((m) => DropdownMenuItem(value: m, child: Text(m.label)))
-                  .toList(),
-              onChanged: (v) =>
-                  setState(() => _deliveryMethod = v ?? FxDeliveryMethod.agent),
-            ),
-            const SizedBox(height: 8),
-            FxObsidianFormField(
-              controller: _notesCtrl,
-              label: 'Notes',
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        decoration: BoxDecoration(
+          color: context.fx.surfaceContainerLowest,
+          border: Border(top: BorderSide(color: context.fx.outlineVariant)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: FilledButton(
+            onPressed: _busy ? null : _submit,
+            style: FilledButton.styleFrom(
+              backgroundColor: context.fx.primaryContainer,
+              foregroundColor: context.fx.onPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _busy
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Create Deal'),
+          ),
         ),
       ),
     );
   }
 
-  Widget _amountRow(
-    BuildContext context,
-    String label,
-    String value, {
-    bool emphasized = false,
-    Color? accent,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: AppTypography.bodyMd(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ).copyWith(fontSize: 12),
-          ),
-        ),
-        Text(
-          value,
-          textAlign: TextAlign.end,
-          style: emphasized
-              ? AppTypography.dataLg(
-                  accent ?? context.fx.onSurface,
-                  context: context,
-                )
-              : AppTypography.dataMd(context.fx.onSurface, context: context),
-        ),
-      ],
+  String? _spreadLabel() {
+    if (_referenceRate == null || _rate == null || _referenceRate == 0) {
+      return null;
+    }
+    final spread = ((_rate! - _referenceRate!) / _referenceRate! * 100);
+    return 'SPREAD ${spread >= 0 ? '+' : ''}${spread.toStringAsFixed(2)}%';
+  }
+
+  Future<void> _loadReferenceRate() async {
+    if (_currencyCode == null) return;
+    try {
+      final asOf = _bookingDate ?? DateTime.now();
+      final rates = await ref.read(rateRepositoryProvider).fetchRatesAsOf(asOf);
+      final svc = ref.read(rateSuggestionServiceProvider);
+      final quote = svc.pkrQuote(rates, _currencyCode!, side: RateSide.sell);
+      if (mounted) {
+        setState(() {
+          _referenceRate = quote.referenceRate;
+          if (_rateCtrl.text.isEmpty && quote.rate > 0) {
+            _rateCtrl.text = quote.rate.toStringAsFixed(4);
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _bookingDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
+    if (picked != null) {
+      setState(() => _bookingDate = picked);
+      _loadReferenceRate();
+    }
   }
 
   Future<void> _submit() async {
@@ -453,9 +376,7 @@ class _NewCustomerFxOrderScreenState
         side: RateSide.sell,
         lockedBy: supabase.auth.currentUser?.id,
       );
-      final dealId = await ref
-          .read(dealRepositoryProvider)
-          .bookCustomerDeal(
+      final dealId = await ref.read(dealRepositoryProvider).bookCustomerDeal(
             branchId: profile.branchId,
             customerPartyId: _customerId!,
             sellCurrencyCode: _currencyCode!,
@@ -463,9 +384,6 @@ class _NewCustomerFxOrderScreenState
             saleRatePkr: _rate!,
             customerPaidNowPkr: _paid ?? 0,
             deliveryMethod: _deliveryMethod,
-            notes: _notesCtrl.text.trim().isEmpty
-                ? null
-                : _notesCtrl.text.trim(),
             autoSource: true,
             rateSnapshot: rateSnapshot,
           );
@@ -473,9 +391,9 @@ class _NewCustomerFxOrderScreenState
       if (mounted) context.go('/deals/$dealId');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);

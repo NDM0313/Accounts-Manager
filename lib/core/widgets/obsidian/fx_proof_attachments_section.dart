@@ -6,7 +6,7 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
 /// Proof / attachment section for transactions or deal legs.
 class FxProofAttachmentsSection extends ConsumerStatefulWidget {
@@ -123,13 +123,9 @@ class _FxProofAttachmentsSectionState
   }
 
   Future<void> _open(FxAttachment a) async {
-    final url = await ref
-        .read(attachmentRepositoryProvider)
-        .signedUrl(a.storagePath);
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    if (!mounted) return;
+    final q = widget.dealId != null ? '?dealId=${widget.dealId}' : '';
+    context.push('/attachments/${a.id}/preview$q');
   }
 
   @override

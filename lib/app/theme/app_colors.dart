@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Executive FX Ledger premium tokens (Stitch + user spec).
+/// Executive FX Ledger premium tokens (Stitch DESIGN.md M3 roles).
 abstract final class AppColors {
   // Shared semantic
-  static const premiumPrimary = Color(0xFF1A365D);
-  static const premiumSecondary = Color(0xFF3B82F6);
-  static const premiumSuccess = Color(0xFF10B981);
+  static const premiumPrimary = Color(0xFF002045);
+  static const premiumPrimaryContainer = Color(0xFF1A365D);
+  static const premiumSecondary = Color(0xFF0058BE);
+  static const premiumSecondaryContainer = Color(0xFF2170E4);
+  static const premiumSuccess = Color(0xFF00B47D);
   static const premiumNeutral = Color(0xFF334155);
   static const premiumWarning = Color(0xFFF59E0B);
-  static const premiumDanger = Color(0xFFDC2626);
+  static const premiumDanger = Color(0xFFBA1A1A);
 
-  // Light
+  // Light — Stitch executive_fx_ledger/DESIGN.md
   static const lightBackground = Color(0xFFF8F9FF);
-  static const lightSurface = Color(0xFFFFFFFF);
+  static const lightSurface = Color(0xFFF8F9FF);
+  static const lightSurfaceContainerLowest = Color(0xFFFFFFFF);
   static const lightSurfaceContainerLow = Color(0xFFEFF4FF);
   static const lightSurfaceContainer = Color(0xFFE6EEFF);
   static const lightSurfaceContainerHigh = Color(0xFFDDE9FF);
-  static const lightPrimary = Color(0xFF1A365D);
-  static const lightSecondary = Color(0xFF3B82F6);
-  static const lightTertiary = Color(0xFF10B981);
+  static const lightSurfaceContainerHighest = Color(0xFFD5E3FD);
+  static const lightPrimary = Color(0xFF002045);
+  static const lightPrimaryContainer = Color(0xFF1A365D);
+  static const lightOnPrimaryContainer = Color(0xFF86A0CD);
+  static const lightSecondary = Color(0xFF0058BE);
+  static const lightSecondaryContainer = Color(0xFF2170E4);
+  static const lightTertiary = Color(0xFF002617);
+  static const lightTertiaryContainer = Color(0xFF003E28);
+  static const lightOnTertiaryContainer = Color(0xFF00B47D);
+  static const lightTertiaryFixedDim = Color(0xFF4EDEA3);
   static const lightOnSurface = Color(0xFF0D1C2F);
   static const lightOnSurfaceVariant = Color(0xFF43474E);
   static const lightOutline = Color(0xFF74777F);
   static const lightOutlineVariant = Color(0xFFC4C6CF);
   static const lightOnPrimary = Color(0xFFFFFFFF);
-  static const lightTertiaryContainer = Color(0xFFD1FAE5);
-  static const lightOnTertiary = Color(0xFF002617);
-  static const lightError = Color(0xFFDC2626);
-  static const lightErrorContainer = Color(0xFFFFE4E1);
+  static const lightOnTertiary = Color(0xFFFFFFFF);
+  static const lightError = Color(0xFFBA1A1A);
+  static const lightErrorContainer = Color(0xFFFFDAD6);
   static const lightWarningContainer = Color(0xFFFEF3C7);
 
   // Dark — charcoal graphite (not pure black)
@@ -75,7 +84,12 @@ class FxColors extends ThemeExtension<FxColors> {
     required this.outlineVariant,
     required this.primary,
     required this.onPrimary,
+    required this.primaryContainer,
+    required this.onPrimaryContainer,
     required this.secondary,
+    required this.onSecondary,
+    required this.secondaryContainer,
+    required this.onSecondaryContainer,
     required this.tertiary,
     required this.tertiaryContainer,
     required this.onTertiary,
@@ -99,7 +113,12 @@ class FxColors extends ThemeExtension<FxColors> {
   final Color outlineVariant;
   final Color primary;
   final Color onPrimary;
+  final Color primaryContainer;
+  final Color onPrimaryContainer;
   final Color secondary;
+  final Color onSecondary;
+  final Color secondaryContainer;
+  final Color onSecondaryContainer;
   final Color tertiary;
   final Color tertiaryContainer;
   final Color onTertiary;
@@ -123,7 +142,12 @@ class FxColors extends ThemeExtension<FxColors> {
     outlineVariant: AppColors.darkOutlineVariant,
     primary: AppColors.darkPrimary,
     onPrimary: AppColors.darkOnPrimary,
+    primaryContainer: AppColors.darkPrimaryContainer,
+    onPrimaryContainer: AppColors.lightOnPrimaryContainer,
     secondary: AppColors.darkSecondary,
+    onSecondary: AppColors.darkBackground,
+    secondaryContainer: AppColors.darkSecondaryContainer,
+    onSecondaryContainer: Colors.white,
     tertiary: AppColors.darkTertiary,
     tertiaryContainer: AppColors.darkTertiaryContainer,
     onTertiary: AppColors.darkOnTertiary,
@@ -138,21 +162,26 @@ class FxColors extends ThemeExtension<FxColors> {
 
   static const light = FxColors(
     background: AppColors.lightBackground,
-    surface: AppColors.lightSurface,
-    surfaceContainerLowest: AppColors.lightBackground,
+    surface: AppColors.lightSurfaceContainerLowest,
+    surfaceContainerLowest: AppColors.lightSurfaceContainerLowest,
     surfaceContainerLow: AppColors.lightSurfaceContainerLow,
     surfaceContainer: AppColors.lightSurfaceContainer,
     surfaceContainerHigh: AppColors.lightSurfaceContainerHigh,
-    surfaceContainerHighest: AppColors.lightSurfaceContainer,
+    surfaceContainerHighest: AppColors.lightSurfaceContainerHighest,
     outline: AppColors.lightOutline,
     outlineVariant: AppColors.lightOutlineVariant,
     primary: AppColors.lightPrimary,
     onPrimary: AppColors.lightOnPrimary,
+    primaryContainer: AppColors.lightPrimaryContainer,
+    onPrimaryContainer: AppColors.lightOnPrimaryContainer,
     secondary: AppColors.lightSecondary,
-    tertiary: AppColors.lightTertiary,
+    onSecondary: Colors.white,
+    secondaryContainer: AppColors.lightSecondaryContainer,
+    onSecondaryContainer: Colors.white,
+    tertiary: AppColors.lightOnTertiaryContainer,
     tertiaryContainer: AppColors.lightTertiaryContainer,
     onTertiary: AppColors.lightOnTertiary,
-    tertiaryFixedDim: AppColors.lightTertiary,
+    tertiaryFixedDim: AppColors.lightTertiaryFixedDim,
     onSurface: AppColors.lightOnSurface,
     onSurfaceVariant: AppColors.lightOnSurfaceVariant,
     error: AppColors.lightError,
@@ -174,7 +203,12 @@ class FxColors extends ThemeExtension<FxColors> {
     Color? outlineVariant,
     Color? primary,
     Color? onPrimary,
+    Color? primaryContainer,
+    Color? onPrimaryContainer,
     Color? secondary,
+    Color? onSecondary,
+    Color? secondaryContainer,
+    Color? onSecondaryContainer,
     Color? tertiary,
     Color? tertiaryContainer,
     Color? onTertiary,
@@ -200,7 +234,13 @@ class FxColors extends ThemeExtension<FxColors> {
       outlineVariant: outlineVariant ?? this.outlineVariant,
       primary: primary ?? this.primary,
       onPrimary: onPrimary ?? this.onPrimary,
+      primaryContainer: primaryContainer ?? this.primaryContainer,
+      onPrimaryContainer: onPrimaryContainer ?? this.onPrimaryContainer,
       secondary: secondary ?? this.secondary,
+      onSecondary: onSecondary ?? this.onSecondary,
+      secondaryContainer: secondaryContainer ?? this.secondaryContainer,
+      onSecondaryContainer:
+          onSecondaryContainer ?? this.onSecondaryContainer,
       tertiary: tertiary ?? this.tertiary,
       tertiaryContainer: tertiaryContainer ?? this.tertiaryContainer,
       onTertiary: onTertiary ?? this.onTertiary,
@@ -236,7 +276,15 @@ class FxColors extends ThemeExtension<FxColors> {
       outlineVariant: l(outlineVariant, other.outlineVariant),
       primary: l(primary, other.primary),
       onPrimary: l(onPrimary, other.onPrimary),
+      primaryContainer: l(primaryContainer, other.primaryContainer),
+      onPrimaryContainer: l(onPrimaryContainer, other.onPrimaryContainer),
       secondary: l(secondary, other.secondary),
+      onSecondary: l(onSecondary, other.onSecondary),
+      secondaryContainer: l(secondaryContainer, other.secondaryContainer),
+      onSecondaryContainer: l(
+        onSecondaryContainer,
+        other.onSecondaryContainer,
+      ),
       tertiary: l(tertiary, other.tertiary),
       tertiaryContainer: l(tertiaryContainer, other.tertiaryContainer),
       onTertiary: l(onTertiary, other.onTertiary),

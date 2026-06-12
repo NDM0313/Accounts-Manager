@@ -3,7 +3,7 @@
 Living checklist for manual QA, backend deploy, and Stitch UX gaps. Update this file when something is missing or fixed.
 
 **Project:** `ygidlcqhupmxvsdjmvnf`  
-**Last updated:** 2026-06-11 (Deal leg edit/delete, agent source receipt, demo seed)
+**Last updated:** 2026-06-13 (Messaging RLS fix + cloud deploy through `202606260001`)
 
 ---
 
@@ -80,10 +80,13 @@ Hot reload (`r`) / hot restart (`R`) alone may not pick up `storage_path.dart` c
 
 | Item | Status | Notes |
 |------|--------|-------|
-| All migrations applied (incl. `202606200002`) | [x] | Through `202606210008` on cloud (2026-06-11) |
+| All migrations applied | [x] | Through `202606260001` on cloud (2026-06-13) |
+| Messaging RLS recursion fix (`42P17`) | [x] | `202606260001_fx_messaging_rls_recursion_fix.sql` — helpers + non-circular policies |
+| Remittance posting type fix | [x] | `202606240002_fx_remittance_posting_type_fix.sql` (renamed from duplicate `202606240001`) |
+| `verify_messaging_module.sql` | [x] | Re-verified 2026-06-13 — tables + 6 RPCs + RLS smoke PASS |
 | `verify_handoff_rpcs.sql` | [x] | Re-verified RC 2026-06-10 — 3 RPCs + `fx-attachments` bucket |
 | `verify_posting_smoke.sql` | [x] | Re-verified RC 2026-06-10 — trial balance balanced |
-| RLS on all `fx_*` tables | [x] | 18 tables, all `rowsecurity = true` |
+| RLS on all `fx_*` tables | [x] | Messaging tables included; no circular policy on members |
 | `seed_sample_parties.sql` | [x] | Optional parties for settlement testing |
 | Admin bootstrapped | [x] | `ndm313@yahoo.com` → FXDEV / MAIN / admin (verified SELECT) |
 
