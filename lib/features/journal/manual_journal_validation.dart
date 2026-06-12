@@ -1,5 +1,8 @@
 class ManualJournalLineAmounts {
-  const ManualJournalLineAmounts({required this.debitText, required this.creditText});
+  const ManualJournalLineAmounts({
+    required this.debitText,
+    required this.creditText,
+  });
 
   final String debitText;
   final String creditText;

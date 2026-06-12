@@ -10,58 +10,56 @@ import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 
 import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 
-
-
 class DealRepository {
-
   static const _dealSelect =
-
       'id, deal_no, customer_party_id, sell_currency_code, sell_amount, sale_rate_pkr, '
-
       'customer_payable_pkr, customer_paid_pkr, customer_receivable_pkr, delivery_method, status, '
-
       'estimated_profit_pkr, actual_profit_pkr, cost_basis_pkr, allow_short_position, notes, '
-
       'booked_at, completed_at, created_at, fx_parties(name)';
 
-
-
-  Future<List<FxDeal>> fetchDeals(String branchId, {bool openOnly = false}) async {
-
-    var query = supabase.from('fx_deals').select(_dealSelect).eq('branch_id', branchId);
+  Future<List<FxDeal>> fetchDeals(
+    String branchId, {
+    bool openOnly = false,
+  }) async {
+    var query = supabase
+        .from('fx_deals')
+        .select(_dealSelect)
+        .eq('branch_id', branchId);
 
     if (openOnly) {
-
       query = query.not('status', 'in', '(completed,cancelled,voided)');
-
     }
 
     final rows = await query.order('created_at', ascending: false);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxDeal.fromJson).toList();
-
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxDeal.fromJson)
+        .toList();
   }
 
-
-
   Future<FxDeal?> fetchDeal(String dealId) async {
-
-    final row = await supabase.from('fx_deals').select(_dealSelect).eq('id', dealId).maybeSingle();
+    final row = await supabase
+        .from('fx_deals')
+        .select(_dealSelect)
+        .eq('id', dealId)
+        .maybeSingle();
 
     if (row == null) return null;
 
     return FxDeal.fromJson(row);
-
   }
 
-
-
   Future<List<FxDealLeg>> fetchTimeline(String dealId) async {
+    final rows = await supabase.rpc(
+      'fx_get_deal_timeline',
+      params: {'p_deal_id': dealId},
+    );
 
-    final rows = await supabase.rpc('fx_get_deal_timeline', params: {'p_deal_id': dealId});
-
-    return (rows as List).cast<Map<String, dynamic>>().map(FxDealLeg.fromJson).toList();
-
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxDealLeg.fromJson)
+        .toList();
   }
 
   Future<List<FxDealLeg>> fetchLegMeta(String dealId) async {
@@ -104,20 +102,19 @@ class DealRepository {
     });
   }
 
-
-
   Future<List<PartyDealOpenItem>> fetchPartyOpenItems(String partyId) async {
+    final rows = await supabase.rpc(
+      'fx_get_party_deal_open_items',
+      params: {'p_party_id': partyId},
+    );
 
-    final rows = await supabase.rpc('fx_get_party_deal_open_items', params: {'p_party_id': partyId});
-
-    return (rows as List).cast<Map<String, dynamic>>().map(PartyDealOpenItem.fromJson).toList();
-
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(PartyDealOpenItem.fromJson)
+        .toList();
   }
 
-
-
   Future<String> bookCustomerDeal({
-
     required String branchId,
 
     required String customerPartyId,
@@ -139,9 +136,7 @@ class DealRepository {
     bool autoSource = true,
 
     RateReferenceSnapshot? rateSnapshot,
-
   }) async {
-
     // Book with paid=0 on deal row; record payment once via fx_record_deal_customer_payment
 
     // so customer_paid_pkr is not double-counted.
@@ -149,7 +144,6 @@ class DealRepository {
     final paidNow = customerPaidNowPkr;
 
     final payload = DealRpcPayload.bookCustomerDeal(
-
       branchId: branchId,
 
       customerPartyId: customerPartyId,
@@ -171,65 +165,50 @@ class DealRepository {
       autoSource: autoSource,
 
       rateSnapshot: rateSnapshot,
-
     );
 
     final dealId = await supabase.rpc(
-
       'fx_book_customer_deal_v2',
 
       params: {'p_payload': payload},
-
     );
 
     final id = dealId as String;
 
     if (paidNow > 0) {
-
-      await recordCustomerPayment(dealId: id, amountPkr: paidNow, notes: 'Initial payment on booking');
-
+      await recordCustomerPayment(
+        dealId: id,
+        amountPkr: paidNow,
+        notes: 'Initial payment on booking',
+      );
     }
 
     return id;
-
   }
 
-
-
   Future<String> recordCustomerPayment({
-
     required String dealId,
 
     required double amountPkr,
 
     String? notes,
-
   }) async {
-
     final txId = await supabase.rpc(
-
       'fx_record_deal_customer_payment',
 
       params: {
-
         'p_deal_id': dealId,
 
         'p_amount_pkr': amountPkr,
 
         'p_notes': notes,
-
       },
-
     );
 
     return txId as String;
-
   }
 
-
-
   Future<String> addLeg({
-
     required String dealId,
 
     required FxDealLegType legType,
@@ -253,11 +232,8 @@ class DealRepository {
     String? notes,
 
     RateReferenceSnapshot? rateSnapshot,
-
   }) async {
-
     final payload = DealRpcPayload.addLeg(
-
       dealId: dealId,
 
       legType: legType,
@@ -281,25 +257,18 @@ class DealRepository {
       notes: notes,
 
       rateSnapshot: rateSnapshot,
-
     );
 
     final legId = await supabase.rpc(
-
       'fx_add_deal_leg_v2',
 
       params: {'p_payload': payload},
-
     );
 
     return legId as String;
-
   }
 
-
-
   Future<String> updateLeg({
-
     required String legId,
 
     String? counterpartyPartyId,
@@ -319,11 +288,8 @@ class DealRepository {
     String? notes,
 
     RateReferenceSnapshot? rateSnapshot,
-
   }) async {
-
     final payload = DealRpcPayload.updateLeg(
-
       legId: legId,
 
       counterpartyPartyId: counterpartyPartyId,
@@ -343,33 +309,22 @@ class DealRepository {
       notes: notes,
 
       rateSnapshot: rateSnapshot,
-
     );
 
     final id = await supabase.rpc(
-
       'fx_update_deal_leg_v2',
 
       params: {'p_payload': payload},
-
     );
 
     return id as String;
-
   }
-
-
 
   Future<void> deleteLeg(String legId) async {
-
     await supabase.rpc('fx_delete_deal_leg_v2', params: {'p_leg_id': legId});
-
   }
 
-
-
   Future<String> addSettlementLink({
-
     required String dealId,
 
     required String fromLegId,
@@ -383,15 +338,11 @@ class DealRepository {
     required double amount,
 
     String? proofReference,
-
   }) async {
-
     final id = await supabase.rpc(
-
       'fx_add_settlement_link',
 
       params: {
-
         'p_deal_id': dealId,
 
         'p_from_leg_id': fromLegId,
@@ -405,19 +356,13 @@ class DealRepository {
         'p_amount': amount,
 
         'p_proof_reference': proofReference,
-
       },
-
     );
 
     return id as String;
-
   }
 
-
-
   Future<String> confirmDelivery({
-
     required String dealId,
 
     required double deliveredAmount,
@@ -429,15 +374,11 @@ class DealRepository {
     String? proofReference,
 
     String? notes,
-
   }) async {
-
     final legId = await supabase.rpc(
-
       'fx_confirm_deal_delivery',
 
       params: {
-
         'p_deal_id': dealId,
 
         'p_delivered_amount': deliveredAmount,
@@ -449,15 +390,9 @@ class DealRepository {
         'p_proof_reference': proofReference,
 
         'p_notes': notes,
-
       },
-
     );
 
     return legId as String;
-
   }
-
 }
-
-

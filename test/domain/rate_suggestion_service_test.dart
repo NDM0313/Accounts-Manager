@@ -106,7 +106,10 @@ void main() {
     });
 
     test('effective rate from amounts', () {
-      expect(RatePairQuote.rateFromAmounts(50000, 183500), closeTo(3.67, 0.001));
+      expect(
+        RatePairQuote.rateFromAmounts(50000, 183500),
+        closeTo(3.67, 0.001),
+      );
     });
   });
 

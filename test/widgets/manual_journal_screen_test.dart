@@ -17,11 +17,25 @@ void main() {
   );
 
   final accounts = [
-    const FxAccount(id: 'a1', code: '1110', name: 'PKR Cash', accountType: 'asset', isActive: true),
-    const FxAccount(id: 'a2', code: '5800', name: 'Expense', accountType: 'expense', isActive: true),
+    const FxAccount(
+      id: 'a1',
+      code: '1110',
+      name: 'PKR Cash',
+      accountType: 'asset',
+      isActive: true,
+    ),
+    const FxAccount(
+      id: 'a2',
+      code: '5800',
+      name: 'Expense',
+      accountType: 'expense',
+      isActive: true,
+    ),
   ];
 
-  testWidgets('Manual journal screen shows title and balance row', (tester) async {
+  testWidgets('Manual journal screen shows title and balance row', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -40,16 +54,19 @@ void main() {
     expect(find.text('JOURNAL LINES'), findsOneWidget);
   });
 
-  test('dual-sided lines are not balanced even when debit and credit totals match', () {
-    const lines = [
-      ManualJournalLineAmounts(debitText: '900', creditText: '900'),
-      ManualJournalLineAmounts(debitText: '800', creditText: '800'),
-    ];
-    expect(manualJournalTotalDebit(lines), 0);
-    expect(manualJournalTotalCredit(lines), 0);
-    expect(manualJournalIsBalanced(lines), isFalse);
-    expect(manualJournalHasInvalidLines(lines), isTrue);
-  });
+  test(
+    'dual-sided lines are not balanced even when debit and credit totals match',
+    () {
+      const lines = [
+        ManualJournalLineAmounts(debitText: '900', creditText: '900'),
+        ManualJournalLineAmounts(debitText: '800', creditText: '800'),
+      ];
+      expect(manualJournalTotalDebit(lines), 0);
+      expect(manualJournalTotalCredit(lines), 0);
+      expect(manualJournalIsBalanced(lines), isFalse);
+      expect(manualJournalHasInvalidLines(lines), isTrue);
+    },
+  );
 
   test('valid split debit/credit lines are balanced', () {
     const lines = [

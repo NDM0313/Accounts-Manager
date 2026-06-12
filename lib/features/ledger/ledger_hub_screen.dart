@@ -27,7 +27,9 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final horizontal = MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile;
+    final horizontal = MediaQuery.sizeOf(context).width >= 900
+        ? AppSpacing.marginDesktop
+        : AppSpacing.marginMobile;
 
     return Stack(
       fit: StackFit.expand,
@@ -35,7 +37,9 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
         Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSpacing.containerMax),
+            constraints: const BoxConstraints(
+              maxWidth: AppSpacing.containerMax,
+            ),
             child: Padding(
               padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 80),
               child: Column(
@@ -44,19 +48,20 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
                   FxPremiumSegmentedTabs(
                     tabs: const ['Transactions', 'Account statement'],
                     selectedIndex: _tab.index,
-                    onChanged: (i) => setState(() => _tab = LedgerHubTab.values[i]),
+                    onChanged: (i) =>
+                        setState(() => _tab = LedgerHubTab.values[i]),
                   ),
                   if (_tab == LedgerHubTab.transactions) ...[
                     const SizedBox(height: 10),
-                    const FxHelpTipCard(
-                      title: 'How FX works',
-                      body: _helpBody,
-                    ),
+                    const FxHelpTipCard(title: 'How FX works', body: _helpBody),
                   ],
                   const SizedBox(height: 12),
                   Expanded(
                     child: _tab == LedgerHubTab.transactions
-                        ? const TransactionListScreen(inShell: true, embeddedInHub: true)
+                        ? const TransactionListScreen(
+                            inShell: true,
+                            embeddedInHub: true,
+                          )
                         : const AccountStatementScreen(),
                   ),
                 ],

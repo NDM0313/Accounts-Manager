@@ -50,13 +50,17 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
         error: (_, _) => const Text('Deal'),
       ),
       actions: [
-        IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.read(dealsRefreshProvider.notifier).refresh()),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: () => ref.read(dealsRefreshProvider.notifier).refresh(),
+        ),
         PopupMenuButton<String>(
           onSelected: (route) {
             timelineAsync.whenOrNull(
               data: (legs) {
                 final type = DealLegPermissions.legTypeForAddRoute(route);
-                if (type != null && DealLegPermissions.hasPendingLegOfType(legs, type)) {
+                if (type != null &&
+                    DealLegPermissions.hasPendingLegOfType(legs, type)) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -70,12 +74,30 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
             context.push(route);
           },
           itemBuilder: (_) => [
-            PopupMenuItem(value: '/deals/$dealId/sourcing', child: const Text('Sourcing')),
-            PopupMenuItem(value: '/deals/$dealId/legs/agent-source', child: const Text('Agent source')),
-            PopupMenuItem(value: '/deals/$dealId/legs/cross-source', child: const Text('Cross source')),
-            PopupMenuItem(value: '/deals/$dealId/legs/agent-payment', child: const Text('Agent payment')),
-            PopupMenuItem(value: '/deals/$dealId/legs/currency-receipt', child: const Text('Currency receipt')),
-            PopupMenuItem(value: '/deals/$dealId/delivery', child: const Text('Delivery')),
+            PopupMenuItem(
+              value: '/deals/$dealId/sourcing',
+              child: const Text('Sourcing'),
+            ),
+            PopupMenuItem(
+              value: '/deals/$dealId/legs/agent-source',
+              child: const Text('Agent source'),
+            ),
+            PopupMenuItem(
+              value: '/deals/$dealId/legs/cross-source',
+              child: const Text('Cross source'),
+            ),
+            PopupMenuItem(
+              value: '/deals/$dealId/legs/agent-payment',
+              child: const Text('Agent payment'),
+            ),
+            PopupMenuItem(
+              value: '/deals/$dealId/legs/currency-receipt',
+              child: const Text('Currency receipt'),
+            ),
+            PopupMenuItem(
+              value: '/deals/$dealId/delivery',
+              child: const Text('Delivery'),
+            ),
           ],
         ),
       ],
@@ -101,12 +123,19 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
                     onViewProofs: () {
                       final ctx = _timelineKey.currentContext;
                       if (ctx != null) {
-                        Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300));
+                        Scrollable.ensureVisible(
+                          ctx,
+                          duration: const Duration(milliseconds: 300),
+                        );
                       }
                     },
                   ),
                   const SizedBox(height: 8),
-                  EntityChatPanel(type: FxConversationType.deal, dealId: dealId, title: deal.dealNo ?? 'Deal'),
+                  EntityChatPanel(
+                    type: FxConversationType.deal,
+                    dealId: dealId,
+                    title: deal.dealNo ?? 'Deal',
+                  ),
                   const SizedBox(height: 16),
                   DealWorkflowSummary(deal: deal, legs: legs),
                   const SizedBox(height: 16),
@@ -118,7 +147,13 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
                   const SizedBox(height: 16),
                   KeyedSubtree(
                     key: _timelineKey,
-                    child: Text('TIMELINE', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                    child: Text(
+                      'TIMELINE',
+                      style: AppTypography.labelCaps(
+                        context.fx.outline,
+                        context: context,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   if (legs.isEmpty)
@@ -144,8 +179,14 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
     );
   }
 
-  Future<void> _recordPayment(BuildContext context, WidgetRef ref, FxDeal deal) async {
-    final amountCtrl = TextEditingController(text: deal.customerReceivablePkr.toStringAsFixed(0));
+  Future<void> _recordPayment(
+    BuildContext context,
+    WidgetRef ref,
+    FxDeal deal,
+  ) async {
+    final amountCtrl = TextEditingController(
+      text: deal.customerReceivablePkr.toStringAsFixed(0),
+    );
     final notesCtrl = TextEditingController();
 
     final ok = await showDialog<bool>(
@@ -158,14 +199,26 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
             FxObsidianFormField(
               controller: amountCtrl,
               label: 'Amount (PKR)',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
-            FxObsidianFormField(controller: notesCtrl, label: 'Notes', maxLines: 2),
+            FxObsidianFormField(
+              controller: notesCtrl,
+              label: 'Notes',
+              maxLines: 2,
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
@@ -176,26 +229,42 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
     amountCtrl.dispose();
     notesCtrl.dispose();
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid payment amount')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid payment amount')),
+      );
       return;
     }
 
     try {
-      await ref.read(dealRepositoryProvider).recordCustomerPayment(
+      await ref
+          .read(dealRepositoryProvider)
+          .recordCustomerPayment(
             dealId: widget.dealId,
             amountPkr: amount,
             notes: notes.isEmpty ? null : notes,
           );
       ref.read(dealsRefreshProvider.notifier).refresh();
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment recorded')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Payment recorded')));
+      }
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.deal, required this.legs, required this.fmt});
+  const _SummaryCard({
+    required this.deal,
+    required this.legs,
+    required this.fmt,
+  });
 
   final FxDeal deal;
   final List<FxDealLeg> legs;
@@ -203,7 +272,11 @@ class _SummaryCard extends StatelessWidget {
 
   double get _agentPayable {
     return legs
-        .where((l) => l.legType == FxDealLegType.agentSource || l.legType == FxDealLegType.agentPayment)
+        .where(
+          (l) =>
+              l.legType == FxDealLegType.agentSource ||
+              l.legType == FxDealLegType.agentPayment,
+        )
         .fold<double>(0, (s, l) => s + l.payAmount);
   }
 
@@ -214,18 +287,46 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(deal.status.label, style: AppTypography.labelCaps(context.fx.primary, context: context)),
+          Text(
+            deal.status.label,
+            style: AppTypography.labelCaps(
+              context.fx.primary,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(deal.customerName ?? 'Customer', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+          Text(
+            deal.customerName ?? 'Customer',
+            style: AppTypography.headlineMd(
+              context.fx.onSurface,
+              context: context,
+            ),
+          ),
           Text(
             '${fmt.format(deal.sellAmount)} ${displayCurrencyCode(deal.sellCurrencyCode)} @ ${fmt.format(deal.saleRatePkr)} PKR',
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const Divider(height: 24),
-          _row(context, 'Customer payable', 'PKR ${fmt.format(deal.customerPayablePkr)}'),
-          _row(context, 'Customer paid', 'PKR ${fmt.format(deal.customerPaidPkr)}'),
-          _row(context, 'Receivable', 'PKR ${fmt.format(deal.customerReceivablePkr)}'),
-          if (_agentPayable > 0) _row(context, 'Agent payable (legs)', fmt.format(_agentPayable)),
+          _row(
+            context,
+            'Customer payable',
+            'PKR ${fmt.format(deal.customerPayablePkr)}',
+          ),
+          _row(
+            context,
+            'Customer paid',
+            'PKR ${fmt.format(deal.customerPaidPkr)}',
+          ),
+          _row(
+            context,
+            'Receivable',
+            'PKR ${fmt.format(deal.customerReceivablePkr)}',
+          ),
+          if (_agentPayable > 0)
+            _row(context, 'Agent payable (legs)', fmt.format(_agentPayable)),
           _row(context, 'Proof attachments', '$proofCount'),
         ],
       ),
@@ -238,8 +339,20 @@ class _SummaryCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-          Text(value, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 12),
+          ),
+          Text(
+            value,
+            style: AppTypography.bodyMd(
+              context.fx.onSurface,
+              context: context,
+            ).copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
@@ -267,12 +380,23 @@ class _TimelineTile extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom, left: 16, right: 16, top: 16),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(ctx).bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Proof — ${leg.legType.label}', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
+            Text(
+              'Proof — ${leg.legType.label}',
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 16),
+            ),
             const SizedBox(height: 12),
             FxProofAttachmentsSection(
               branchId: branchId!,
@@ -290,7 +414,9 @@ class _TimelineTile extends ConsumerWidget {
   Future<void> _openTransaction(BuildContext context, WidgetRef ref) async {
     final no = leg.linkedTransactionNo;
     if (no == null || branchId == null) return;
-    final txId = await ref.read(transactionRepositoryProvider).fetchTransactionIdByNo(branchId!, no);
+    final txId = await ref
+        .read(transactionRepositoryProvider)
+        .fetchTransactionIdByNo(branchId!, no);
     if (txId != null && context.mounted) context.push('/transactions/$txId');
   }
 
@@ -304,10 +430,15 @@ class _TimelineTile extends ConsumerWidget {
           'This cannot be undone.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -318,11 +449,15 @@ class _TimelineTile extends ConsumerWidget {
       await ref.read(dealRepositoryProvider).deleteLeg(leg.id);
       ref.read(dealsRefreshProvider.notifier).refresh();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Step deleted')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Step deleted')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
   }
@@ -339,16 +474,26 @@ class _TimelineTile extends ConsumerWidget {
     if (leg.proofReference != null && leg.proofReference!.isNotEmpty) {
       parts.add('Ref: ${leg.proofReference}');
     }
-    if (leg.linkedTransactionNo != null) parts.add('Tx ${leg.linkedTransactionNo}');
+    if (leg.linkedTransactionNo != null) {
+      parts.add('Tx ${leg.linkedTransactionNo}');
+    }
     return parts.isEmpty ? leg.legType.label : parts.join(' · ');
   }
 
-  void _showLegMenu(BuildContext context, WidgetRef ref, {required bool canEdit, required bool canDelete, required String? editRoute}) {
+  void _showLegMenu(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool canEdit,
+    required bool canDelete,
+    required String? editRoute,
+  }) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: context.fx.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusXl),
+        ),
       ),
       builder: (ctx) => SafeArea(
         child: Column(
@@ -366,7 +511,10 @@ class _TimelineTile extends ConsumerWidget {
             if (canDelete)
               ListTile(
                 leading: Icon(Icons.delete_outline, color: context.fx.error),
-                title: Text('Delete', style: TextStyle(color: context.fx.error)),
+                title: Text(
+                  'Delete',
+                  style: TextStyle(color: context.fx.error),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _confirmDelete(context, ref);
@@ -400,12 +548,22 @@ class _TimelineTile extends ConsumerWidget {
             subtitle: _subtitle(fmt),
             statusLabel: leg.status.label,
             proofCount: leg.attachmentCount,
-            isActive: leg.status == FxDealLegStatus.pending || leg.status == FxDealLegStatus.partial,
+            isActive:
+                leg.status == FxDealLegStatus.pending ||
+                leg.status == FxDealLegStatus.partial,
             onTap: leg.linkedTransactionNo != null
                 ? () => _openTransaction(context, ref)
-                : (branchId != null && leg.attachmentCount > 0 ? () => _showProof(context) : null),
+                : (branchId != null && leg.attachmentCount > 0
+                      ? () => _showProof(context)
+                      : null),
             onMenu: (canEdit || canDelete)
-                ? () => _showLegMenu(context, ref, canEdit: canEdit, canDelete: canDelete, editRoute: editRoute)
+                ? () => _showLegMenu(
+                    context,
+                    ref,
+                    canEdit: canEdit,
+                    canDelete: canDelete,
+                    editRoute: editRoute,
+                  )
                 : null,
           ),
           if (branchId != null || action != null)
@@ -417,19 +575,28 @@ class _TimelineTile extends ConsumerWidget {
                   if (branchId != null)
                     TextButton.icon(
                       onPressed: () => _showProof(context),
-                      icon: const Icon(Icons.add_photo_alternate_outlined, size: 16),
-                      label: Text(leg.attachmentCount > 0 ? 'View proof' : 'Add proof'),
+                      icon: const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 16,
+                      ),
+                      label: Text(
+                        leg.attachmentCount > 0 ? 'View proof' : 'Add proof',
+                      ),
                     ),
                   if (action != null)
                     TextButton(
                       onPressed: () {
                         switch (action.onTapKind) {
                           case DealLegActionKind.viewCustomerStatement:
-                            context.push('/parties/${deal.customerPartyId}/ledger');
+                            context.push(
+                              '/parties/${deal.customerPartyId}/ledger',
+                            );
                           case DealLegActionKind.viewProof:
                             _showProof(context);
                           case null:
-                            if (action.route != null) context.push(action.route!);
+                            if (action.route != null) {
+                              context.push(action.route!);
+                            }
                         }
                       },
                       child: Text(action.label),
@@ -455,17 +622,38 @@ class _ProfitSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PROFIT / LOSS', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+          Text(
+            'PROFIT / LOSS',
+            style: AppTypography.labelCaps(
+              context.fx.outline,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 8),
           if (deal.actualProfitPkr != null)
-            Text('Actual: PKR ${fmt.format(deal.actualProfitPkr)}', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18))
+            Text(
+              'Actual: PKR ${fmt.format(deal.actualProfitPkr)}',
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 18),
+            )
           else
             Text(
               'Actual profit calculated after delivery when cost basis is known.',
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
           if (deal.costBasisPkr != null)
-            Text('Cost basis: PKR ${fmt.format(deal.costBasisPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+            Text(
+              'Cost basis: PKR ${fmt.format(deal.costBasisPkr)}',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
         ],
       ),
     );

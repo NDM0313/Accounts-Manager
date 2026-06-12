@@ -37,10 +37,14 @@ class FxRateCard extends StatelessWidget {
                   pairLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.headlineSm(context.fx.onSurface, context: context).copyWith(fontSize: 15),
+                  style: AppTypography.headlineSm(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontSize: 15),
                 ),
               ),
-              if (isStale) const FxStatusBadge(label: 'Stale', tone: FxStatusTone.warning),
+              if (isStale)
+                const FxStatusBadge(label: 'Stale', tone: FxStatusTone.warning),
             ],
           ),
           const SizedBox(height: 8),
@@ -55,7 +59,10 @@ class FxRateCard extends StatelessWidget {
                 if (onEdit != null)
                   TextButton(onPressed: onEdit, child: const Text('Edit')),
                 if (onHistory != null)
-                  TextButton(onPressed: onHistory, child: const Text('History')),
+                  TextButton(
+                    onPressed: onHistory,
+                    child: const Text('History'),
+                  ),
               ],
             ),
           ],

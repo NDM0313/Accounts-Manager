@@ -12,10 +12,12 @@ class AgentRemittanceInboxScreen extends ConsumerStatefulWidget {
   const AgentRemittanceInboxScreen({super.key});
 
   @override
-  ConsumerState<AgentRemittanceInboxScreen> createState() => _AgentRemittanceInboxScreenState();
+  ConsumerState<AgentRemittanceInboxScreen> createState() =>
+      _AgentRemittanceInboxScreenState();
 }
 
-class _AgentRemittanceInboxScreenState extends ConsumerState<AgentRemittanceInboxScreen> {
+class _AgentRemittanceInboxScreenState
+    extends ConsumerState<AgentRemittanceInboxScreen> {
   final _search = TextEditingController();
   String? _query;
 
@@ -51,7 +53,8 @@ class _AgentRemittanceInboxScreenState extends ConsumerState<AgentRemittanceInbo
                 ),
                 border: const OutlineInputBorder(),
               ),
-              onSubmitted: (v) => setState(() => _query = v.trim().isEmpty ? null : v.trim()),
+              onSubmitted: (v) =>
+                  setState(() => _query = v.trim().isEmpty ? null : v.trim()),
             ),
           ),
           Expanded(
@@ -59,10 +62,19 @@ class _AgentRemittanceInboxScreenState extends ConsumerState<AgentRemittanceInbo
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('$e')),
               data: (items) => items.isEmpty
-                  ? Center(child: Text('No remittances assigned', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)))
+                  ? Center(
+                      child: Text(
+                        'No remittances assigned',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ),
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: items.length,
-                      itemBuilder: (context, i) => _tile(context, items[i], fmt),
+                      itemBuilder: (context, i) =>
+                          _tile(context, items[i], fmt),
                     ),
             ),
           ),
@@ -74,7 +86,9 @@ class _AgentRemittanceInboxScreenState extends ConsumerState<AgentRemittanceInbo
   Widget _tile(BuildContext context, FxRemittance r, NumberFormat fmt) {
     return ListTile(
       title: Text(r.remittanceNo ?? r.trackingId),
-      subtitle: Text('${r.receiverName} · ${r.payoutCurrency} ${fmt.format(r.payoutAmount)} · ${r.status.label}'),
+      subtitle: Text(
+        '${r.receiverName} · ${r.payoutCurrency} ${fmt.format(r.payoutAmount)} · ${r.status.label}',
+      ),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => context.push('/remittance/agent/${r.id}'),
     );

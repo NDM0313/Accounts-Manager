@@ -23,7 +23,9 @@ class TrialBalanceScreen extends ConsumerWidget {
     final dateLabel = asOf.toIso8601String().split('T').first;
     final currencyView = ref.watch(reportCurrencyViewProvider);
     final displayCode = ref.watch(displayCurrencyCodeProvider);
-    final converter = ref.watch(reportCurrencyConverterProvider).whenOrNull(data: (v) => v);
+    final converter = ref
+        .watch(reportCurrencyConverterProvider)
+        .whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -60,14 +62,24 @@ class TrialBalanceScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                Text(
+                  'As of $dateLabel',
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                ref.watch(companyAccountingContextProvider).maybeWhen(
+                ref
+                    .watch(companyAccountingContextProvider)
+                    .maybeWhen(
                       data: (ctx) => FxReportCurrencyToggle(
                         view: currencyView,
                         displayCurrencyCode: displayCode,
                         baseCurrencyCode: ctx.baseCurrencyCode,
-                        onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                        onChanged: (v) => ref
+                            .read(reportCurrencyViewProvider.notifier)
+                            .setView(v),
                       ),
                       orElse: () => const SizedBox.shrink(),
                     ),
@@ -83,8 +95,12 @@ class TrialBalanceScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Icon(
-                      totals.isBalanced ? Icons.check_circle : Icons.warning_amber,
-                      color: totals.isBalanced ? context.fx.tertiary : context.fx.error,
+                      totals.isBalanced
+                          ? Icons.check_circle
+                          : Icons.warning_amber,
+                      color: totals.isBalanced
+                          ? context.fx.tertiary
+                          : context.fx.error,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -93,11 +109,17 @@ class TrialBalanceScreen extends ConsumerWidget {
                         children: [
                           Text(
                             totals.isBalanced ? 'Balanced' : 'Out of balance',
-                            style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16),
+                            style: AppTypography.headlineMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ).copyWith(fontSize: 16),
                           ),
                           Text(
                             'Debit ${fmt.format(totals.totalDebit)} · Credit ${fmt.format(totals.totalCredit)}',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           ),
                         ],
                       ),
@@ -110,11 +132,18 @@ class TrialBalanceScreen extends ConsumerWidget {
           Expanded(
             child: rowsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Unable to load trial balance: $e')),
+              error: (e, _) =>
+                  Center(child: Text('Unable to load trial balance: $e')),
               data: (rows) {
                 if (rows.isEmpty) {
                   return Center(
-                    child: Text('No posted journal activity yet.', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                    child: Text(
+                      'No posted journal activity yet.',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
+                    ),
                   );
                 }
                 return ListView.builder(
@@ -125,7 +154,10 @@ class TrialBalanceScreen extends ConsumerWidget {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: FxObsidianReportPanel(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         onTap: () => context.push(
                           '/reports/account-journal?code=${row.accountCode}&asOf=$dateLabel',
                         ),
@@ -137,13 +169,19 @@ class TrialBalanceScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     '${row.accountCode} · ${row.accountName}',
-                                    style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                                    style: AppTypography.bodyMd(
+                                      context.fx.onSurface,
+                                      context: context,
+                                    ).copyWith(fontWeight: FontWeight.w600),
                                   ),
                                   Text(
                                     converter != null
                                         ? 'Net ${formatReportAmount(pkrAmount: row.netPkr, converter: converter, view: currencyView, fmt: fmt)}'
                                         : 'Net ${fmt.format(row.netPkr)} PKR',
-                                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                    style: AppTypography.bodyMd(
+                                      context.fx.onSurfaceVariant,
+                                      context: context,
+                                    ).copyWith(fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -151,12 +189,28 @@ class TrialBalanceScreen extends ConsumerWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('Dr ${fmt.format(row.debitPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                                Text('Cr ${fmt.format(row.creditPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                                Text(
+                                  'Dr ${fmt.format(row.debitPkr)}',
+                                  style: AppTypography.bodyMd(
+                                    context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 12),
+                                ),
+                                Text(
+                                  'Cr ${fmt.format(row.creditPkr)}',
+                                  style: AppTypography.bodyMd(
+                                    context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 12),
+                                ),
                               ],
                             ),
                             const SizedBox(width: 4),
-                            Icon(Icons.chevron_right, size: 18, color: context.fx.outline),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: context.fx.outline,
+                            ),
                           ],
                         ),
                       ),
@@ -171,7 +225,11 @@ class TrialBalanceScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickDate(BuildContext context, WidgetRef ref, DateTime current) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime current,
+  ) async {
     final picked = await FxObsidianPickers.showDate(
       context,
       initialDate: current,

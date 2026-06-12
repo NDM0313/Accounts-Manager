@@ -45,15 +45,24 @@ Future<bool> showFxPostConfirmationDialog(
             if (data.accountLabel != null) _row('Account', data.accountLabel!),
             _row('Currency', data.currencyCode),
             _row('Amount', fmt.format(data.amount)),
-            if (data.rate != null && data.rate! > 0) _row('Rate', data.rate!.toStringAsFixed(4)),
-            if (data.pkrEquivalent != null) _row('PKR equivalent', 'PKR ${fmt.format(data.pkrEquivalent!)}'),
-            if (data.notes != null && data.notes!.trim().isNotEmpty) _row('Notes', data.notes!),
+            if (data.rate != null && data.rate! > 0)
+              _row('Rate', data.rate!.toStringAsFixed(4)),
+            if (data.pkrEquivalent != null)
+              _row('PKR equivalent', 'PKR ${fmt.format(data.pkrEquivalent!)}'),
+            if (data.notes != null && data.notes!.trim().isNotEmpty)
+              _row('Notes', data.notes!),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm & Post')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Confirm & Post'),
+        ),
       ],
     ),
   );
@@ -66,7 +75,10 @@ Widget _row(String label, String value) {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 110, child: Text(label, style: AppTypography.bodyMd(Colors.grey))),
+        SizedBox(
+          width: 110,
+          child: Text(label, style: AppTypography.bodyMd(Colors.grey)),
+        ),
         Expanded(child: Text(value)),
       ],
     ),

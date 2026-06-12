@@ -1,17 +1,14 @@
 /// How a cross-currency rate was resolved from PKR-per-currency rows.
-enum RateLookupMethod {
-  directPkr,
-  inversePkr,
-  crossViaPkr,
-  unavailable,
-}
+enum RateLookupMethod { directPkr, inversePkr, crossViaPkr, unavailable }
 
 /// Which side of the PKR board to prefer when suggesting a rate.
 enum RateSide {
   /// Customer buying foreign — use sell rate.
   sell,
+
   /// We buying foreign / customer selling — use buy rate.
   buy,
+
   /// Cross-leg or neutral reference — use mid/reference.
   reference,
 }

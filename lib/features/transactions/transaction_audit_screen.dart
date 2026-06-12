@@ -33,7 +33,10 @@ class TransactionAuditScreen extends ConsumerWidget {
             return Center(
               child: Text(
                 'No audit entries for this transaction.',
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
             );
           }

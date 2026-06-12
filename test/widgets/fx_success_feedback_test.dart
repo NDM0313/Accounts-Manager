@@ -11,7 +11,8 @@ void main() {
         home: Builder(
           builder: (context) => Scaffold(
             body: ElevatedButton(
-              onPressed: () => FxSuccessFeedback.showSnack(context, 'Draft saved'),
+              onPressed: () =>
+                  FxSuccessFeedback.showSnack(context, 'Draft saved'),
               child: const Text('Trigger'),
             ),
           ),

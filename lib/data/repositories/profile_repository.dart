@@ -16,7 +16,9 @@ class ProfileRepository {
     return FxUserProfile.fromJson(response);
   }
 
-  Future<CompanyAccountingContext> fetchCompanyAccountingContext(String companyId) async {
+  Future<CompanyAccountingContext> fetchCompanyAccountingContext(
+    String companyId,
+  ) async {
     final company = await supabase
         .from('fx_companies')
         .select('base_currency_code')
@@ -42,9 +44,7 @@ class ProfileRepository {
 
     final response = await supabase
         .from('fx_users_profiles')
-        .select(
-          'branch_id, fx_branches(name, code, fx_companies(name, code))',
-        )
+        .select('branch_id, fx_branches(name, code, fx_companies(name, code))')
         .eq('id', userId)
         .maybeSingle();
 

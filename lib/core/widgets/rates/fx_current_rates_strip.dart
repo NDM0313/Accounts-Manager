@@ -9,10 +9,7 @@ import 'package:go_router/go_router.dart';
 
 /// Horizontal "Current Rates" strip for dashboard.
 class FxCurrentRatesStrip extends ConsumerWidget {
-  const FxCurrentRatesStrip({
-    super.key,
-    this.showTicker = true,
-  });
+  const FxCurrentRatesStrip({super.key, this.showTicker = true});
 
   final bool showTicker;
 
@@ -37,10 +34,20 @@ class FxCurrentRatesStrip extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Text('Current Rates', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
+                Text(
+                  'Current Rates',
+                  style: AppTypography.headlineMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontSize: 16),
+                ),
                 const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.refresh, size: 20, color: context.fx.onSurfaceVariant),
+                  icon: Icon(
+                    Icons.refresh,
+                    size: 20,
+                    color: context.fx.onSurfaceVariant,
+                  ),
                   tooltip: 'Refresh rates',
                   onPressed: () {
                     ref.invalidate(ratesProvider);
@@ -58,7 +65,14 @@ class FxCurrentRatesStrip extends ConsumerWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: pairs.map((p) => FxRatePairCard(pair: p, onTap: () => context.push('/rates'))).toList(),
+                children: pairs
+                    .map(
+                      (p) => FxRatePairCard(
+                        pair: p,
+                        onTap: () => context.push('/rates'),
+                      ),
+                    )
+                    .toList(),
               )
             else
               SizedBox(
@@ -67,7 +81,11 @@ class FxCurrentRatesStrip extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: pairs.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (_, i) => FxRatePairCard(pair: pairs[i], compact: true, onTap: () => context.push('/rates')),
+                  itemBuilder: (_, i) => FxRatePairCard(
+                    pair: pairs[i],
+                    compact: true,
+                    onTap: () => context.push('/rates'),
+                  ),
                 ),
               ),
             if (showTicker && pairs.isNotEmpty) ...[
@@ -86,15 +104,27 @@ class FxCurrentRatesStrip extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Text('Current Rates', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
+            Text(
+              'Current Rates',
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 16),
+            ),
             const Spacer(),
-            TextButton(onPressed: () => context.push('/rates'), child: const Text('Manage Rates')),
+            TextButton(
+              onPressed: () => context.push('/rates'),
+              child: const Text('Manage Rates'),
+            ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           'No reference rates yet — add rates in Rate Board.',
-          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ).copyWith(fontSize: 12),
         ),
       ],
     );
@@ -117,7 +147,10 @@ class _RatesTicker extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Text(
         text,
-        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+        style: AppTypography.bodyMd(
+          context.fx.onSurfaceVariant,
+          context: context,
+        ).copyWith(fontSize: 11),
       ),
     );
   }

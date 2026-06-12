@@ -33,10 +33,7 @@ class FxRate {
 
   double get referenceRate => midRate ?? (buyRate + sellRate) / 2;
 
-  FxRate copyWith({
-    DateTime? effectiveTo,
-    bool? isActive,
-  }) {
+  FxRate copyWith({DateTime? effectiveTo, bool? isActive}) {
     return FxRate(
       id: id,
       currencyCode: currencyCode,
@@ -67,13 +64,20 @@ class FxRate {
       sellRate: sell,
       effectiveAt: DateTime.parse(json['effective_at'] as String),
       midRate: mid?.toDouble(),
-      source: json['rate_source'] as String? ?? json['source'] as String? ?? 'manual',
+      source:
+          json['rate_source'] as String? ??
+          json['source'] as String? ??
+          'manual',
       notes: json['notes'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      effectiveTo: json['effective_to'] != null ? DateTime.parse(json['effective_to'] as String) : null,
+      effectiveTo: json['effective_to'] != null
+          ? DateTime.parse(json['effective_to'] as String)
+          : null,
       updatedByName: json['updated_by_name'] as String?,
       createdBy: json['created_by'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
     );
   }
 }

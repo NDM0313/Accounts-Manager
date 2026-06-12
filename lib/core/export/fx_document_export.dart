@@ -41,7 +41,9 @@ Future<void> showFxExportSheet(
       return Container(
         decoration: BoxDecoration(
           color: context.fx.surfaceContainer,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusXl),
+          ),
           border: Border.all(color: context.fx.outlineVariant),
         ),
         child: SafeArea(
@@ -65,13 +67,27 @@ Future<void> showFxExportSheet(
                   children: [
                     Text(
                       'Share & export',
-                      style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context),
+                      style: AppTypography.labelCaps(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
                     ),
                     const SizedBox(height: 4),
-                    Text(document.title, style: AppTypography.headlineSm(context.fx.onSurface, context: context)),
                     Text(
-                      mode == FxExportMode.customerFacing ? 'Customer copy' : 'Internal copy',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                      document.title,
+                      style: AppTypography.headlineSm(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
+                    ),
+                    Text(
+                      mode == FxExportMode.customerFacing
+                          ? 'Customer copy'
+                          : 'Internal copy',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
                     ),
                   ],
                 ),
@@ -81,27 +97,37 @@ Future<void> showFxExportSheet(
                 title: const Text('Share as text'),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  await SharePlus.instance.share(ShareParams(
-                    text: document.textBody,
-                    subject: document.subject ?? document.title,
-                  ));
+                  await SharePlus.instance.share(
+                    ShareParams(
+                      text: document.textBody,
+                      subject: document.subject ?? document.title,
+                    ),
+                  );
                 },
               ),
               if (document.csvBody != null)
                 ListTile(
-                  leading: Icon(Icons.table_chart_outlined, color: context.fx.primary),
+                  leading: Icon(
+                    Icons.table_chart_outlined,
+                    color: context.fx.primary,
+                  ),
                   title: const Text('Share as CSV'),
                   onTap: () async {
                     Navigator.pop(ctx);
-                    await SharePlus.instance.share(ShareParams(
-                      text: document.csvBody!,
-                      subject: '${document.subject ?? document.title} CSV',
-                    ));
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        text: document.csvBody!,
+                        subject: '${document.subject ?? document.title} CSV',
+                      ),
+                    );
                   },
                 ),
               if (document.pdfBytes != null) ...[
                 ListTile(
-                  leading: Icon(Icons.picture_as_pdf_outlined, color: context.fx.primary),
+                  leading: Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: context.fx.primary,
+                  ),
                   title: const Text('Share PDF'),
                   onTap: () async {
                     Navigator.pop(ctx);
@@ -112,11 +138,16 @@ Future<void> showFxExportSheet(
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.print_outlined, color: context.fx.primary),
+                  leading: Icon(
+                    Icons.print_outlined,
+                    color: context.fx.primary,
+                  ),
                   title: const Text('Print PDF'),
                   onTap: () async {
                     Navigator.pop(ctx);
-                    await Printing.layoutPdf(onLayout: (_) async => document.pdfBytes!);
+                    await Printing.layoutPdf(
+                      onLayout: (_) async => document.pdfBytes!,
+                    );
                   },
                 ),
               ],

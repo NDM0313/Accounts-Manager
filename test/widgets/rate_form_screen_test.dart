@@ -25,13 +25,7 @@ void main() {
   });
 
   test('conflict messages are user-friendly', () {
-    expect(
-      rateFormEffectiveAtConflictMessage,
-      contains('already exists'),
-    );
-    expect(
-      RateEffectiveAtConflictException.message,
-      contains('already used'),
-    );
+    expect(rateFormEffectiveAtConflictMessage, contains('already exists'));
+    expect(RateEffectiveAtConflictException.message, contains('already used'));
   });
 }

@@ -39,7 +39,10 @@ class FxAmountCard extends StatelessWidget {
             label.toUpperCase(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.labelCaps(theme.colorScheme.onSurfaceVariant, context: context),
+            style: AppTypography.labelCaps(
+              theme.colorScheme.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -48,17 +51,27 @@ class FxAmountCard extends StatelessWidget {
             children: [
               Text(
                 amountLabel,
-                style: AppTypography.currencyDisplay(color: theme.colorScheme.onSurface, context: context),
+                style: AppTypography.currencyDisplay(
+                  color: theme.colorScheme.onSurface,
+                  context: context,
+                ),
               ),
               if (trendLabel != null)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.trending_up, size: 16, color: theme.colorScheme.tertiary),
+                    Icon(
+                      Icons.trending_up,
+                      size: 16,
+                      color: theme.colorScheme.tertiary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       trendLabel!,
-                      style: AppTypography.dataMd(theme.colorScheme.tertiary, context: context),
+                      style: AppTypography.dataMd(
+                        theme.colorScheme.tertiary,
+                        context: context,
+                      ),
                     ),
                   ],
                 ),
@@ -79,7 +92,10 @@ class FxAmountCard extends StatelessWidget {
                 if (onSecondaryAction != null)
                   OutlinedButton.icon(
                     onPressed: onSecondaryAction,
-                    icon: Icon(secondaryActionIcon ?? Icons.ios_share, size: 18),
+                    icon: Icon(
+                      secondaryActionIcon ?? Icons.ios_share,
+                      size: 18,
+                    ),
                     label: Text(secondaryActionLabel ?? 'Export'),
                   ),
               ],

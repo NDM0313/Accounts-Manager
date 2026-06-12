@@ -10,7 +10,10 @@ abstract final class DraftLineBuilder {
     return null;
   }
 
-  static String cashCodeForCurrency(List<FxAccount> accounts, String currencyCode) {
+  static String cashCodeForCurrency(
+    List<FxAccount> accounts,
+    String currencyCode,
+  ) {
     for (final a in accounts) {
       if (a.currencyCode == currencyCode &&
           a.accountType == 'asset' &&
@@ -54,7 +57,9 @@ abstract final class DraftLineBuilder {
           foreignAmount,
           rateUsed,
           baseAmountPkr,
-          creditAccountCode: onCredit ? (settlementAccountCode ?? '2100') : null,
+          creditAccountCode: onCredit
+              ? (settlementAccountCode ?? '2100')
+              : null,
         );
       case FxTransactionType.currencySell:
         return _currencySell(
@@ -66,9 +71,21 @@ abstract final class DraftLineBuilder {
           debitAccountCode: onCredit ? (settlementAccountCode ?? '1190') : null,
         );
       case FxTransactionType.accountTransfer:
-        return _transfer(accounts, fromAccountCode!, toAccountCode!, currencyCode, baseAmountPkr);
+        return _transfer(
+          accounts,
+          fromAccountCode!,
+          toAccountCode!,
+          currencyCode,
+          baseAmountPkr,
+        );
       case FxTransactionType.expense:
-        return _expense(accounts, expenseAccountCode!, fromAccountCode ?? '1110', currencyCode, baseAmountPkr);
+        return _expense(
+          accounts,
+          expenseAccountCode!,
+          fromAccountCode ?? '1110',
+          currencyCode,
+          baseAmountPkr,
+        );
       case FxTransactionType.openingBalance:
         return _openingBalance(
           accounts,
@@ -118,7 +135,9 @@ abstract final class DraftLineBuilder {
           revaluationDeltaPkr ?? baseAmountPkr,
         );
       case FxTransactionType.manualJournal:
-        throw UnsupportedError('Manual journal uses fx_post_manual_journal RPC');
+        throw UnsupportedError(
+          'Manual journal uses fx_post_manual_journal RPC',
+        );
     }
   }
 
@@ -130,7 +149,10 @@ abstract final class DraftLineBuilder {
     double baseAmountPkr, {
     String? creditAccountCode,
   }) {
-    final foreignCash = accountIdByCode(accounts, cashCodeForCurrency(accounts, currencyCode))!;
+    final foreignCash = accountIdByCode(
+      accounts,
+      cashCodeForCurrency(accounts, currencyCode),
+    )!;
     final creditCode = creditAccountCode ?? '1110';
     final creditAccount = accountIdByCode(accounts, creditCode)!;
     final creditCurrency = creditCode == '1110' ? 'PKR' : 'PKR';
@@ -143,7 +165,9 @@ abstract final class DraftLineBuilder {
         rateUsed: rateUsed,
         debitPkr: baseAmountPkr,
         creditPkr: 0,
-        memo: creditAccountCode != null ? 'Buy $currencyCode (credit)' : 'Buy $currencyCode',
+        memo: creditAccountCode != null
+            ? 'Buy $currencyCode (credit)'
+            : 'Buy $currencyCode',
       ),
       FxTransactionLineInput(
         lineNo: 2,
@@ -153,7 +177,9 @@ abstract final class DraftLineBuilder {
         rateUsed: 1,
         debitPkr: 0,
         creditPkr: baseAmountPkr,
-        memo: creditAccountCode != null ? 'Buy $currencyCode (credit)' : 'Buy $currencyCode',
+        memo: creditAccountCode != null
+            ? 'Buy $currencyCode (credit)'
+            : 'Buy $currencyCode',
       ),
     ];
   }
@@ -166,7 +192,10 @@ abstract final class DraftLineBuilder {
     double baseAmountPkr, {
     String? debitAccountCode,
   }) {
-    final foreignCash = accountIdByCode(accounts, cashCodeForCurrency(accounts, currencyCode))!;
+    final foreignCash = accountIdByCode(
+      accounts,
+      cashCodeForCurrency(accounts, currencyCode),
+    )!;
     final debitCode = debitAccountCode ?? '1110';
     final debitAccount = accountIdByCode(accounts, debitCode)!;
     return [
@@ -178,7 +207,9 @@ abstract final class DraftLineBuilder {
         rateUsed: 1,
         debitPkr: baseAmountPkr,
         creditPkr: 0,
-        memo: debitAccountCode != null ? 'Sell $currencyCode (credit)' : 'Sell $currencyCode',
+        memo: debitAccountCode != null
+            ? 'Sell $currencyCode (credit)'
+            : 'Sell $currencyCode',
       ),
       FxTransactionLineInput(
         lineNo: 2,
@@ -188,7 +219,9 @@ abstract final class DraftLineBuilder {
         rateUsed: rateUsed,
         debitPkr: 0,
         creditPkr: baseAmountPkr,
-        memo: debitAccountCode != null ? 'Sell $currencyCode (credit)' : 'Sell $currencyCode',
+        memo: debitAccountCode != null
+            ? 'Sell $currencyCode (credit)'
+            : 'Sell $currencyCode',
       ),
     ];
   }
@@ -296,8 +329,14 @@ abstract final class DraftLineBuilder {
     final baseOut = fromAmount * fromRate;
     final baseIn = toAmount * toRate;
     final spread = baseIn - baseOut;
-    final fromCash = accountIdByCode(accounts, cashCodeForCurrency(accounts, fromCurrency))!;
-    final toCash = accountIdByCode(accounts, cashCodeForCurrency(accounts, toCurrency))!;
+    final fromCash = accountIdByCode(
+      accounts,
+      cashCodeForCurrency(accounts, fromCurrency),
+    )!;
+    final toCash = accountIdByCode(
+      accounts,
+      cashCodeForCurrency(accounts, toCurrency),
+    )!;
 
     final lines = <FxTransactionLineInput>[
       FxTransactionLineInput(

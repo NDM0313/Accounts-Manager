@@ -43,10 +43,12 @@ class FxRateValuationSection extends ConsumerStatefulWidget {
   final String? Function(String?)? validator;
 
   @override
-  ConsumerState<FxRateValuationSection> createState() => _FxRateValuationSectionState();
+  ConsumerState<FxRateValuationSection> createState() =>
+      _FxRateValuationSectionState();
 }
 
-class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection> {
+class _FxRateValuationSectionState
+    extends ConsumerState<FxRateValuationSection> {
   bool _dealRateTouched = false;
   bool _forcePrefill = false;
 
@@ -74,7 +76,9 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
   }
 
   void _onDealRateChanged() {
-    widget.onDealRateChanged?.call(double.tryParse(widget.dealRateController.text));
+    widget.onDealRateChanged?.call(
+      double.tryParse(widget.dealRateController.text),
+    );
     setState(() {});
   }
 
@@ -88,9 +92,14 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
   }
 
   void _updateSuggestedPay(RatePairQuote quote, double? dealRate) {
-    if (widget.payAmountController == null || widget.receiveAmount == null) return;
+    if (widget.payAmountController == null || widget.receiveAmount == null) {
+      return;
+    }
     if (dealRate == null || dealRate <= 0) return;
-    final suggested = RatePairQuote.payFromReceive(widget.receiveAmount!, dealRate);
+    final suggested = RatePairQuote.payFromReceive(
+      widget.receiveAmount!,
+      dealRate,
+    );
     if (suggested != null && widget.payAmountController!.text.trim().isEmpty) {
       widget.payAmountController!.text = suggested.toStringAsFixed(2);
       widget.onSuggestedPayAmount?.call(suggested);
@@ -140,18 +149,23 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
         if (!mounted) return;
         _applySuggestedRate(quote, force: _forcePrefill);
         _forcePrefill = false;
-        _updateSuggestedPay(quote, double.tryParse(widget.dealRateController.text));
+        _updateSuggestedPay(
+          quote,
+          double.tryParse(widget.dealRateController.text),
+        );
       });
     }
 
     final dealRate = double.tryParse(widget.dealRateController.text);
     final spread = quote.spreadVsDeal(dealRate);
-    final receivePkr = widget.showPkrEquivalent &&
+    final receivePkr =
+        widget.showPkrEquivalent &&
             widget.receiveAmount != null &&
             widget.receiveAmount! > 0
         ? svc.pkrEquivalent(rates, widget.fromCurrency, widget.receiveAmount!)
         : null;
-    final payPkr = widget.showPkrEquivalent && widget.payAmountController != null
+    final payPkr =
+        widget.showPkrEquivalent && widget.payAmountController != null
         ? svc.pkrEquivalent(
             rates,
             widget.toCurrency,
@@ -159,7 +173,8 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
           )
         : null;
 
-    final calculatedPay = (widget.receiveAmount != null && dealRate != null && dealRate > 0)
+    final calculatedPay =
+        (widget.receiveAmount != null && dealRate != null && dealRate > 0)
         ? RatePairQuote.payFromReceive(widget.receiveAmount!, dealRate)
         : null;
 
@@ -178,39 +193,53 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
             children: [
               Text(
                 'Reference Rate',
-                style: AppTypography.labelCaps(context.fx.outline, context: context),
+                style: AppTypography.labelCaps(
+                  context.fx.outline,
+                  context: context,
+                ),
               ),
               const SizedBox(height: 6),
               if (!quote.isAvailable)
                 Text(
                   noRateMessage,
-                  style: AppTypography.bodyMd(context.fx.warning, context: context)
-                      .copyWith(fontSize: 12),
+                  style: AppTypography.bodyMd(
+                    context.fx.warning,
+                    context: context,
+                  ).copyWith(fontSize: 12),
                 )
               else ...[
                 Text(
                   quote.pairLabel,
-                  style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ),
                 ),
                 Text(
                   fmt.format(quote.referenceRate),
-                  style: AppTypography.headlineMd(context.fx.tertiary, context: context)
-                      .copyWith(fontSize: 18),
+                  style: AppTypography.headlineMd(
+                    context.fx.tertiary,
+                    context: context,
+                  ).copyWith(fontSize: 18),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     Text(
                       'Source: ${quote.source}',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)
-                          .copyWith(fontSize: 11),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                     if (quote.updatedByName != null) ...[
                       const SizedBox(width: 8),
                       Text(
                         '· ${quote.updatedByName}',
-                        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)
-                            .copyWith(fontSize: 11),
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 11),
                       ),
                     ],
                   ],
@@ -220,20 +249,28 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
                     widget.asOfDate != null
                         ? 'As of ${DateFormat.yMMMd().format(asOf)} · effective ${DateFormat.yMMMd().add_jm().format(quote.effectiveAt!.toLocal())}'
                         : 'Updated ${DateFormat.yMMMd().add_jm().format(quote.effectiveAt!.toLocal())}',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)
-                        .copyWith(fontSize: 11),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 11),
                   ),
                 if (quote.isStale)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber, size: 14, color: context.fx.warning),
+                        Icon(
+                          Icons.warning_amber,
+                          size: 14,
+                          color: context.fx.warning,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Rate may be outdated',
-                          style: AppTypography.bodyMd(context.fx.warning, context: context)
-                              .copyWith(fontSize: 11),
+                          style: AppTypography.bodyMd(
+                            context.fx.warning,
+                            context: context,
+                          ).copyWith(fontSize: 11),
                         ),
                       ],
                     ),
@@ -241,8 +278,10 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
                 if (quote.lookupMethod == RateLookupMethod.crossViaPkr)
                   Text(
                     'Derived via PKR cross rate',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)
-                        .copyWith(fontSize: 10),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 10),
                   ),
               ],
             ],
@@ -282,7 +321,10 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
           FxObsidianReportPanel(
             child: Text(
               'Calculated pay amount: ${fmt.format(calculatedPay)} ${widget.toCurrency}',
-              style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+              style: AppTypography.bodyMd(
+                context.fx.onSurface,
+                context: context,
+              ),
             ),
           ),
         ],
@@ -294,25 +336,35 @@ class _FxRateValuationSectionState extends ConsumerState<FxRateValuationSection>
               children: [
                 Text(
                   'PKR Equivalent',
-                  style: AppTypography.labelCaps(context.fx.outline, context: context),
+                  style: AppTypography.labelCaps(
+                    context.fx.outline,
+                    context: context,
+                  ),
                 ),
                 if (receivePkr != null)
                   Text(
                     'Receive side: PKR ${fmt.format(receivePkr)}',
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context)
-                        .copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 12),
                   )
-                else if (widget.receiveAmount != null && widget.receiveAmount! > 0)
+                else if (widget.receiveAmount != null &&
+                    widget.receiveAmount! > 0)
                   Text(
                     'PKR reference not available for ${widget.fromCurrency}',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)
-                        .copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 12),
                   ),
                 if (payPkr != null && payPkr > 0)
                   Text(
                     'Pay side: PKR ${fmt.format(payPkr)}',
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context)
-                        .copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 12),
                   ),
               ],
             ),
@@ -368,7 +420,10 @@ class _SpreadBadge extends StatelessWidget {
       ),
       child: Text(
         'Spread vs reference: $sign${fmt.format(spread.absoluteDiff)} ($sign${spread.percentDiff.toStringAsFixed(2)}%)',
-        style: AppTypography.bodyMd(color, context: context).copyWith(fontSize: 12),
+        style: AppTypography.bodyMd(
+          color,
+          context: context,
+        ).copyWith(fontSize: 12),
       ),
     );
   }

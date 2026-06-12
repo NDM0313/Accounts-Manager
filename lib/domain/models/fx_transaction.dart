@@ -26,18 +26,18 @@ enum FxTransactionType {
   }
 
   String get label => switch (this) {
-        openingBalance => 'Opening Balance',
-        accountTransfer => 'Account Transfer',
-        expense => 'Expense',
-        currencyBuy => 'Currency Buy',
-        currencySell => 'Currency Sell',
-        crossCurrency => 'Cross Currency',
-        settlementSend => 'Settlement Send',
-        settlementReceive => 'Settlement Receive',
-        revaluation => 'Revaluation',
-        manualJournal => 'Manual Journal',
-        dailyClosingAdjustment => 'Closing Adjustment',
-      };
+    openingBalance => 'Opening Balance',
+    accountTransfer => 'Account Transfer',
+    expense => 'Expense',
+    currencyBuy => 'Currency Buy',
+    currencySell => 'Currency Sell',
+    crossCurrency => 'Cross Currency',
+    settlementSend => 'Settlement Send',
+    settlementReceive => 'Settlement Receive',
+    revaluation => 'Revaluation',
+    manualJournal => 'Manual Journal',
+    dailyClosingAdjustment => 'Closing Adjustment',
+  };
 
   bool get isSettlement => this == settlementSend || this == settlementReceive;
 }
@@ -85,13 +85,20 @@ class FxTransaction {
   bool get isPosted => status == 'posted';
   bool get isVoided => status == 'voided';
 
-  factory FxTransaction.fromJson(Map<String, dynamic> json, {List<FxTransactionLine>? lines}) {
+  factory FxTransaction.fromJson(
+    Map<String, dynamic> json, {
+    List<FxTransactionLine>? lines,
+  }) {
     final rawLines = json['fx_transaction_lines'] as List?;
-    final parsedLines = lines ??
+    final parsedLines =
+        lines ??
         (rawLines == null
-            ? <FxTransactionLine>[]
-            : rawLines.cast<Map<String, dynamic>>().map(FxTransactionLine.fromJson).toList()
-              ..sort((a, b) => a.lineNo.compareTo(b.lineNo)));
+              ? <FxTransactionLine>[]
+              : rawLines
+                    .cast<Map<String, dynamic>>()
+                    .map(FxTransactionLine.fromJson)
+                    .toList()
+          ..sort((a, b) => a.lineNo.compareTo(b.lineNo)));
 
     final partyJson = json['fx_parties'];
     String? partyName;
@@ -103,7 +110,9 @@ class FxTransaction {
 
     return FxTransaction(
       id: json['id'] as String,
-      transactionType: FxTransactionType.fromDb(json['transaction_type'] as String)!,
+      transactionType: FxTransactionType.fromDb(
+        json['transaction_type'] as String,
+      )!,
       status: json['status'] as String,
       transactionNo: json['transaction_no'] as String?,
       transactionDate: DateTime.parse(json['transaction_date'] as String),
@@ -116,8 +125,12 @@ class FxTransaction {
       partyName: partyName,
       partyCode: partyCode,
       exchangeGroupId: json['exchange_group_id'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
-      postedAt: json['posted_at'] != null ? DateTime.parse(json['posted_at'] as String) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      postedAt: json['posted_at'] != null
+          ? DateTime.parse(json['posted_at'] as String)
+          : null,
       lines: parsedLines,
     );
   }

@@ -54,6 +54,9 @@ class CurrencyRepository {
   }
 
   Future<void> deactivateCurrency(String code) async {
-    await supabase.rpc('fx_deactivate_currency', params: {'p_code': code.toUpperCase().trim()});
+    await supabase.rpc(
+      'fx_deactivate_currency',
+      params: {'p_code': code.toUpperCase().trim()},
+    );
   }
 }

@@ -41,7 +41,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created. You can sign in now.')),
+            const SnackBar(
+              content: Text('Account created. You can sign in now.'),
+            ),
           );
         }
       } else {
@@ -74,17 +76,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.account_balance_wallet, size: 48, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.account_balance_wallet,
+                      size: 48,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Executive FX Ledger',
-                      style: AppTypography.headlineLg(theme.colorScheme.onSurface, context: context),
+                      style: AppTypography.headlineLg(
+                        theme.colorScheme.onSurface,
+                        context: context,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in to your private ledger',
-                      style: AppTypography.bodyMd(theme.colorScheme.onSurfaceVariant, context: context),
+                      style: AppTypography.bodyMd(
+                        theme.colorScheme.onSurfaceVariant,
+                        context: context,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -92,16 +104,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (v) =>
-                          v != null && v.contains('@') ? null : 'Enter a valid email',
+                      validator: (v) => v != null && v.contains('@')
+                          ? null
+                          : 'Enter a valid email',
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (v) =>
-                          v != null && v.length >= 6 ? null : 'Minimum 6 characters',
+                      validator: (v) => v != null && v.length >= 6
+                          ? null
+                          : 'Minimum 6 characters',
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 16),
@@ -109,12 +123,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: context.fx.errorContainer,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                          border: Border.all(color: context.fx.error.withValues(alpha: 0.3)),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: context.fx.error.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Text(
                           _error!,
-                          style: AppTypography.bodyMd(context.fx.error, context: context),
+                          style: AppTypography.bodyMd(
+                            context.fx.error,
+                            context: context,
+                          ),
                         ),
                       ),
                     ],

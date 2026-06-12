@@ -4,7 +4,8 @@ import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/services/reporting_currency_converter.dart';
 import 'package:share_plus/share_plus.dart';
 
-export 'transaction_receipt.dart' show formatTransactionReceipt, shareTransactionReceipt;
+export 'transaction_receipt.dart'
+    show formatTransactionReceipt, shareTransactionReceipt;
 
 String formatCoaCsv(List<FxAccount> accounts) {
   final buf = StringBuffer('Code,Name,Type,Active,Currency\n');
@@ -21,9 +22,14 @@ String formatTrialBalanceCsv(
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
 }) {
-  final includeDisplay = converter != null && !converter.isDisplayBase && view != ReportCurrencyView.base;
+  final includeDisplay =
+      converter != null &&
+      !converter.isDisplayBase &&
+      view != ReportCurrencyView.base;
   final buf = StringBuffer(
-    includeDisplay ? 'Account Code,Account Name,Debit PKR,Credit PKR,Net PKR,Net Display\n' : 'Account Code,Account Name,Debit PKR,Credit PKR,Net PKR\n',
+    includeDisplay
+        ? 'Account Code,Account Name,Debit PKR,Credit PKR,Net PKR,Net Display\n'
+        : 'Account Code,Account Name,Debit PKR,Credit PKR,Net PKR\n',
   );
   for (final r in rows) {
     if (includeDisplay) {
@@ -32,7 +38,9 @@ String formatTrialBalanceCsv(
         '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.debitPkr},${r.creditPkr},${r.netPkr},$displayNet',
       );
     } else {
-      buf.writeln('${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.debitPkr},${r.creditPkr},${r.netPkr}');
+      buf.writeln(
+        '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.debitPkr},${r.creditPkr},${r.netPkr}',
+      );
     }
   }
   return buf.toString();
@@ -43,9 +51,14 @@ String formatBalanceSheetCsv(
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
 }) {
-  final includeDisplay = converter != null && !converter.isDisplayBase && view != ReportCurrencyView.base;
+  final includeDisplay =
+      converter != null &&
+      !converter.isDisplayBase &&
+      view != ReportCurrencyView.base;
   final buf = StringBuffer(
-    includeDisplay ? 'Account Code,Account Name,Type,Balance PKR,Balance Display\n' : 'Account Code,Account Name,Type,Balance PKR\n',
+    includeDisplay
+        ? 'Account Code,Account Name,Type,Balance PKR,Balance Display\n'
+        : 'Account Code,Account Name,Type,Balance PKR\n',
   );
   for (final r in rows) {
     if (includeDisplay) {
@@ -53,7 +66,9 @@ String formatBalanceSheetCsv(
         '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.balancePkr},${_displayAmount(r.balancePkr, converter, view)}',
       );
     } else {
-      buf.writeln('${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.balancePkr}');
+      buf.writeln(
+        '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.balancePkr}',
+      );
     }
   }
   return buf.toString();
@@ -64,9 +79,14 @@ String formatProfitLossCsv(
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
 }) {
-  final includeDisplay = converter != null && !converter.isDisplayBase && view != ReportCurrencyView.base;
+  final includeDisplay =
+      converter != null &&
+      !converter.isDisplayBase &&
+      view != ReportCurrencyView.base;
   final buf = StringBuffer(
-    includeDisplay ? 'Account Code,Account Name,Type,Amount PKR,Amount Display\n' : 'Account Code,Account Name,Type,Amount PKR\n',
+    includeDisplay
+        ? 'Account Code,Account Name,Type,Amount PKR,Amount Display\n'
+        : 'Account Code,Account Name,Type,Amount PKR\n',
   );
   for (final r in rows) {
     if (includeDisplay) {
@@ -74,7 +94,9 @@ String formatProfitLossCsv(
         '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.amountPkr},${_displayAmount(r.amountPkr, converter, view)}',
       );
     } else {
-      buf.writeln('${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.amountPkr}');
+      buf.writeln(
+        '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.accountType},${r.amountPkr}',
+      );
     }
   }
   return buf.toString();
@@ -85,15 +107,24 @@ String formatCurrencyPositionCsv(
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
 }) {
-  final includeDisplay = converter != null && !converter.isDisplayBase && view != ReportCurrencyView.base;
+  final includeDisplay =
+      converter != null &&
+      !converter.isDisplayBase &&
+      view != ReportCurrencyView.base;
   final buf = StringBuffer(
-    includeDisplay ? 'Currency,Foreign Balance,PKR Equivalent,Display Equivalent\n' : 'Currency,Foreign Balance,PKR Equivalent\n',
+    includeDisplay
+        ? 'Currency,Foreign Balance,PKR Equivalent,Display Equivalent\n'
+        : 'Currency,Foreign Balance,PKR Equivalent\n',
   );
   for (final r in rows) {
     if (includeDisplay) {
-      buf.writeln('${r.currencyCode},${r.foreignBalance},${r.baseEquivalentPkr},${_displayAmount(r.baseEquivalentPkr, converter, view)}');
+      buf.writeln(
+        '${r.currencyCode},${r.foreignBalance},${r.baseEquivalentPkr},${_displayAmount(r.baseEquivalentPkr, converter, view)}',
+      );
     } else {
-      buf.writeln('${r.currencyCode},${r.foreignBalance},${r.baseEquivalentPkr}');
+      buf.writeln(
+        '${r.currencyCode},${r.foreignBalance},${r.baseEquivalentPkr}',
+      );
     }
   }
   return buf.toString();
@@ -104,7 +135,10 @@ String formatAccountStatementCsv(
   ReportingCurrencyConverter? converter,
   ReportCurrencyView viewMode = ReportCurrencyView.base,
 }) {
-  final includeDisplay = converter != null && !converter.isDisplayBase && viewMode != ReportCurrencyView.base;
+  final includeDisplay =
+      converter != null &&
+      !converter.isDisplayBase &&
+      viewMode != ReportCurrencyView.base;
   final buf = StringBuffer(
     includeDisplay
         ? 'Date,Ref,Description,Debit PKR,Credit PKR,Balance PKR,Balance Display\n'
@@ -125,17 +159,27 @@ String formatAccountStatementCsv(
 }
 
 String formatDailyClosingCsv(List<ClosingPreviewRow> rows) {
-  final buf = StringBuffer('Account Code,Account Name,Currency,Closing Balance\n');
+  final buf = StringBuffer(
+    'Account Code,Account Name,Currency,Closing Balance\n',
+  );
   for (final r in rows) {
-    buf.writeln('${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.currencyCode},${r.systemBalance}');
+    buf.writeln(
+      '${r.accountCode},"${r.accountName.replaceAll('"', '""')}",${r.currencyCode},${r.systemBalance}',
+    );
   }
   return buf.toString();
 }
 
-String _displayAmount(double pkrAmount, ReportingCurrencyConverter converter, ReportCurrencyView view) {
+String _displayAmount(
+  double pkrAmount,
+  ReportingCurrencyConverter converter,
+  ReportCurrencyView view,
+) {
   if (view == ReportCurrencyView.base) return pkrAmount.toStringAsFixed(2);
   final c = converter.convertFromPkr(pkrAmount);
-  if (view == ReportCurrencyView.display) return c.displayAmount.toStringAsFixed(2);
+  if (view == ReportCurrencyView.display) {
+    return c.displayAmount.toStringAsFixed(2);
+  }
   return '${pkrAmount.toStringAsFixed(2)} / ${c.displayAmount.toStringAsFixed(2)}';
 }
 

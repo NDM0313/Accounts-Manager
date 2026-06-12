@@ -3,7 +3,11 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class FxResultAction {
-  const FxResultAction({required this.label, required this.onPressed, this.filled = false});
+  const FxResultAction({
+    required this.label,
+    required this.onPressed,
+    this.filled = false,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -17,7 +21,11 @@ abstract final class FxSuccessFeedback {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: context.fx.onPrimary, size: 20),
+            Icon(
+              Icons.check_circle_outline,
+              color: context.fx.onPrimary,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
@@ -41,7 +49,9 @@ abstract final class FxSuccessFeedback {
         return Container(
           decoration: BoxDecoration(
             color: context.fx.surfaceContainer,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppSpacing.radiusXl),
+            ),
             border: Border.all(color: context.fx.outlineVariant),
           ),
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -52,11 +62,20 @@ abstract final class FxSuccessFeedback {
               children: [
                 Icon(Icons.check_circle, color: context.fx.tertiary, size: 48),
                 const SizedBox(height: 12),
-                Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                Text(
+                  title,
+                  style: AppTypography.headlineMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   body,
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -66,8 +85,14 @@ abstract final class FxSuccessFeedback {
                     child: SizedBox(
                       width: double.infinity,
                       child: a.filled
-                          ? FilledButton(onPressed: a.onPressed, child: Text(a.label))
-                          : OutlinedButton(onPressed: a.onPressed, child: Text(a.label)),
+                          ? FilledButton(
+                              onPressed: a.onPressed,
+                              child: Text(a.label),
+                            )
+                          : OutlinedButton(
+                              onPressed: a.onPressed,
+                              child: Text(a.label),
+                            ),
                     ),
                   ),
                 ),

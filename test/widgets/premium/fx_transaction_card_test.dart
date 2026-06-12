@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('FxTransactionCard shows party, amount, and status', (tester) async {
+  testWidgets('FxTransactionCard shows party, amount, and status', (
+    tester,
+  ) async {
     final now = DateTime(2026, 6, 10, 14, 30);
     final tx = FxTransaction(
       id: 'tx-abc12345',
@@ -25,10 +27,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: FxTransactionCard(
-            transaction: tx,
-            onTap: () => tapped = true,
-          ),
+          body: FxTransactionCard(transaction: tx, onTap: () => tapped = true),
         ),
       ),
     );

@@ -25,15 +25,22 @@ Future<void> exportTrialBalanceReport(
   final csv = formatTrialBalanceCsv(rows, converter: converter, view: view);
   final text = _textFromCsv(csv, title: 'Trial Balance as of $dateLabel');
   final pdfRows = rows
-      .map((r) => [
-            r.accountCode,
-            r.accountName,
-            fmt.format(r.debitPkr),
-            fmt.format(r.creditPkr),
-            converter != null
-                ? formatReportAmount(pkrAmount: r.netPkr, converter: converter, view: view, fmt: fmt)
-                : fmt.format(r.netPkr),
-          ])
+      .map(
+        (r) => [
+          r.accountCode,
+          r.accountName,
+          fmt.format(r.debitPkr),
+          fmt.format(r.creditPkr),
+          converter != null
+              ? formatReportAmount(
+                  pkrAmount: r.netPkr,
+                  converter: converter,
+                  view: view,
+                  fmt: fmt,
+                )
+              : fmt.format(r.netPkr),
+        ],
+      )
       .toList();
   final pdf = await buildSimpleReportPdf(
     title: 'Trial Balance',
@@ -71,14 +78,21 @@ Future<void> exportBalanceSheetReport(
   final csv = formatBalanceSheetCsv(rows, converter: converter, view: view);
   final text = _textFromCsv(csv, title: 'Balance Sheet as of $dateLabel');
   final pdfRows = rows
-      .map((r) => [
-            r.accountCode,
-            r.accountName,
-            r.accountType,
-            converter != null
-                ? formatReportAmount(pkrAmount: r.balancePkr, converter: converter, view: view, fmt: fmt)
-                : fmt.format(r.balancePkr),
-          ])
+      .map(
+        (r) => [
+          r.accountCode,
+          r.accountName,
+          r.accountType,
+          converter != null
+              ? formatReportAmount(
+                  pkrAmount: r.balancePkr,
+                  converter: converter,
+                  view: view,
+                  fmt: fmt,
+                )
+              : fmt.format(r.balancePkr),
+        ],
+      )
       .toList();
   final pdf = await buildSimpleReportPdf(
     title: 'Balance Sheet',
@@ -108,23 +122,30 @@ Future<void> exportProfitLossReport(
   ReportCurrencyView view = ReportCurrencyView.base,
 }) async {
   if (rows.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No P&L data to export.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('No P&L data to export.')));
     return;
   }
   final fmt = NumberFormat('#,##0.00');
   final csv = formatProfitLossCsv(rows, converter: converter, view: view);
   final text = _textFromCsv(csv, title: 'Profit & Loss $fromLabel → $toLabel');
   final pdfRows = rows
-      .map((r) => [
-            r.accountCode,
-            r.accountName,
-            r.accountType,
-            converter != null
-                ? formatReportAmount(pkrAmount: r.amountPkr, converter: converter, view: view, fmt: fmt)
-                : fmt.format(r.amountPkr),
-          ])
+      .map(
+        (r) => [
+          r.accountCode,
+          r.accountName,
+          r.accountType,
+          converter != null
+              ? formatReportAmount(
+                  pkrAmount: r.amountPkr,
+                  converter: converter,
+                  view: view,
+                  fmt: fmt,
+                )
+              : fmt.format(r.amountPkr),
+        ],
+      )
       .toList();
   final pdf = await buildSimpleReportPdf(
     title: 'Profit & Loss',
@@ -162,13 +183,20 @@ Future<void> exportCurrencyPositionReport(
   final csv = formatCurrencyPositionCsv(rows, converter: converter, view: view);
   final text = _textFromCsv(csv, title: 'Currency Position as of $dateLabel');
   final pdfRows = rows
-      .map((r) => [
-            r.currencyCode,
-            fmt.format(r.foreignBalance),
-            converter != null
-                ? formatReportAmount(pkrAmount: r.baseEquivalentPkr, converter: converter, view: view, fmt: fmt)
-                : fmt.format(r.baseEquivalentPkr),
-          ])
+      .map(
+        (r) => [
+          r.currencyCode,
+          fmt.format(r.foreignBalance),
+          converter != null
+              ? formatReportAmount(
+                  pkrAmount: r.baseEquivalentPkr,
+                  converter: converter,
+                  view: view,
+                  fmt: fmt,
+                )
+              : fmt.format(r.baseEquivalentPkr),
+        ],
+      )
       .toList();
   final pdf = await buildSimpleReportPdf(
     title: 'Currency Position',
@@ -204,17 +232,26 @@ Future<void> exportAccountStatementReport(
   final fmt = NumberFormat('#,##0.00');
   final fromLabel = view.from.toIso8601String().split('T').first;
   final toLabel = view.to.toIso8601String().split('T').first;
-  final csv = formatAccountStatementCsv(view, converter: converter, viewMode: currencyView);
-  final text = _textFromCsv(csv, title: '${view.accountCode} · ${view.accountName} ($fromLabel → $toLabel)');
+  final csv = formatAccountStatementCsv(
+    view,
+    converter: converter,
+    viewMode: currencyView,
+  );
+  final text = _textFromCsv(
+    csv,
+    title: '${view.accountCode} · ${view.accountName} ($fromLabel → $toLabel)',
+  );
   final pdfRows = view.lines
-      .map((l) => [
-            l.entryDate.toIso8601String().split('T').first,
-            l.entryNo,
-            l.description ?? '',
-            fmt.format(l.debitPkr),
-            fmt.format(l.creditPkr),
-            fmt.format(l.runningBalancePkr),
-          ])
+      .map(
+        (l) => [
+          l.entryDate.toIso8601String().split('T').first,
+          l.entryNo,
+          l.description ?? '',
+          fmt.format(l.debitPkr),
+          fmt.format(l.creditPkr),
+          fmt.format(l.runningBalancePkr),
+        ],
+      )
       .toList();
   final pdf = await buildStatementPdf(
     title: 'Account Statement',
@@ -222,8 +259,12 @@ Future<void> exportAccountStatementReport(
     periodLabel: '$fromLabel → $toLabel',
     displayCurrency: converter?.displayCurrencyCode ?? 'PKR',
     lineRows: pdfRows,
-    totalDebit: view.lines.fold<double>(0, (s, l) => s + l.debitPkr).toStringAsFixed(2),
-    totalCredit: view.lines.fold<double>(0, (s, l) => s + l.creditPkr).toStringAsFixed(2),
+    totalDebit: view.lines
+        .fold<double>(0, (s, l) => s + l.debitPkr)
+        .toStringAsFixed(2),
+    totalCredit: view.lines
+        .fold<double>(0, (s, l) => s + l.creditPkr)
+        .toStringAsFixed(2),
     closingBalance: view.closingBalancePkr.toStringAsFixed(2),
   );
   if (!context.mounted) return;
@@ -245,19 +286,28 @@ Future<void> exportDailyClosingReport(
   required String dateLabel,
 }) async {
   if (rows.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No closing data to export.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('No closing data to export.')));
     return;
   }
   final fmt = NumberFormat('#,##0.00');
   final csv = formatDailyClosingCsv(rows);
   final buf = StringBuffer('Daily Closing Report — $dateLabel\n\n');
   for (final r in rows) {
-    buf.writeln('${r.accountCode} · ${r.accountName} (${r.currencyCode}): ${fmt.format(r.systemBalance)}');
+    buf.writeln(
+      '${r.accountCode} · ${r.accountName} (${r.currencyCode}): ${fmt.format(r.systemBalance)}',
+    );
   }
   final pdfRows = rows
-      .map((r) => [r.accountCode, r.accountName, r.currencyCode, fmt.format(r.systemBalance)])
+      .map(
+        (r) => [
+          r.accountCode,
+          r.accountName,
+          r.currencyCode,
+          fmt.format(r.systemBalance),
+        ],
+      )
       .toList();
   final pdf = await buildSimpleReportPdf(
     title: 'Daily Closing',

@@ -68,11 +68,12 @@ class FxJournalEntry {
 
   factory FxJournalEntry.fromJson(Map<String, dynamic> json) {
     final rawLines = json['fx_journal_lines'] as List? ?? [];
-    final lines = rawLines
-        .cast<Map<String, dynamic>>()
-        .map(FxJournalLine.fromJson)
-        .toList()
-      ..sort((a, b) => a.lineNo.compareTo(b.lineNo));
+    final lines =
+        rawLines
+            .cast<Map<String, dynamic>>()
+            .map(FxJournalLine.fromJson)
+            .toList()
+          ..sort((a, b) => a.lineNo.compareTo(b.lineNo));
 
     return FxJournalEntry(
       id: json['id'] as String,

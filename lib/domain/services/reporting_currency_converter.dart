@@ -11,12 +11,14 @@ class ReportingCurrencyConverter {
 
   final String baseCurrencyCode;
   final String displayCurrencyCode;
+
   /// PKR per 1 unit of [displayCurrencyCode] when display is foreign (buy rate).
   final double? rateToBase;
 
   bool get isDisplayBase => displayCurrencyCode == baseCurrencyCode;
 
-  bool get hasConversionRate => isDisplayBase || (rateToBase != null && rateToBase! > 0);
+  bool get hasConversionRate =>
+      isDisplayBase || (rateToBase != null && rateToBase! > 0);
 
   /// Converts a PKR amount to display currency.
   ConvertedAmount convertFromPkr(double pkrAmount) {

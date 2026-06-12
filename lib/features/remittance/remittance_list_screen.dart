@@ -69,7 +69,10 @@ class RemittanceListScreen extends ConsumerWidget {
             child: Text(
               'Unable to load remittances.\nApply migration 202606230001 if tables are missing.\n\n$e',
               textAlign: TextAlign.center,
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
             ),
           ),
         ),
@@ -79,7 +82,10 @@ class RemittanceListScreen extends ConsumerWidget {
               child: Text(
                 'No remittance orders yet.\nTrack hawala / payout orders separately from FX deals.',
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
             );
           }
@@ -116,17 +122,32 @@ class _RemittanceCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       r.trackingId,
-                      style: AppTypography.headlineSm(context.fx.onSurface, context: context).copyWith(fontSize: 14),
+                      style: AppTypography.headlineSm(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 14),
                     ),
                   ),
-                  FxStatusBadge(label: r.status.label, tone: FxStatusBadge.fromString(r.status.dbValue)),
+                  FxStatusBadge(
+                    label: r.status.label,
+                    tone: FxStatusBadge.fromString(r.status.dbValue),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
-              Text('To: ${r.receiverName}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              Text(
+                'To: ${r.receiverName}',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
               Text(
                 '${r.receiveCurrency} ${fmt.format(r.receiveAmount)} → ${r.payoutCurrency} ${fmt.format(r.payoutAmount)}',
-                style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontSize: 12),
               ),
             ],
           ),

@@ -23,16 +23,16 @@ enum FxDealLegType {
   }
 
   String get label => switch (this) {
-        customerOrder => 'Customer Order',
-        customerPayment => 'Customer Payment',
-        sourcingRequirement => 'Sourcing Requirement',
-        agentSource => 'Agent Source',
-        crossCurrencySource => 'Cross-Currency Source',
-        agentPayment => 'Agent Payment',
-        currencyReceipt => 'Currency Receipt',
-        delivery => 'Delivery',
-        adjustment => 'Adjustment',
-      };
+    customerOrder => 'Customer Order',
+    customerPayment => 'Customer Payment',
+    sourcingRequirement => 'Sourcing Requirement',
+    agentSource => 'Agent Source',
+    crossCurrencySource => 'Cross-Currency Source',
+    agentPayment => 'Agent Payment',
+    currencyReceipt => 'Currency Receipt',
+    delivery => 'Delivery',
+    adjustment => 'Adjustment',
+  };
 }
 
 enum FxDealLegStatus {
@@ -54,12 +54,12 @@ enum FxDealLegStatus {
   }
 
   String get label => switch (this) {
-        pending => 'Pending',
-        partial => 'Partial',
-        completed => 'Completed',
-        failed => 'Failed',
-        reversed => 'Reversed',
-      };
+    pending => 'Pending',
+    partial => 'Partial',
+    completed => 'Completed',
+    failed => 'Failed',
+    reversed => 'Reversed',
+  };
 }
 
 enum FxDeliveryTarget {
@@ -79,10 +79,10 @@ enum FxDeliveryTarget {
   }
 
   String get label => switch (this) {
-        ourAccount => 'Our Account',
-        directToCustomer => 'Direct to Customer',
-        tt => 'TT',
-      };
+    ourAccount => 'Our Account',
+    directToCustomer => 'Direct to Customer',
+    tt => 'TT',
+  };
 }
 
 class FxDealLeg {
@@ -141,10 +141,18 @@ class FxDealLeg {
       id: json['leg_id'] as String? ?? json['id'] as String,
       dealId: json['deal_id'] as String? ?? '',
       legNo: (json['leg_no'] as num).toInt(),
-      legType: FxDealLegType.fromDb(json['leg_type'] as String?) ?? FxDealLegType.adjustment,
-      status: FxDealLegStatus.fromDb(json['leg_status'] as String? ?? json['status'] as String?) ?? FxDealLegStatus.pending,
+      legType:
+          FxDealLegType.fromDb(json['leg_type'] as String?) ??
+          FxDealLegType.adjustment,
+      status:
+          FxDealLegStatus.fromDb(
+            json['leg_status'] as String? ?? json['status'] as String?,
+          ) ??
+          FxDealLegStatus.pending,
       counterpartyPartyId: json['counterparty_party_id'] as String?,
-      counterpartyName: json['counterparty_name'] as String? ?? (json['fx_parties'] as Map<String, dynamic>?)?['name'] as String?,
+      counterpartyName:
+          json['counterparty_name'] as String? ??
+          (json['fx_parties'] as Map<String, dynamic>?)?['name'] as String?,
       receiveCurrency: json['receive_currency'] as String?,
       receiveAmount: (json['receive_amount'] as num?)?.toDouble() ?? 0,
       payCurrency: json['pay_currency'] as String?,
@@ -152,14 +160,20 @@ class FxDealLeg {
       rateUsed: (json['rate_used'] as num?)?.toDouble(),
       paidAmount: (json['paid_amount'] as num?)?.toDouble() ?? 0,
       remainingAmount: (json['remaining_amount'] as num?)?.toDouble() ?? 0,
-      deliveryTarget: FxDeliveryTarget.fromDb(json['delivery_target'] as String?),
+      deliveryTarget: FxDeliveryTarget.fromDb(
+        json['delivery_target'] as String?,
+      ),
       linkedTransactionId: json['linked_transaction_id'] as String?,
       linkedTransactionNo: json['linked_transaction_no'] as String?,
       parentLegId: json['parent_leg_id'] as String?,
       proofReference: json['proof_reference'] as String?,
       notes: json['notes'] as String?,
-      completedAt: json['completed_at'] != null ? DateTime.parse(json['completed_at'] as String) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'] as String)
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
       attachmentCount: (json['attachment_count'] as num?)?.toInt() ?? 0,
     );
   }
@@ -190,7 +204,9 @@ class PartyDealOpenItem {
     return PartyDealOpenItem(
       dealId: json['deal_id'] as String,
       dealNo: json['deal_no'] as String?,
-      dealStatus: FxDealStatus.fromDb(json['deal_status'] as String?) ?? FxDealStatus.booked,
+      dealStatus:
+          FxDealStatus.fromDb(json['deal_status'] as String?) ??
+          FxDealStatus.booked,
       sellCurrency: json['sell_currency'] as String?,
       sellAmount: (json['sell_amount'] as num?)?.toDouble() ?? 0,
       payablePkr: (json['customer_payable_pkr'] as num?)?.toDouble() ?? 0,

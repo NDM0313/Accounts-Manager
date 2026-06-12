@@ -158,10 +158,16 @@ class RateSuggestionService {
     }
 
     final crossRef = fromQuote.referenceRate / toQuote.referenceRate;
-    final crossBuy = fromQuote.buyRate != null && toQuote.sellRate != null && toQuote.sellRate! > 0
+    final crossBuy =
+        fromQuote.buyRate != null &&
+            toQuote.sellRate != null &&
+            toQuote.sellRate! > 0
         ? fromQuote.buyRate! / toQuote.sellRate!
         : null;
-    final crossSell = fromQuote.sellRate != null && toQuote.buyRate != null && toQuote.buyRate! > 0
+    final crossSell =
+        fromQuote.sellRate != null &&
+            toQuote.buyRate != null &&
+            toQuote.buyRate! > 0
         ? fromQuote.sellRate! / toQuote.buyRate!
         : null;
 
@@ -208,7 +214,12 @@ class RateSuggestionService {
   }
 
   /// PKR equivalent for an amount in [currency].
-  double? pkrEquivalent(List<FxRate> rates, String currency, double amount, {RateSide side = RateSide.reference}) {
+  double? pkrEquivalent(
+    List<FxRate> rates,
+    String currency,
+    double amount, {
+    RateSide side = RateSide.reference,
+  }) {
     if (amount <= 0) return null;
     final norm = normalize(currency);
     if (norm == baseCurrency) return amount;
@@ -225,38 +236,42 @@ class RateSuggestionService {
       final row = _findRate(rates, code);
       final quote = pkrQuote(rates, code, now: now);
       if (!quote.isAvailable) continue;
-      result.add(RateBoardPair(
-        pairLabel: '${normalize(code)}/PKR',
-        fromCurrency: normalize(code),
-        toCurrency: baseCurrency,
-        referenceRate: quote.referenceRate,
-        buyRate: quote.buyRate,
-        sellRate: quote.sellRate,
-        source: quote.source,
-        effectiveAt: quote.effectiveAt,
-        isStale: quote.isStale,
-        updatedByName: quote.updatedByName,
-        lookupMethod: RateLookupMethod.directPkr,
-        rateId: row?.id,
-      ));
+      result.add(
+        RateBoardPair(
+          pairLabel: '${normalize(code)}/PKR',
+          fromCurrency: normalize(code),
+          toCurrency: baseCurrency,
+          referenceRate: quote.referenceRate,
+          buyRate: quote.buyRate,
+          sellRate: quote.sellRate,
+          source: quote.source,
+          effectiveAt: quote.effectiveAt,
+          isStale: quote.isStale,
+          updatedByName: quote.updatedByName,
+          lookupMethod: RateLookupMethod.directPkr,
+          rateId: row?.id,
+        ),
+      );
     }
 
     for (final (from, to) in dashboardCrossPairs) {
       final quote = resolvePair(rates, from, to, now: now);
       if (!quote.isAvailable) continue;
-      result.add(RateBoardPair(
-        pairLabel: '$from/$to',
-        fromCurrency: from,
-        toCurrency: to,
-        referenceRate: quote.referenceRate,
-        buyRate: quote.buyRate,
-        sellRate: quote.sellRate,
-        source: quote.source,
-        effectiveAt: quote.effectiveAt,
-        isStale: quote.isStale,
-        isDerived: true,
-        lookupMethod: quote.lookupMethod,
-      ));
+      result.add(
+        RateBoardPair(
+          pairLabel: '$from/$to',
+          fromCurrency: from,
+          toCurrency: to,
+          referenceRate: quote.referenceRate,
+          buyRate: quote.buyRate,
+          sellRate: quote.sellRate,
+          source: quote.source,
+          effectiveAt: quote.effectiveAt,
+          isStale: quote.isStale,
+          isDerived: true,
+          lookupMethod: quote.lookupMethod,
+        ),
+      );
     }
 
     return result;
@@ -275,7 +290,16 @@ class RateSuggestionService {
     DateTime asOf, {
     RateSide side = RateSide.reference,
   }) {
-    final asOfRates = RateHistoryUtils.latestPerCurrencyAsOf(allRatesNewestFirst, endOfDay(asOf));
-    return resolvePair(asOfRates, fromCurrency, toCurrency, side: side, now: asOf);
+    final asOfRates = RateHistoryUtils.latestPerCurrencyAsOf(
+      allRatesNewestFirst,
+      endOfDay(asOf),
+    );
+    return resolvePair(
+      asOfRates,
+      fromCurrency,
+      toCurrency,
+      side: side,
+      now: asOf,
+    );
   }
 }

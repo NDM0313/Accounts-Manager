@@ -33,7 +33,9 @@ class SourcingRequirementScreen extends ConsumerWidget {
         data: (deal) {
           if (deal == null) return const Center(child: Text('Deal not found'));
           final sourcingLeg = timelineAsync.whenOrNull(
-            data: (legs) => legs.where((l) => l.legType == FxDealLegType.sourcingRequirement).firstOrNull,
+            data: (legs) => legs
+                .where((l) => l.legType == FxDealLegType.sourcingRequirement)
+                .firstOrNull,
           );
 
           return ListView(
@@ -43,40 +45,61 @@ class SourcingRequirementScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Deal ${deal.dealNo ?? deal.id.substring(0, 8)}', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-                    Text('Status: ${deal.status.label}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                    Text(
+                      'Deal ${deal.dealNo ?? deal.id.substring(0, 8)}',
+                      style: AppTypography.headlineMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
+                    ),
+                    Text(
+                      'Status: ${deal.status.label}',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const FxSectionLabel(label:'Requirement'),
+              const FxSectionLabel(label: 'Requirement'),
               FxObsidianReportPanel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Required currency: ${displayCurrencyCode(deal.sellCurrencyCode)}'),
-                    Text('Required amount: ${fmt.format(sourcingLeg?.receiveAmount ?? deal.sellAmount)}'),
+                    Text(
+                      'Required currency: ${displayCurrencyCode(deal.sellCurrencyCode)}',
+                    ),
+                    Text(
+                      'Required amount: ${fmt.format(sourcingLeg?.receiveAmount ?? deal.sellAmount)}',
+                    ),
                     Text('Source method: ${deal.deliveryMethod.label}'),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const FxSectionLabel(label:'Next steps'),
+              const FxSectionLabel(label: 'Next steps'),
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: const Text('Add agent source leg'),
-                subtitle: const Text('Agent provides currency, may want different pay currency'),
+                subtitle: const Text(
+                  'Agent provides currency, may want different pay currency',
+                ),
                 onTap: () => context.push('/deals/$dealId/legs/agent-source'),
               ),
               ListTile(
                 leading: const Icon(Icons.currency_exchange),
                 title: const Text('Cross-currency sourcing'),
-                subtitle: const Text('Pay PKR to third party who settles AED to agent'),
+                subtitle: const Text(
+                  'Pay PKR to third party who settles AED to agent',
+                ),
                 onTap: () => context.push('/deals/$dealId/legs/cross-source'),
               ),
               const SizedBox(height: 24),
               FxObsidianActionBar(
-                onCancel: () => fxSafePop(context, fallbackRoute: '/deals/$dealId'),
+                onCancel: () =>
+                    fxSafePop(context, fallbackRoute: '/deals/$dealId'),
                 onSave: () => context.go('/deals/$dealId'),
                 saveLabel: 'Back to deal',
                 cancelLabel: 'Close',

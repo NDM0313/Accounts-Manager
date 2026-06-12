@@ -14,10 +14,10 @@ enum FxPartyType {
   }
 
   String get label => switch (this) {
-        customer => 'Customer',
-        agent => 'Agent',
-        settlement => 'Settlement',
-      };
+    customer => 'Customer',
+    agent => 'Agent',
+    settlement => 'Settlement',
+  };
 }
 
 class FxParty {
@@ -58,13 +58,13 @@ class FxParty {
   }
 
   Map<String, dynamic> toInsertJson() => {
-        'company_id': companyId,
-        if (branchId != null) 'branch_id': branchId,
-        'party_type': partyType.dbValue,
-        'code': code,
-        'name': name,
-        if (phone != null) 'phone': phone,
-        if (notes != null) 'notes': notes,
-        'is_active': isActive,
-      };
+    'company_id': companyId,
+    if (branchId != null) 'branch_id': branchId,
+    'party_type': partyType.dbValue,
+    'code': code,
+    'name': name,
+    if (phone != null) 'phone': phone,
+    if (notes != null) 'notes': notes,
+    'is_active': isActive,
+  };
 }

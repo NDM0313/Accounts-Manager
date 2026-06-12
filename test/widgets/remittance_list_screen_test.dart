@@ -10,9 +10,7 @@ void main() {
     expect(FeatureFlags.remittanceWorkflowEnabled, isTrue);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          remittancesListProvider.overrideWith((ref) async => []),
-        ],
+        overrides: [remittancesListProvider.overrideWith((ref) async => [])],
         child: const MaterialApp(home: RemittanceListScreen()),
       ),
     );

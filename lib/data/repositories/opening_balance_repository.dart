@@ -7,7 +7,9 @@ class OpeningBalanceRepository {
       'fx_get_opening_balance_status',
       params: {'p_branch_id': branchId},
     );
-    return FxOpeningBalanceView.fromRpc(Map<String, dynamic>.from(result as Map));
+    return FxOpeningBalanceView.fromRpc(
+      Map<String, dynamic>.from(result as Map),
+    );
   }
 
   Future<FxOpeningBalanceView> saveDraft({
@@ -37,7 +39,9 @@ class OpeningBalanceRepository {
         },
       },
     );
-    return FxOpeningBalanceView.fromRpc(Map<String, dynamic>.from(result as Map));
+    return FxOpeningBalanceView.fromRpc(
+      Map<String, dynamic>.from(result as Map),
+    );
   }
 
   Future<FxOpeningBalanceView> postBatch(String batchId) async {
@@ -45,7 +49,9 @@ class OpeningBalanceRepository {
       'fx_post_opening_balance_batch',
       params: {'p_batch_id': batchId},
     );
-    return FxOpeningBalanceView.fromRpc(Map<String, dynamic>.from(result as Map));
+    return FxOpeningBalanceView.fromRpc(
+      Map<String, dynamic>.from(result as Map),
+    );
   }
 
   Future<FxOpeningBalanceView> voidBatch(String batchId, String reason) async {
@@ -53,6 +59,8 @@ class OpeningBalanceRepository {
       'fx_void_opening_balance_batch',
       params: {'p_batch_id': batchId, 'p_reason': reason},
     );
-    return FxOpeningBalanceView.fromRpc(Map<String, dynamic>.from(result as Map));
+    return FxOpeningBalanceView.fromRpc(
+      Map<String, dynamic>.from(result as Map),
+    );
   }
 }

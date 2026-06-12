@@ -43,7 +43,9 @@ class FxObsidianFormField extends StatelessWidget {
         Text(
           label.toUpperCase(),
           style: AppTypography.labelCaps(
-            accentTertiary ? context.fx.tertiary : context.fx.onSurfaceVariant, context: context),
+            accentTertiary ? context.fx.tertiary : context.fx.onSurfaceVariant,
+            context: context,
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -55,7 +57,9 @@ class FxObsidianFormField extends StatelessWidget {
           validator: validator,
           onChanged: onChanged,
           textAlign: textAlign,
-          style: style ?? AppTypography.bodyMd(context.fx.onSurface, context: context),
+          style:
+              style ??
+              AppTypography.bodyMd(context.fx.onSurface, context: context),
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,

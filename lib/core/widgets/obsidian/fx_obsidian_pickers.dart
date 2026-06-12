@@ -11,7 +11,9 @@ abstract final class FxObsidianPickers {
         primary: context.fx.primary,
         onPrimary: context.fx.onPrimary,
       ),
-      dialogTheme: DialogThemeData(backgroundColor: context.fx.surfaceContainer),
+      dialogTheme: DialogThemeData(
+        backgroundColor: context.fx.surfaceContainer,
+      ),
     );
   }
 

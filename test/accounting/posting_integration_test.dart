@@ -8,7 +8,8 @@ void main() {
   group('Posting integration — balanced lines for all txn types', () {
     final accounts = mockAccounts();
 
-    void expectBalanced(FxTransactionType type, {
+    void expectBalanced(
+      FxTransactionType type, {
       required String currencyCode,
       required double foreignAmount,
       required double rateUsed,

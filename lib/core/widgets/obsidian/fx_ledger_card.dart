@@ -3,7 +3,8 @@ import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-export 'package:accounts_manager/core/widgets/premium/fx_transaction_card.dart' show FxTransactionCard;
+export 'package:accounts_manager/core/widgets/premium/fx_transaction_card.dart'
+    show FxTransactionCard;
 
 enum FxLedgerSortOrder { newest, oldest }
 
@@ -43,7 +44,9 @@ Map<String, List<FxTransaction>> groupTransactionsByDate(
     ..sort((a, b) {
       final da = a.postedAt ?? a.createdAt ?? a.transactionDate;
       final db = b.postedAt ?? b.createdAt ?? b.transactionDate;
-      return sort == FxLedgerSortOrder.newest ? db.compareTo(da) : da.compareTo(db);
+      return sort == FxLedgerSortOrder.newest
+          ? db.compareTo(da)
+          : da.compareTo(db);
     });
 
   final map = <String, List<FxTransaction>>{};

@@ -19,7 +19,9 @@ class AccountJournalLinesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final linesAsync = ref.watch(accountJournalLinesProvider((accountCode, asOf)));
+    final linesAsync = ref.watch(
+      accountJournalLinesProvider((accountCode, asOf)),
+    );
     final fmt = NumberFormat('#,##0.00');
     final dateLabel = asOf.toIso8601String().split('T').first;
 
@@ -31,7 +33,11 @@ class AccountJournalLinesScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (lines) {
           if (lines.isEmpty) {
-            return Center(child: Text('No journal lines for $accountCode as of $dateLabel.'));
+            return Center(
+              child: Text(
+                'No journal lines for $accountCode as of $dateLabel.',
+              ),
+            );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -49,11 +55,17 @@ class AccountJournalLinesScreen extends ConsumerWidget {
                           children: [
                             Text(
                               'Line ${line.lineNo}',
-                              style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurface,
+                                context: context,
+                              ).copyWith(fontWeight: FontWeight.w600),
                             ),
                             Text(
                               '${line.currencyCode} ${fmt.format(line.foreignAmount)}',
-                              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ).copyWith(fontSize: 12),
                             ),
                           ],
                         ),
@@ -61,8 +73,20 @@ class AccountJournalLinesScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Dr ${fmt.format(line.debitPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                          Text('Cr ${fmt.format(line.creditPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                          Text(
+                            'Dr ${fmt.format(line.debitPkr)}',
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
+                          ),
+                          Text(
+                            'Cr ${fmt.format(line.creditPkr)}',
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
+                          ),
                         ],
                       ),
                     ],

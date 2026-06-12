@@ -23,7 +23,8 @@ void main() {
     const transactionId = 'txn-uuid';
     const original = 'Screenshot 2026-01-18 at 12.40.52 AM.png';
     final safeName = sanitizeStorageFileName(original);
-    final path = '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId)}/1781045775209_$safeName';
+    final path =
+        '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId)}/1781045775209_$safeName';
     expect(path, contains('Screenshot_2026-01-18_at_12.40.52_AM.png'));
     expect(path, isNot(contains(' ')));
   });

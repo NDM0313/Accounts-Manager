@@ -25,7 +25,10 @@ Future<bool?> showFxObsidianConfirmDialog({
 }
 
 /// Returns trimmed reason, or null if cancelled / empty reason.
-Future<String?> showFxDeleteTransactionDialog(BuildContext context, {bool isDraft = false}) {
+Future<String?> showFxDeleteTransactionDialog(
+  BuildContext context, {
+  bool isDraft = false,
+}) {
   final reasonCtrl = TextEditingController();
   return showDialog<String>(
     context: context,
@@ -96,7 +99,13 @@ class _FxObsidianDialogShell extends StatelessWidget {
               ),
               if (message != null) ...[
                 const SizedBox(height: 12),
-                Text(message!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                Text(
+                  message!,
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
+                ),
               ],
               if (reasonField != null) ...[
                 const SizedBox(height: 16),
@@ -126,8 +135,12 @@ class _FxObsidianDialogShell extends StatelessWidget {
                     child: FilledButton(
                       onPressed: onConfirm,
                       style: FilledButton.styleFrom(
-                        backgroundColor: destructive ? const Color(0xFFEF4444) : context.fx.primary,
-                        foregroundColor: destructive ? Colors.white : context.fx.onPrimary,
+                        backgroundColor: destructive
+                            ? const Color(0xFFEF4444)
+                            : context.fx.primary,
+                        foregroundColor: destructive
+                            ? Colors.white
+                            : context.fx.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: Text(confirmLabel),

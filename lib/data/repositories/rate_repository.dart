@@ -59,7 +59,10 @@ class RateRepository {
   }
 
   /// Rate history for one currency with computed effectiveTo (newest first).
-  Future<List<FxRate>> fetchRateHistory(String currencyCode, {int limit = 100}) async {
+  Future<List<FxRate>> fetchRateHistory(
+    String currencyCode, {
+    int limit = 100,
+  }) async {
     final response = await supabase
         .from('fx_rates')
         .select(_selectCols)
@@ -121,9 +124,15 @@ class RateRepository {
     return _mapRow(row, currency['code'] as String);
   }
 
-  Future<Map<String, dynamic>> _insertRateVersion(Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> _insertRateVersion(
+    Map<String, dynamic> payload,
+  ) async {
     try {
-      return await supabase.from('fx_rates').insert(payload).select(_selectCols).single();
+      return await supabase
+          .from('fx_rates')
+          .insert(payload)
+          .select(_selectCols)
+          .single();
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
         throw const RateEffectiveAtConflictException();
@@ -133,7 +142,11 @@ class RateRepository {
           ..remove('rate_source')
           ..remove('notes');
         try {
-          return await supabase.from('fx_rates').insert(fallback).select(_selectCols).single();
+          return await supabase
+              .from('fx_rates')
+              .insert(fallback)
+              .select(_selectCols)
+              .single();
         } on PostgrestException catch (e2) {
           if (e2.code == '23505') {
             throw const RateEffectiveAtConflictException();
@@ -159,11 +172,17 @@ class RateRepository {
 
   /// Deactivate a rate row (requires is_active column after migration).
   Future<void> deactivateRate(String rateId) async {
-    await supabase.from('fx_rates').update({'is_active': false}).eq('id', rateId);
+    await supabase
+        .from('fx_rates')
+        .update({'is_active': false})
+        .eq('id', rateId);
   }
 
   Future<List<FxRate>> _fetchAllOrdered() async {
-    final response = await supabase.from('fx_rates').select(_selectCols).order('effective_at', ascending: false);
+    final response = await supabase
+        .from('fx_rates')
+        .select(_selectCols)
+        .order('effective_at', ascending: false);
 
     return (response as List).cast<Map<String, dynamic>>().map((row) {
       final currency = row['fx_currencies'] as Map<String, dynamic>;
@@ -171,7 +190,10 @@ class RateRepository {
     }).toList();
   }
 
-  List<FxRate> _latestPerCurrency(List<FxRate> orderedNewestFirst, {bool activeOnly = false}) {
+  List<FxRate> _latestPerCurrency(
+    List<FxRate> orderedNewestFirst, {
+    bool activeOnly = false,
+  }) {
     final seen = <String>{};
     final rates = <FxRate>[];
     for (final r in orderedNewestFirst) {

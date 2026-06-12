@@ -5,7 +5,6 @@ import 'package:accounts_manager/core/widgets/premium/fx_premium_card.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_filter_chips.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_search_field.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_shell.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_transaction_card.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -14,13 +13,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class TransactionListScreen extends ConsumerStatefulWidget {
-  const TransactionListScreen({super.key, this.inShell = false, this.embeddedInHub = false});
+  const TransactionListScreen({
+    super.key,
+    this.inShell = false,
+    this.embeddedInHub = false,
+  });
 
   final bool inShell;
   final bool embeddedInHub;
 
   @override
-  ConsumerState<TransactionListScreen> createState() => _TransactionListScreenState();
+  ConsumerState<TransactionListScreen> createState() =>
+      _TransactionListScreenState();
 }
 
 class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
@@ -69,7 +73,12 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
   List<FxTransaction> _applyFilters(List<FxTransaction> items, String query) {
     return items
-        .where((t) => _matchesSearch(t, query) && _withinLast30Days(t) && _matchesCurrency(t))
+        .where(
+          (t) =>
+              _matchesSearch(t, query) &&
+              _withinLast30Days(t) &&
+              _matchesCurrency(t),
+        )
         .toList();
   }
 
@@ -81,7 +90,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       context: context,
       backgroundColor: context.fx.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusXl),
+        ),
       ),
       builder: (context) => SafeArea(
         child: Column(
@@ -90,17 +101,27 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Text('Filter by currency', style: AppTypography.headlineSm(context.fx.onSurface, context: context)),
+              child: Text(
+                'Filter by currency',
+                style: AppTypography.headlineSm(
+                  context.fx.onSurface,
+                  context: context,
+                ),
+              ),
             ),
             ListTile(
               title: const Text('All currencies'),
-              trailing: _currencyFilter == null ? Icon(Icons.check, color: context.fx.primary) : null,
+              trailing: _currencyFilter == null
+                  ? Icon(Icons.check, color: context.fx.primary)
+                  : null,
               onTap: () => Navigator.pop(context, '__all__'),
             ),
             for (final code in codes)
               ListTile(
                 title: Text(code),
-                trailing: _currencyFilter == code ? Icon(Icons.check, color: context.fx.primary) : null,
+                trailing: _currencyFilter == code
+                    ? Icon(Icons.check, color: context.fx.primary)
+                    : null,
                 onTap: () => Navigator.pop(context, code),
               ),
             const SizedBox(height: 8),
@@ -158,10 +179,27 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         const SizedBox(height: 12),
         Expanded(
           child: switch (_filter) {
-            FxLedgerFilter.draft => _buildList(draftsAsync, query, emptyLabel: 'No drafts.'),
-            FxLedgerFilter.active => _buildList(postedAsync, query, emptyLabel: 'No active transactions.'),
-            FxLedgerFilter.voided => _buildList(voidedAsync, query, emptyLabel: 'No voided transactions.'),
-            FxLedgerFilter.all => _buildAll(draftsAsync, postedAsync, voidedAsync, query),
+            FxLedgerFilter.draft => _buildList(
+              draftsAsync,
+              query,
+              emptyLabel: 'No drafts.',
+            ),
+            FxLedgerFilter.active => _buildList(
+              postedAsync,
+              query,
+              emptyLabel: 'No active transactions.',
+            ),
+            FxLedgerFilter.voided => _buildList(
+              voidedAsync,
+              query,
+              emptyLabel: 'No voided transactions.',
+            ),
+            FxLedgerFilter.all => _buildAll(
+              draftsAsync,
+              postedAsync,
+              voidedAsync,
+              query,
+            ),
           },
         ),
       ],
@@ -183,9 +221,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         children: [
           FxPremiumPage(
             padding: EdgeInsets.fromLTRB(
-              MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+              MediaQuery.sizeOf(context).width >= 900
+                  ? AppSpacing.marginDesktop
+                  : AppSpacing.marginMobile,
               16,
-              MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+              MediaQuery.sizeOf(context).width >= 900
+                  ? AppSpacing.marginDesktop
+                  : AppSpacing.marginMobile,
               88,
             ),
             child: body,
@@ -197,7 +239,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(title: const Text('Transactions'), backgroundColor: context.fx.background),
+      appBar: AppBar(
+        title: const Text('Transactions'),
+        backgroundColor: context.fx.background,
+      ),
       floatingActionButton: fab,
       body: Padding(padding: const EdgeInsets.all(16), child: body),
     );
@@ -209,12 +254,20 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     AsyncValue<List<FxTransaction>> voidedAsync,
     String query,
   ) {
-    if (draftsAsync.isLoading || postedAsync.isLoading || voidedAsync.isLoading) {
+    if (draftsAsync.isLoading ||
+        postedAsync.isLoading ||
+        voidedAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (draftsAsync.hasError) return Center(child: Text('Error: ${draftsAsync.error}'));
-    if (postedAsync.hasError) return Center(child: Text('Error: ${postedAsync.error}'));
-    if (voidedAsync.hasError) return Center(child: Text('Error: ${voidedAsync.error}'));
+    if (draftsAsync.hasError) {
+      return Center(child: Text('Error: ${draftsAsync.error}'));
+    }
+    if (postedAsync.hasError) {
+      return Center(child: Text('Error: ${postedAsync.error}'));
+    }
+    if (voidedAsync.hasError) {
+      return Center(child: Text('Error: ${voidedAsync.error}'));
+    }
 
     final all = [
       ...?postedAsync.value,
@@ -224,7 +277,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final filtered = _applyFilters(all, query);
     if (filtered.isEmpty) {
       return Center(
-        child: Text('No transactions.', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+        child: Text(
+          'No transactions.',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
       );
     }
     return RefreshIndicator(
@@ -233,7 +292,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     );
   }
 
-  Widget _buildList(AsyncValue<List<FxTransaction>> async, String query, {required String emptyLabel}) {
+  Widget _buildList(
+    AsyncValue<List<FxTransaction>> async,
+    String query, {
+    required String emptyLabel,
+  }) {
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
@@ -241,7 +304,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         final filtered = _applyFilters(items, query);
         if (filtered.isEmpty) {
           return Center(
-            child: Text(emptyLabel, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+            child: Text(
+              emptyLabel,
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
+            ),
           );
         }
         return RefreshIndicator(
@@ -275,7 +344,10 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
               padding: EdgeInsets.fromLTRB(2, gi == 0 ? 0 : 12, 2, 6),
               child: Text(
                 headerLabel.toUpperCase(),
-                style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
+                style: AppTypography.labelCaps(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 10),
               ),
             ),
             FxPremiumCard(
@@ -287,7 +359,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       transaction: dayItems[i],
                       compact: true,
                       showDivider: i < dayItems.length - 1,
-                      onTap: () => context.push('/transactions/${dayItems[i].id}'),
+                      onTap: () =>
+                          context.push('/transactions/${dayItems[i].id}'),
                     ),
                 ],
               ),

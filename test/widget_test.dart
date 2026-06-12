@@ -6,9 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('Login screen shows app title', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: LoginScreen()),
-      ),
+      const ProviderScope(child: MaterialApp(home: LoginScreen())),
     );
     expect(find.text('Executive FX Ledger'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);

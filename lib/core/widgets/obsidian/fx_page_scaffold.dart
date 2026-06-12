@@ -1,6 +1,7 @@
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 
-export 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart' show fxSafePop;
+export 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart'
+    show fxSafePop;
 
 /// @deprecated Prefer [FxPremiumScaffold]. Kept for backward compatibility.
 class FxPageScaffold extends FxPremiumScaffold {

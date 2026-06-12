@@ -23,22 +23,27 @@ class AuditLogScreen extends ConsumerWidget {
           return Center(
             child: Text(
               'No audit entries yet.',
-              style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+              style: AppTypography.bodyMd(
+                Theme.of(context).colorScheme.onSurfaceVariant,
+                context: context,
+              ),
             ),
           );
         }
-        return SingleChildScrollView(
-          child: FxAuditTimeline(items: logs),
-        );
+        return SingleChildScrollView(child: FxAuditTimeline(items: logs));
       },
     );
 
     if (inShell) {
       return FxObsidianPage(
         padding: EdgeInsets.fromLTRB(
-          MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+          MediaQuery.sizeOf(context).width >= 900
+              ? AppSpacing.marginDesktop
+              : AppSpacing.marginMobile,
           16,
-          MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+          MediaQuery.sizeOf(context).width >= 900
+              ? AppSpacing.marginDesktop
+              : AppSpacing.marginMobile,
           88,
         ),
         child: content,
@@ -53,9 +58,13 @@ class AuditLogScreen extends ConsumerWidget {
       ),
       body: Padding(
         padding: EdgeInsets.fromLTRB(
-          MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+          MediaQuery.sizeOf(context).width >= 900
+              ? AppSpacing.marginDesktop
+              : AppSpacing.marginMobile,
           16,
-          MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+          MediaQuery.sizeOf(context).width >= 900
+              ? AppSpacing.marginDesktop
+              : AppSpacing.marginMobile,
           16,
         ),
         child: content,

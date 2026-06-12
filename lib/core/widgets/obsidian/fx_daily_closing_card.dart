@@ -32,17 +32,29 @@ class FxDailyClosingCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Daily Closing Status', style: AppTypography.labelCaps(theme.colorScheme.onSurfaceVariant, context: context)),
+              Text(
+                'Daily Closing Status',
+                style: AppTypography.labelCaps(
+                  theme.colorScheme.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
               if (!isClosed)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: context.fx.tertiaryContainer.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     'LIVE SESSION',
-                    style: AppTypography.labelCaps(context.fx.tertiaryFixedDim, context: context).copyWith(fontSize: 10),
+                    style: AppTypography.labelCaps(
+                      context.fx.tertiaryFixedDim,
+                      context: context,
+                    ).copyWith(fontSize: 10),
                   ),
                 ),
             ],
@@ -59,17 +71,34 @@ class FxDailyClosingCard extends StatelessWidget {
                     color: theme.colorScheme.tertiary,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: theme.colorScheme.tertiary.withValues(alpha: 0.5), blurRadius: 6),
+                      BoxShadow(
+                        color: theme.colorScheme.tertiary.withValues(
+                          alpha: 0.5,
+                        ),
+                        blurRadius: 6,
+                      ),
                     ],
                   ),
                 ),
               Expanded(
-                child: Text(statusText, style: AppTypography.headlineMd(theme.colorScheme.onSurface, context: context)),
+                child: Text(
+                  statusText,
+                  style: AppTypography.headlineMd(
+                    theme.colorScheme.onSurface,
+                    context: context,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(subtitle, style: AppTypography.bodyMd(theme.colorScheme.onSurfaceVariant, context: context)),
+          Text(
+            subtitle,
+            style: AppTypography.bodyMd(
+              theme.colorScheme.onSurfaceVariant,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 24),
           if (!isClosed)
             OutlinedButton(
@@ -80,7 +109,10 @@ class FxDailyClosingCard extends StatelessWidget {
               ),
               child: Text(
                 'CLOSE DAILY LEDGER',
-                style: AppTypography.labelCaps(theme.colorScheme.onSurface, context: context).copyWith(letterSpacing: 0.12),
+                style: AppTypography.labelCaps(
+                  theme.colorScheme.onSurface,
+                  context: context,
+                ).copyWith(letterSpacing: 0.12),
               ),
             ),
         ],

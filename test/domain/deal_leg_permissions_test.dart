@@ -20,18 +20,18 @@ void main() {
   );
 
   FxDealLeg pendingAgentSource({String id = 'leg-1'}) => FxDealLeg(
-        id: id,
-        dealId: 'deal-1',
-        legNo: 2,
-        legType: FxDealLegType.agentSource,
-        status: FxDealLegStatus.pending,
-        receiveAmount: 1000,
-        receiveCurrency: 'USD',
-        payAmount: 3659,
-        payCurrency: 'AED',
-        paidAmount: 0,
-        remainingAmount: 3659,
-      );
+    id: id,
+    dealId: 'deal-1',
+    legNo: 2,
+    legType: FxDealLegType.agentSource,
+    status: FxDealLegStatus.pending,
+    receiveAmount: 1000,
+    receiveCurrency: 'USD',
+    payAmount: 3659,
+    payCurrency: 'AED',
+    paidAmount: 0,
+    remainingAmount: 3659,
+  );
 
   test('pending agent source can be edited and deleted on open deal', () {
     final leg = pendingAgentSource();
@@ -104,7 +104,10 @@ void main() {
       status: FxDealStatus.completed,
       allowShortPosition: false,
     );
-    expect(DealLegPermissions.canDeleteLeg(pendingAgentSource(), closed), isFalse);
+    expect(
+      DealLegPermissions.canDeleteLeg(pendingAgentSource(), closed),
+      isFalse,
+    );
   });
 
   test('legTypeForAddRoute maps menu routes', () {
@@ -113,10 +116,9 @@ void main() {
       FxDealLegType.agentSource,
     );
     expect(
-      DealLegPermissions.hasPendingLegOfType(
-        [pendingAgentSource()],
-        FxDealLegType.agentSource,
-      ),
+      DealLegPermissions.hasPendingLegOfType([
+        pendingAgentSource(),
+      ], FxDealLegType.agentSource),
       isTrue,
     );
   });

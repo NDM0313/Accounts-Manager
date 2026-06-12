@@ -35,9 +35,13 @@ class FxConversation {
   factory FxConversation.fromJson(Map<String, dynamic> json) {
     return FxConversation(
       id: json['conversation_id'] as String? ?? json['id'] as String,
-      type: FxConversationType.fromDb(json['conversation_type'] as String?) ?? FxConversationType.company,
+      type:
+          FxConversationType.fromDb(json['conversation_type'] as String?) ??
+          FxConversationType.company,
       title: json['title'] as String?,
-      lastMessageAt: json['last_message_at'] != null ? DateTime.parse(json['last_message_at'] as String) : null,
+      lastMessageAt: json['last_message_at'] != null
+          ? DateTime.parse(json['last_message_at'] as String)
+          : null,
       unreadCount: json['unread_count'] as int? ?? 0,
     );
   }

@@ -4,7 +4,11 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PendingProofFile {
-  const PendingProofFile({required this.fileName, required this.bytes, this.mimeType});
+  const PendingProofFile({
+    required this.fileName,
+    required this.bytes,
+    this.mimeType,
+  });
 
   final String fileName;
   final Uint8List bytes;

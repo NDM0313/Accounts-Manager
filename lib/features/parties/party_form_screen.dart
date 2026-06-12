@@ -1,5 +1,4 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
@@ -65,7 +64,10 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
     if (isEdit && !_loaded) {
       return Scaffold(
         backgroundColor: fx.background,
-        appBar: AppBar(title: const Text('Edit party'), backgroundColor: fx.background),
+        appBar: AppBar(
+          title: const Text('Edit party'),
+          backgroundColor: fx.background,
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -88,28 +90,46 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
                     initialValue: _type,
                     decoration: const InputDecoration(labelText: 'Party type'),
                     items: FxPartyType.values
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                        .map(
+                          (t) =>
+                              DropdownMenuItem(value: t, child: Text(t.label)),
+                        )
                         .toList(),
-                    onChanged: _busy || isEdit ? null : (v) => setState(() => _type = v ?? _type),
+                    onChanged: _busy || isEdit
+                        ? null
+                        : (v) => setState(() => _type = v ?? _type),
                   ),
                   const SizedBox(height: 12),
                   FxObsidianFormField(
                     label: 'Code',
                     controller: _codeCtrl,
                     enabled: !_busy && !isEdit,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Code required' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Code required'
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   FxObsidianFormField(
                     label: 'Name',
                     controller: _nameCtrl,
                     enabled: !_busy,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Name required' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Name required'
+                        : null,
                   ),
                   const SizedBox(height: 12),
-                  FxObsidianFormField(label: 'Phone', controller: _phoneCtrl, enabled: !_busy),
+                  FxObsidianFormField(
+                    label: 'Phone',
+                    controller: _phoneCtrl,
+                    enabled: !_busy,
+                  ),
                   const SizedBox(height: 12),
-                  FxObsidianFormField(label: 'Notes', controller: _notesCtrl, maxLines: 3, enabled: !_busy),
+                  FxObsidianFormField(
+                    label: 'Notes',
+                    controller: _notesCtrl,
+                    maxLines: 3,
+                    enabled: !_busy,
+                  ),
                 ],
               ),
             ),
@@ -149,8 +169,12 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
             partyType: _type,
             code: _codeCtrl.text.trim(),
             name: _nameCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-            notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+            phone: _phoneCtrl.text.trim().isEmpty
+                ? null
+                : _phoneCtrl.text.trim(),
+            notes: _notesCtrl.text.trim().isEmpty
+                ? null
+                : _notesCtrl.text.trim(),
             isActive: true,
           ),
         );
@@ -160,12 +184,16 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
         ref.invalidate(partyDetailProvider(widget.partyId!));
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Party saved.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Party saved.')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

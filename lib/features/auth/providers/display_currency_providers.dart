@@ -6,9 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _prefsKeyDisplayCurrency = 'fx_display_currency_code';
 
-final displayCurrencyCodeProvider = NotifierProvider<DisplayCurrencyNotifier, String>(
-  DisplayCurrencyNotifier.new,
-);
+final displayCurrencyCodeProvider =
+    NotifierProvider<DisplayCurrencyNotifier, String>(
+      DisplayCurrencyNotifier.new,
+    );
 
 class DisplayCurrencyNotifier extends Notifier<String> {
   @override
@@ -32,9 +33,10 @@ class DisplayCurrencyNotifier extends Notifier<String> {
   }
 }
 
-final reportCurrencyViewProvider = NotifierProvider<ReportCurrencyViewNotifier, ReportCurrencyView>(
-  ReportCurrencyViewNotifier.new,
-);
+final reportCurrencyViewProvider =
+    NotifierProvider<ReportCurrencyViewNotifier, ReportCurrencyView>(
+      ReportCurrencyViewNotifier.new,
+    );
 
 class ReportCurrencyViewNotifier extends Notifier<ReportCurrencyView> {
   @override
@@ -43,41 +45,53 @@ class ReportCurrencyViewNotifier extends Notifier<ReportCurrencyView> {
   void setView(ReportCurrencyView view) => state = view;
 }
 
-final companyAccountingContextProvider = FutureProvider<CompanyAccountingContext>((ref) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) {
-    return const CompanyAccountingContext(baseCurrencyCode: 'PKR', hasPostedTransactions: false);
-  }
-  return ref.read(profileRepositoryProvider).fetchCompanyAccountingContext(profile.companyId);
-});
+final companyAccountingContextProvider =
+    FutureProvider<CompanyAccountingContext>((ref) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) {
+        return const CompanyAccountingContext(
+          baseCurrencyCode: 'PKR',
+          hasPostedTransactions: false,
+        );
+      }
+      return ref
+          .read(profileRepositoryProvider)
+          .fetchCompanyAccountingContext(profile.companyId);
+    });
 
 /// Converter using latest rates for dashboard.
-final dashboardCurrencyConverterProvider = FutureProvider<ReportingCurrencyConverter>((ref) async {
-  final ctx = await ref.watch(companyAccountingContextProvider.future);
-  final display = ref.watch(displayCurrencyCodeProvider);
-  final rates = await ref.watch(ratesProvider.future);
-  return ReportingCurrencyConverter.fromRates(
-    baseCurrencyCode: ctx.baseCurrencyCode,
-    displayCurrencyCode: display,
-    rates: rates,
-  );
-});
+final dashboardCurrencyConverterProvider =
+    FutureProvider<ReportingCurrencyConverter>((ref) async {
+      final ctx = await ref.watch(companyAccountingContextProvider.future);
+      final display = ref.watch(displayCurrencyCodeProvider);
+      final rates = await ref.watch(ratesProvider.future);
+      return ReportingCurrencyConverter.fromRates(
+        baseCurrencyCode: ctx.baseCurrencyCode,
+        displayCurrencyCode: display,
+        rates: rates,
+      );
+    });
 
 /// Converter using as-of date for reports.
-final reportCurrencyConverterProvider = FutureProvider<ReportingCurrencyConverter>((ref) async {
-  final asOf = ref.watch(trialBalanceAsOfProvider);
-  return ref.watch(currencyConverterAsOfProvider(asOf).future);
-});
+final reportCurrencyConverterProvider =
+    FutureProvider<ReportingCurrencyConverter>((ref) async {
+      final asOf = ref.watch(trialBalanceAsOfProvider);
+      return ref.watch(currencyConverterAsOfProvider(asOf).future);
+    });
 
 /// Converter for any report as-of date (balance sheet, currency position, etc.).
-final currencyConverterAsOfProvider = FutureProvider.family<ReportingCurrencyConverter, DateTime>((ref, asOf) async {
-  final ctx = await ref.watch(companyAccountingContextProvider.future);
-  final display = ref.watch(displayCurrencyCodeProvider);
-  final rates = await ref.read(rateRepositoryProvider).fetchRatesAsOf(asOf);
-  return ReportingCurrencyConverter.fromRates(
-    baseCurrencyCode: ctx.baseCurrencyCode,
-    displayCurrencyCode: display,
-    rates: rates,
-    asOf: asOf,
-  );
-});
+final currencyConverterAsOfProvider =
+    FutureProvider.family<ReportingCurrencyConverter, DateTime>((
+      ref,
+      asOf,
+    ) async {
+      final ctx = await ref.watch(companyAccountingContextProvider.future);
+      final display = ref.watch(displayCurrencyCodeProvider);
+      final rates = await ref.read(rateRepositoryProvider).fetchRatesAsOf(asOf);
+      return ReportingCurrencyConverter.fromRates(
+        baseCurrencyCode: ctx.baseCurrencyCode,
+        displayCurrencyCode: display,
+        rates: rates,
+        asOf: asOf,
+      );
+    });

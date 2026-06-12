@@ -18,15 +18,53 @@ void main() {
   );
 
   final accounts = [
-    const FxAccount(id: 'a1', code: '1110', name: 'PKR Cash', accountType: 'asset', isActive: true),
-    const FxAccount(id: 'a2', code: '1120', name: 'USD Cash', accountType: 'asset', isActive: true),
-    const FxAccount(id: 'a3', code: '5800', name: 'Expense', accountType: 'expense', isActive: true),
-    const FxAccount(id: 'a4', code: '3100', name: 'Equity', accountType: 'equity', isActive: true),
+    const FxAccount(
+      id: 'a1',
+      code: '1110',
+      name: 'PKR Cash',
+      accountType: 'asset',
+      isActive: true,
+    ),
+    const FxAccount(
+      id: 'a2',
+      code: '1120',
+      name: 'USD Cash',
+      accountType: 'asset',
+      isActive: true,
+    ),
+    const FxAccount(
+      id: 'a3',
+      code: '5800',
+      name: 'Expense',
+      accountType: 'expense',
+      isActive: true,
+    ),
+    const FxAccount(
+      id: 'a4',
+      code: '3100',
+      name: 'Equity',
+      accountType: 'equity',
+      isActive: true,
+    ),
   ];
 
   final currencies = [
-    const FxCurrency(id: 'c1', code: 'PKR', name: 'Rupee', symbol: 'Rs', isBase: true, isActive: true),
-    const FxCurrency(id: 'c2', code: 'USD', name: 'Dollar', symbol: '\$', isBase: false, isActive: true),
+    const FxCurrency(
+      id: 'c1',
+      code: 'PKR',
+      name: 'Rupee',
+      symbol: 'Rs',
+      isBase: true,
+      isActive: true,
+    ),
+    const FxCurrency(
+      id: 'c2',
+      code: 'USD',
+      name: 'Dollar',
+      symbol: '\$',
+      isBase: false,
+      isActive: true,
+    ),
   ];
 
   Widget wrap(FxTransactionType type) {
@@ -55,7 +93,9 @@ void main() {
     expect(find.text('New Opening Balance'), findsOneWidget);
   });
 
-  testWidgets('Account transfer opens without duplicate key error', (tester) async {
+  testWidgets('Account transfer opens without duplicate key error', (
+    tester,
+  ) async {
     await tester.pumpWidget(wrap(FxTransactionType.accountTransfer));
     await tester.pumpAndSettle();
     expect(find.text('New Account Transfer'), findsOneWidget);

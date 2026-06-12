@@ -37,7 +37,9 @@ void main() {
   }) {
     return ProviderContainer(
       overrides: [
-        partiesProvider(FxPartyType.customer).overrideWith((ref) async => customers),
+        partiesProvider(
+          FxPartyType.customer,
+        ).overrideWith((ref) async => customers),
         partiesProvider(null).overrideWith((ref) async => allParties),
       ],
     );
@@ -50,30 +52,39 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final result = await container.read(customerOrderPartyChoicesProvider.future);
+    final result = await container.read(
+      customerOrderPartyChoicesProvider.future,
+    );
 
     expect(result.isFallback, isFalse);
     expect(result.parties, [customer]);
   });
 
-  test('falls back to all parties sorted by name when no customers exist', () async {
-    final container = containerWith(
-      customers: [],
-      allParties: [agent, settlement],
-    );
-    addTearDown(container.dispose);
+  test(
+    'falls back to all parties sorted by name when no customers exist',
+    () async {
+      final container = containerWith(
+        customers: [],
+        allParties: [agent, settlement],
+      );
+      addTearDown(container.dispose);
 
-    final result = await container.read(customerOrderPartyChoicesProvider.future);
+      final result = await container.read(
+        customerOrderPartyChoicesProvider.future,
+      );
 
-    expect(result.isFallback, isTrue);
-    expect(result.parties.map((p) => p.id).toList(), ['a1', 's1']);
-  });
+      expect(result.isFallback, isTrue);
+      expect(result.parties.map((p) => p.id).toList(), ['a1', 's1']);
+    },
+  );
 
   test('returns empty list when no parties exist at all', () async {
     final container = containerWith(customers: [], allParties: []);
     addTearDown(container.dispose);
 
-    final result = await container.read(customerOrderPartyChoicesProvider.future);
+    final result = await container.read(
+      customerOrderPartyChoicesProvider.future,
+    );
 
     expect(result.isFallback, isTrue);
     expect(result.parties, isEmpty);

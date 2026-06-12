@@ -23,7 +23,11 @@ class DealDetailQuickLinks extends ConsumerWidget {
   final VoidCallback? onViewProofs;
 
   String? _agentPartyId(List<FxDealLeg> meta) {
-    for (final type in [FxDealLegType.agentSource, FxDealLegType.agentPayment, FxDealLegType.crossCurrencySource]) {
+    for (final type in [
+      FxDealLegType.agentSource,
+      FxDealLegType.agentPayment,
+      FxDealLegType.crossCurrencySource,
+    ]) {
       try {
         final leg = meta.lastWhere((l) => l.legType == type);
         if (leg.counterpartyPartyId != null) return leg.counterpartyPartyId;
@@ -37,7 +41,10 @@ class DealDetailQuickLinks extends ConsumerWidget {
     final metaAsync = ref.watch(dealLegMetaProvider(dealId));
     final agentId = metaAsync.whenOrNull(data: (m) => _agentPartyId(m));
     final hasProofs = legs.any((l) => l.attachmentCount > 0);
-    final linkedNos = legs.map((l) => l.linkedTransactionNo).whereType<String>().toList();
+    final linkedNos = legs
+        .map((l) => l.linkedTransactionNo)
+        .whereType<String>()
+        .toList();
 
     return Wrap(
       spacing: 8,
@@ -45,7 +52,8 @@ class DealDetailQuickLinks extends ConsumerWidget {
       children: [
         if (deal.customerPartyId.isNotEmpty)
           OutlinedButton.icon(
-            onPressed: () => context.push('/parties/${deal.customerPartyId}/ledger'),
+            onPressed: () =>
+                context.push('/parties/${deal.customerPartyId}/ledger'),
             icon: const Icon(Icons.person_outline, size: 16),
             label: const Text('Customer statement'),
           ),
@@ -76,7 +84,11 @@ class DealDetailQuickLinks extends ConsumerWidget {
     );
   }
 
-  Future<void> _showJournalSheet(BuildContext context, WidgetRef ref, List<String> txnNos) async {
+  Future<void> _showJournalSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<String> txnNos,
+  ) async {
     final profile = await ref.read(currentProfileProvider.future);
     if (profile == null || !context.mounted) return;
 
@@ -100,18 +112,26 @@ class DealDetailQuickLinks extends ConsumerWidget {
           shrinkWrap: true,
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('Linked transactions & journals', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            const Text(
+              'Linked transactions & journals',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
             const SizedBox(height: 12),
             if (entries.every((e) => e.txId == null))
               const Text('No linked transactions found.')
             else
               ...entries.map((e) {
                 if (e.txId == null) {
-                  return ListTile(title: Text('Tx ${e.no}'), subtitle: const Text('Not found'));
+                  return ListTile(
+                    title: Text('Tx ${e.no}'),
+                    subtitle: const Text('Not found'),
+                  );
                 }
                 return ListTile(
                   title: Text('Tx ${e.no}'),
-                  subtitle: Text(e.journalId != null ? 'Journal posted' : 'Transaction only'),
+                  subtitle: Text(
+                    e.journalId != null ? 'Journal posted' : 'Transaction only',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.pop(ctx);
@@ -130,8 +150,16 @@ class DealDetailQuickLinks extends ConsumerWidget {
   }
 
   Future<void> _exportDeal(BuildContext context) async {
-    final internalText = buildDealStatementText(deal: deal, legs: legs, internal: true);
-    final customerText = buildDealStatementText(deal: deal, legs: legs, internal: false);
+    final internalText = buildDealStatementText(
+      deal: deal,
+      legs: legs,
+      internal: true,
+    );
+    final customerText = buildDealStatementText(
+      deal: deal,
+      legs: legs,
+      internal: false,
+    );
     final pdf = await buildDealStatementPdf(
       dealNo: deal.dealNo ?? deal.id.substring(0, 8),
       customerName: deal.customerName ?? '—',

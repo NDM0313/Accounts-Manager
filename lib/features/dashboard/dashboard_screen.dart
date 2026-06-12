@@ -55,7 +55,9 @@ class DashboardScreen extends ConsumerWidget {
         final c = converter.convertFromPkr(totalNet);
         heroPrimary = '${c.displayCurrencyCode} ${fmt.format(c.displayAmount)}';
         if (!converter.isDisplayBase) {
-          heroSubtitle = c.usedFallback ? c.fallbackMessage : '≈ PKR ${fmt.format(totalNet)}';
+          heroSubtitle = c.usedFallback
+              ? c.fallbackMessage
+              : '≈ PKR ${fmt.format(totalNet)}';
         }
       },
       orElse: () {
@@ -97,7 +99,10 @@ class DashboardScreen extends ConsumerWidget {
                   child: _closingCard(context, ref, dayClosedAsync),
                 ),
                 const SizedBox(width: 24),
-                Expanded(flex: 8, child: _currencyGrid(context, cashAsync, ratesAsync, fmt)),
+                Expanded(
+                  flex: 8,
+                  child: _currencyGrid(context, cashAsync, ratesAsync, fmt),
+                ),
               ],
             )
           else ...[
@@ -112,7 +117,10 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _openingBalanceBanner(BuildContext context, AsyncValue<FxOpeningBalanceView> openingAsync) {
+  Widget _openingBalanceBanner(
+    BuildContext context,
+    AsyncValue<FxOpeningBalanceView> openingAsync,
+  ) {
     return openingAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -123,41 +131,63 @@ class DashboardScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: context.fx.tertiaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(color: context.fx.tertiary.withValues(alpha: 0.35)),
+              border: Border.all(
+                color: context.fx.tertiary.withValues(alpha: 0.35),
+              ),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_outline, color: context.fx.tertiary, size: 20),
+                Icon(
+                  Icons.check_circle_outline,
+                  color: context.fx.tertiary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Opening balance posted',
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
                   ),
                 ),
-                TextButton(onPressed: () => context.push('/opening-balances'), child: const Text('View')),
+                TextButton(
+                  onPressed: () => context.push('/opening-balances'),
+                  child: const Text('View'),
+                ),
               ],
             ),
           );
         }
-        if (view.status == FxOpeningBalanceStatus.missing || view.status == FxOpeningBalanceStatus.draft) {
+        if (view.status == FxOpeningBalanceStatus.missing ||
+            view.status == FxOpeningBalanceStatus.draft) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: context.fx.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(color: context.fx.error.withValues(alpha: 0.35)),
+              border: Border.all(
+                color: context.fx.error.withValues(alpha: 0.35),
+              ),
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_outlined, color: context.fx.error, size: 20),
+                Icon(
+                  Icons.warning_amber_outlined,
+                  color: context.fx.error,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     view.status == FxOpeningBalanceStatus.draft
                         ? 'Opening balance draft in progress — complete before trading'
                         : 'Opening balances not set — enter starting balances',
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -166,7 +196,11 @@ class DashboardScreen extends ConsumerWidget {
                         ? '/opening-balances/wizard'
                         : '/opening-balances',
                   ),
-                  child: Text(view.status == FxOpeningBalanceStatus.draft ? 'Continue' : 'Set up'),
+                  child: Text(
+                    view.status == FxOpeningBalanceStatus.draft
+                        ? 'Continue'
+                        : 'Set up',
+                  ),
                 ),
               ],
             ),
@@ -193,21 +227,37 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('How FX Deal Works', style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16)),
+                Text(
+                  'How FX Deal Works',
+                  style: AppTypography.headlineMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontSize: 16),
+                ),
                 Text(
                   'Step-by-step guide: opening balance → customer order → sourcing → statements',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ).copyWith(fontSize: 12),
                 ),
               ],
             ),
           ),
-          TextButton(onPressed: () => context.push('/guide/fx-workflow'), child: const Text('Open guide')),
+          TextButton(
+            onPressed: () => context.push('/guide/fx-workflow'),
+            child: const Text('Open guide'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _closingCard(BuildContext context, WidgetRef ref, AsyncValue<bool> dayClosedAsync) {
+  Widget _closingCard(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<bool> dayClosedAsync,
+  ) {
     return dayClosedAsync.when(
       loading: () => FxDailyClosingCard(
         isClosed: false,
@@ -239,13 +289,27 @@ class DashboardScreen extends ConsumerWidget {
     NumberFormat fmt,
   ) {
     return cashAsync.when(
-      loading: () => const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-      error: (e, _) => Text('Unable to load balances.', style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context)),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (e, _) => Text(
+        'Unable to load balances.',
+        style: AppTypography.bodyMd(
+          Theme.of(context).colorScheme.onSurfaceVariant,
+          context: context,
+        ),
+      ),
       data: (rows) {
         if (rows.isEmpty) {
           return Text(
             'No cash balances yet.',
-            style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              Theme.of(context).colorScheme.onSurfaceVariant,
+              context: context,
+            ),
           );
         }
         final rateMap = ratesAsync.maybeWhen(
@@ -271,7 +335,9 @@ class DashboardScreen extends ConsumerWidget {
                 return FxCurrencyTile(
                   currencyCode: r.currencyCode,
                   amountLabel: fmt.format(r.foreignBalance),
-                  rateLabel: rate != null ? '${r.currencyCode}/PKR ${fmt.format(rate)}' : null,
+                  rateLabel: rate != null
+                      ? '${r.currencyCode}/PKR ${fmt.format(rate)}'
+                      : null,
                 );
               },
             );
@@ -281,7 +347,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _recentSection(BuildContext context, AsyncValue<List<FxTransaction>> todayAsync, NumberFormat fmt) {
+  Widget _recentSection(
+    BuildContext context,
+    AsyncValue<List<FxTransaction>> todayAsync,
+    NumberFormat fmt,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -293,14 +363,23 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         todayAsync.when(
-          loading: () => const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
-          error: (e, _) => Padding(padding: const EdgeInsets.all(24), child: Text('Error: $e')),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('Error: $e'),
+          ),
           data: (items) {
             if (items.isEmpty) {
               return FxPremiumCard(
                 child: Text(
                   'No transactions posted today.',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                 ),
               );
             }
@@ -314,7 +393,8 @@ class DashboardScreen extends ConsumerWidget {
                       transaction: preview[i],
                       compact: true,
                       showDivider: i < preview.length - 1,
-                      onTap: () => context.push('/transactions/${preview[i].id}'),
+                      onTap: () =>
+                          context.push('/transactions/${preview[i].id}'),
                     ),
                 ],
               ),
@@ -344,7 +424,9 @@ class DashboardScreen extends ConsumerWidget {
       }
       return;
     }
-    final buffer = StringBuffer('date,type,currency,amount,rate,pkr,status,ref\n');
+    final buffer = StringBuffer(
+      'date,type,currency,amount,rate,pkr,status,ref\n',
+    );
     for (final tx in items) {
       buffer.writeln(
         '${tx.transactionDate.toIso8601String().split('T').first},'
@@ -357,6 +439,8 @@ class DashboardScreen extends ConsumerWidget {
         '${tx.transactionNo ?? tx.id}',
       );
     }
-    await Share.share(buffer.toString(), subject: 'FX Ledger export');
+    await SharePlus.instance.share(
+      ShareParams(text: buffer.toString(), subject: 'FX Ledger export'),
+    );
   }
 }

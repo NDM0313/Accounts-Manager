@@ -51,10 +51,14 @@ class FxPremiumSegmentedTabs extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.bodyMd(
-              selected ? context.fx.primary : context.fx.onSurfaceVariant,
-              context: context,
-            ).copyWith(fontWeight: selected ? FontWeight.w600 : FontWeight.w500, fontSize: 12),
+            style:
+                AppTypography.bodyMd(
+                  selected ? context.fx.primary : context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 12,
+                ),
           ),
         ),
       ),

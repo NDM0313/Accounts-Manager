@@ -24,26 +24,34 @@ abstract final class DealLegPermissions {
 
   static bool canEditLeg(FxDealLeg leg, FxDeal deal) => canModifyLeg(leg, deal);
 
-  static bool canDeleteLeg(FxDealLeg leg, FxDeal deal) => canModifyLeg(leg, deal);
+  static bool canDeleteLeg(FxDealLeg leg, FxDeal deal) =>
+      canModifyLeg(leg, deal);
 
   static String? editRoute({required FxDealLeg leg, required FxDeal deal}) {
     if (!canEditLeg(leg, deal)) return null;
     return switch (leg.legType) {
-      FxDealLegType.agentSource => '/deals/${deal.id}/legs/agent-source?legId=${leg.id}',
-      FxDealLegType.agentPayment => '/deals/${deal.id}/legs/agent-payment?legId=${leg.id}',
-      FxDealLegType.currencyReceipt => '/deals/${deal.id}/legs/currency-receipt?legId=${leg.id}',
+      FxDealLegType.agentSource =>
+        '/deals/${deal.id}/legs/agent-source?legId=${leg.id}',
+      FxDealLegType.agentPayment =>
+        '/deals/${deal.id}/legs/agent-payment?legId=${leg.id}',
+      FxDealLegType.currencyReceipt =>
+        '/deals/${deal.id}/legs/currency-receipt?legId=${leg.id}',
       _ => null,
     };
   }
 
   static bool hasPendingLegOfType(List<FxDealLeg> legs, FxDealLegType type) {
-    return legs.any((l) => l.legType == type && l.status == FxDealLegStatus.pending);
+    return legs.any(
+      (l) => l.legType == type && l.status == FxDealLegStatus.pending,
+    );
   }
 
   static FxDealLegType? legTypeForAddRoute(String route) {
     if (route.endsWith('/agent-source')) return FxDealLegType.agentSource;
     if (route.endsWith('/agent-payment')) return FxDealLegType.agentPayment;
-    if (route.endsWith('/currency-receipt')) return FxDealLegType.currencyReceipt;
+    if (route.endsWith('/currency-receipt')) {
+      return FxDealLegType.currencyReceipt;
+    }
     return null;
   }
 }

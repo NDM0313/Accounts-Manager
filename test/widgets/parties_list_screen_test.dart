@@ -11,16 +11,18 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          partiesProvider(null).overrideWith((ref) async => [
-                const FxParty(
-                  id: 'p1',
-                  companyId: 'company-1',
-                  partyType: FxPartyType.customer,
-                  code: 'C001',
-                  name: 'Test Customer',
-                  isActive: true,
-                ),
-              ]),
+          partiesProvider(null).overrideWith(
+            (ref) async => [
+              const FxParty(
+                id: 'p1',
+                companyId: 'company-1',
+                partyType: FxPartyType.customer,
+                code: 'C001',
+                name: 'Test Customer',
+                isActive: true,
+              ),
+            ],
+          ),
         ],
         child: MaterialApp(
           theme: AppTheme.dark(),

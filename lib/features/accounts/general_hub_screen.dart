@@ -24,7 +24,10 @@ class GeneralHubScreen extends StatelessWidget {
           children: [
             Text(
               'Chart of accounts, parties, journals, and reports.',
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
             const SizedBox(height: 16),
             const FxSectionLabel(label: 'General'),

@@ -14,9 +14,5 @@ Future<void> main() async {
     publishableKey: Env.supabasePublishableKey,
   );
 
-  runApp(
-    const ProviderScope(
-      child: FxApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: FxApp()));
 }

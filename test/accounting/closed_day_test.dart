@@ -13,7 +13,12 @@ void main() {
 
     test('edit on closed day error message pattern', () {
       const expectedFragment = 'Day is closed';
-      expect('Day is closed. Edit requires admin approval.'.contains(expectedFragment), isTrue);
+      expect(
+        'Day is closed. Edit requires admin approval.'.contains(
+          expectedFragment,
+        ),
+        isTrue,
+      );
     });
 
     test('draft lines remain balanced regardless of closed-day policy', () {

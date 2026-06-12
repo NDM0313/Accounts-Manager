@@ -23,10 +23,12 @@ class NewCustomerFxOrderScreen extends ConsumerStatefulWidget {
   const NewCustomerFxOrderScreen({super.key});
 
   @override
-  ConsumerState<NewCustomerFxOrderScreen> createState() => _NewCustomerFxOrderScreenState();
+  ConsumerState<NewCustomerFxOrderScreen> createState() =>
+      _NewCustomerFxOrderScreenState();
 }
 
-class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScreen> {
+class _NewCustomerFxOrderScreenState
+    extends ConsumerState<NewCustomerFxOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountCtrl = TextEditingController();
   final _rateCtrl = TextEditingController();
@@ -75,9 +77,11 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
         }
       }
     }
-    final available = positionRow?.availableBalance ?? positionRow?.foreignBalance;
+    final available =
+        positionRow?.availableBalance ?? positionRow?.foreignBalance;
     final required = positionRow?.requiredBalance;
-    final insufficient = _amount != null && available != null && _amount! > available;
+    final insufficient =
+        _amount != null && available != null && _amount! > available;
 
     return FxPageScaffold(
       fallbackRoute: '/deals',
@@ -93,7 +97,7 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const FxSectionLabel(label:'Customer'),
+            const FxSectionLabel(label: 'Customer'),
             customerChoicesAsync.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
@@ -104,11 +108,16 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                     children: [
                       Text(
                         'No parties yet. Add a customer to book FX orders.',
-                        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
                       OutlinedButton.icon(
-                        onPressed: _busy ? null : () => context.push('/parties/new'),
+                        onPressed: _busy
+                            ? null
+                            : () => context.push('/parties/new'),
                         icon: const Icon(Icons.person_add_outlined, size: 18),
                         label: const Text('Add customer'),
                       ),
@@ -123,13 +132,18 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
                           'No Customer-type parties found. Showing all parties — add a Customer party for cleaner reporting.',
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 12),
                         ),
                       ),
                     DropdownButtonFormField<String>(
                       initialValue: _customerId,
                       isExpanded: true,
-                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
                       hint: const Text('Select customer'),
                       items: choices.parties
                           .map(
@@ -143,7 +157,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                             ),
                           )
                           .toList(),
-                      onChanged: _busy ? null : (v) => setState(() => _customerId = v),
+                      onChanged: _busy
+                          ? null
+                          : (v) => setState(() => _customerId = v),
                       validator: (v) => v == null ? 'Select customer' : null,
                     ),
                   ],
@@ -151,14 +167,16 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
               },
             ),
             const SizedBox(height: 16),
-            const FxSectionLabel(label:'Currency & amount'),
+            const FxSectionLabel(label: 'Currency & amount'),
             currenciesAsync.when(
               loading: () => const SizedBox.shrink(),
               data: (List<FxCurrency> currencies) {
                 final active = currencies.where((c) => !c.isBase).toList();
                 if (_currencyCode == null && active.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted && _currencyCode == null) setState(() => _currencyCode = active.first.code);
+                    if (mounted && _currencyCode == null) {
+                      setState(() => _currencyCode = active.first.code);
+                    }
                   });
                 }
                 return DropdownButtonFormField<String>(
@@ -168,9 +186,18 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                     labelText: 'Currency customer wants',
                   ),
                   items: active
-                      .map((c) => DropdownMenuItem<String>(value: c.code, child: Text(displayCurrencyCode(c.code))))
+                      .map(
+                        (c) => DropdownMenuItem<String>(
+                          value: c.code,
+                          child: Text(displayCurrencyCode(c.code)),
+                        ),
+                      )
                       .toList(),
-                  onChanged: (v) => setState(() => _currencyCode = v != null ? normalizeFxCurrencyCode(v) : null),
+                  onChanged: (v) => setState(
+                    () => _currencyCode = v != null
+                        ? normalizeFxCurrencyCode(v)
+                        : null,
+                  ),
                   validator: (v) => v == null ? 'Select currency' : null,
                 );
               },
@@ -195,15 +222,29 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Booking date', style: AppTypography.labelCaps(context.fx.outline, context: context)),
                         Text(
-                          _bookingDate != null ? DateFormat.yMMMd().format(_bookingDate!) : 'Today',
-                          style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                          'Booking date',
+                          style: AppTypography.labelCaps(
+                            context.fx.outline,
+                            context: context,
+                          ),
+                        ),
+                        Text(
+                          _bookingDate != null
+                              ? DateFormat.yMMMd().format(_bookingDate!)
+                              : 'Today',
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: context.fx.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -211,7 +252,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             FxObsidianFormField(
               controller: _amountCtrl,
               label: 'Amount',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) => (_amount ?? 0) <= 0 ? 'Enter amount' : null,
             ),
@@ -234,7 +277,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
               FxObsidianFormField(
                 controller: _rateCtrl,
                 label: 'Sale rate (PKR)',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 onChanged: (_) => setState(() {}),
                 validator: (v) => (_rate ?? 0) <= 0 ? 'Enter rate' : null,
               ),
@@ -244,12 +289,27 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${displayCurrencyCode(selectedCurrency)} position', style: AppTypography.labelCaps(context.fx.outline, context: context)),
-                    Text('Available: ${fmt.format(available)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                    Text(
+                      '${displayCurrencyCode(selectedCurrency)} position',
+                      style: AppTypography.labelCaps(
+                        context.fx.outline,
+                        context: context,
+                      ),
+                    ),
+                    Text(
+                      'Available: ${fmt.format(available)}',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
+                    ),
                     if (required != null && required > 0)
                       Text(
                         'Required / to source: ${fmt.format(required)}',
-                        style: AppTypography.dataMd(context.fx.warning, context: context),
+                        style: AppTypography.dataMd(
+                          context.fx.warning,
+                          context: context,
+                        ),
                       ),
                   ],
                 ),
@@ -261,12 +321,19 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
                 color: context.fx.warningContainer,
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: context.fx.warning, size: 20),
+                    Icon(
+                      Icons.warning_amber,
+                      color: context.fx.warning,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Insufficient ${displayCurrencyCode(selectedCurrency!)} available. A sourcing requirement will be created automatically.',
-                        style: AppTypography.bodyMd(context.fx.warning, context: context).copyWith(fontSize: 12),
+                        style: AppTypography.bodyMd(
+                          context.fx.warning,
+                          context: context,
+                        ).copyWith(fontSize: 12),
                       ),
                     ),
                   ],
@@ -274,11 +341,13 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
               ),
             ],
             const SizedBox(height: 16),
-            const FxSectionLabel(label:'Customer payment'),
+            const FxSectionLabel(label: 'Customer payment'),
             FxObsidianFormField(
               controller: _paidCtrl,
               label: 'Customer paid now (PKR)',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (_) => setState(() {}),
             ),
             FxObsidianReportPanel(
@@ -286,7 +355,12 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _amountRow(context, 'Total payable', 'PKR ${fmt.format(_payable)}', emphasized: true),
+                  _amountRow(
+                    context,
+                    'Total payable',
+                    'PKR ${fmt.format(_payable)}',
+                    emphasized: true,
+                  ),
                   const SizedBox(height: 8),
                   _amountRow(
                     context,
@@ -305,15 +379,22 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
               ),
             ),
             const SizedBox(height: 16),
-            const FxSectionLabel(label:'Delivery method'),
+            const FxSectionLabel(label: 'Delivery method'),
             DropdownButtonFormField<FxDeliveryMethod>(
               initialValue: _deliveryMethod,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: FxDeliveryMethod.values.map((m) => DropdownMenuItem(value: m, child: Text(m.label))).toList(),
-              onChanged: (v) => setState(() => _deliveryMethod = v ?? FxDeliveryMethod.agent),
+              items: FxDeliveryMethod.values
+                  .map((m) => DropdownMenuItem(value: m, child: Text(m.label)))
+                  .toList(),
+              onChanged: (v) =>
+                  setState(() => _deliveryMethod = v ?? FxDeliveryMethod.agent),
             ),
             const SizedBox(height: 8),
-            FxObsidianFormField(controller: _notesCtrl, label: 'Notes', maxLines: 2),
+            FxObsidianFormField(
+              controller: _notesCtrl,
+              label: 'Notes',
+              maxLines: 2,
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -334,14 +415,20 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
         Expanded(
           child: Text(
             label,
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 12),
           ),
         ),
         Text(
           value,
           textAlign: TextAlign.end,
           style: emphasized
-              ? AppTypography.dataLg(accent ?? context.fx.onSurface, context: context)
+              ? AppTypography.dataLg(
+                  accent ?? context.fx.onSurface,
+                  context: context,
+                )
               : AppTypography.dataMd(context.fx.onSurface, context: context),
         ),
       ],
@@ -366,7 +453,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
         side: RateSide.sell,
         lockedBy: supabase.auth.currentUser?.id,
       );
-      final dealId = await ref.read(dealRepositoryProvider).bookCustomerDeal(
+      final dealId = await ref
+          .read(dealRepositoryProvider)
+          .bookCustomerDeal(
             branchId: profile.branchId,
             customerPartyId: _customerId!,
             sellCurrencyCode: _currencyCode!,
@@ -374,7 +463,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
             saleRatePkr: _rate!,
             customerPaidNowPkr: _paid ?? 0,
             deliveryMethod: _deliveryMethod,
-            notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+            notes: _notesCtrl.text.trim().isEmpty
+                ? null
+                : _notesCtrl.text.trim(),
             autoSource: true,
             rateSnapshot: rateSnapshot,
           );
@@ -382,7 +473,9 @@ class _NewCustomerFxOrderScreenState extends ConsumerState<NewCustomerFxOrderScr
       if (mounted) context.go('/deals/$dealId');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

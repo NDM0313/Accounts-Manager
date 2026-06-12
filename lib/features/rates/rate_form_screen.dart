@@ -25,11 +25,7 @@ const rateFormEffectiveAtConflictMessage =
 
 /// Unified rate form: new, edit (new version), duplicate.
 class RateFormScreen extends ConsumerStatefulWidget {
-  const RateFormScreen({
-    super.key,
-    this.rateId,
-    this.duplicateFromId,
-  });
+  const RateFormScreen({super.key, this.rateId, this.duplicateFromId});
 
   final String? rateId;
   final String? duplicateFromId;
@@ -85,7 +81,9 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
       if (widget.mode == RateFormMode.editVersion) {
         _previousEffectiveAt = rate.effectiveAt.toLocal();
       }
-      _effectiveAt = rateFormUsesNowForEffectiveAt(widget.mode) ? DateTime.now() : rate.effectiveAt.toLocal();
+      _effectiveAt = rateFormUsesNowForEffectiveAt(widget.mode)
+          ? DateTime.now()
+          : rate.effectiveAt.toLocal();
       _loaded = true;
     });
   }
@@ -125,15 +123,21 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
 
     return FxPageScaffold(
       fallbackRoute: '/rates',
-      title: Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+      title: Text(
+        title,
+        style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+      ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
         data: (profile) {
-          if (profile == null) return const Center(child: Text('Profile not configured.'));
+          if (profile == null) {
+            return const Center(child: Text('Profile not configured.'));
+          }
           return currenciesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Unable to load currencies: $e')),
+            error: (e, _) =>
+                Center(child: Text('Unable to load currencies: $e')),
             data: (currencies) {
               final fxCurrencies = currencies.where((c) => !c.isBase).toList();
               _currencyId ??= fxCurrencies.firstOrNull?.id;
@@ -153,19 +157,33 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.info_outline, size: 18, color: context.fx.tertiary),
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 18,
+                                    color: context.fx.tertiary,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'Old transactions will keep their locked rates. This new rate applies to future transactions only.',
-                                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                      style: AppTypography.bodyMd(
+                                        context.fx.onSurfaceVariant,
+                                        context: context,
+                                      ).copyWith(fontSize: 12),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          if (widget.mode == RateFormMode.editVersion) const SizedBox(height: 12),
-                          Text('Currency pair', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                          if (widget.mode == RateFormMode.editVersion)
+                            const SizedBox(height: 12),
+                          Text(
+                            'Currency pair',
+                            style: AppTypography.labelCaps(
+                              context.fx.outline,
+                              context: context,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             key: ValueKey(_currencyId),
@@ -173,21 +191,34 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: context.fx.surfaceContainerLow,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusLg,
+                                ),
+                              ),
                             ),
                             items: fxCurrencies
-                                .map((c) => DropdownMenuItem(value: c.id, child: Text('${c.code}/PKR · ${c.name}')))
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c.id,
+                                    child: Text('${c.code}/PKR · ${c.name}'),
+                                  ),
+                                )
                                 .toList(),
-                            onChanged: widget.mode == RateFormMode.editVersion || _busy
+                            onChanged:
+                                widget.mode == RateFormMode.editVersion || _busy
                                 ? null
                                 : (v) => setState(() => _currencyId = v),
-                            validator: (v) => v == null ? 'Select currency' : null,
+                            validator: (v) =>
+                                v == null ? 'Select currency' : null,
                           ),
                           const SizedBox(height: 16),
                           FxObsidianFormField(
                             label: 'Reference / mid rate (PKR)',
                             controller: _midCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             enabled: !_busy,
                             accentTertiary: true,
                             onChanged: (_) => _applyMidToBuySell(),
@@ -197,7 +228,9 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                           FxObsidianFormField(
                             label: 'Buy rate (PKR)',
                             controller: _buyCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             enabled: !_busy,
                             onChanged: (_) {
                               _syncMidFromBuySell();
@@ -209,7 +242,9 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                           FxObsidianFormField(
                             label: 'Sell rate (PKR)',
                             controller: _sellCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             enabled: !_busy,
                             onChanged: (_) {
                               _syncMidFromBuySell();
@@ -218,7 +253,13 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                             validator: _positiveRate,
                           ),
                           const SizedBox(height: 16),
-                          Text('Source', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                          Text(
+                            'Source',
+                            style: AppTypography.labelCaps(
+                              context.fx.outline,
+                              context: context,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             initialValue: _source,
@@ -231,58 +272,98 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                                   ),
                                 )
                                 .toList(),
-                            onChanged: _busy ? null : (v) => setState(() => _source = v),
+                            onChanged: _busy
+                                ? null
+                                : (v) => setState(() => _source = v),
                           ),
                           const SizedBox(height: 16),
                           InkWell(
                             onTap: _busy
                                 ? null
                                 : () async {
-                                    final initial = _effectiveAt ?? DateTime.now();
-                                    final date = await FxObsidianPickers.showDate(
-                                      context,
-                                      initialDate: initial,
-                                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                                    );
-                                    if (date == null || !context.mounted) return;
+                                    final initial =
+                                        _effectiveAt ?? DateTime.now();
+                                    final date =
+                                        await FxObsidianPickers.showDate(
+                                          context,
+                                          initialDate: initial,
+                                          lastDate: DateTime.now().add(
+                                            const Duration(days: 365),
+                                          ),
+                                        );
+                                    if (date == null || !context.mounted) {
+                                      return;
+                                    }
                                     final time = await showTimePicker(
                                       context: context,
-                                      initialTime: TimeOfDay.fromDateTime(initial),
+                                      initialTime: TimeOfDay.fromDateTime(
+                                        initial,
+                                      ),
                                     );
                                     if (time == null) return;
                                     setState(() {
-                                      _effectiveAt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                                      _effectiveAt = DateTime(
+                                        date.year,
+                                        date.month,
+                                        date.day,
+                                        time.hour,
+                                        time.minute,
+                                      );
                                     });
                                   },
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('Effective date/time', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                                      Text(
+                                        'Effective date/time',
+                                        style: AppTypography.labelCaps(
+                                          context.fx.outline,
+                                          context: context,
+                                        ),
+                                      ),
                                       Text(
                                         _effectiveAt != null
-                                            ? DateFormat.yMMMd().add_jm().format(_effectiveAt!.toLocal())
+                                            ? DateFormat.yMMMd()
+                                                  .add_jm()
+                                                  .format(
+                                                    _effectiveAt!.toLocal(),
+                                                  )
                                             : 'Required',
-                                        style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                                        style: AppTypography.bodyMd(
+                                          context.fx.onSurface,
+                                          context: context,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  color: context.fx.onSurfaceVariant,
+                                ),
                               ],
                             ),
                           ),
-                          if (widget.mode == RateFormMode.editVersion && _previousEffectiveAt != null) ...[
+                          if (widget.mode == RateFormMode.editVersion &&
+                              _previousEffectiveAt != null) ...[
                             const SizedBox(height: 8),
                             Text(
                               'Previous version effective from: ${DateFormat.yMMMd().add_jm().format(_previousEffectiveAt!.toLocal())}',
-                              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ).copyWith(fontSize: 11),
                             ),
                             Text(
                               'New version must use a different date/time.',
-                              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ).copyWith(fontSize: 11),
                             ),
                           ],
                           const SizedBox(height: 16),
@@ -295,7 +376,10 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                           const SizedBox(height: 12),
                           Text(
                             'This rate will apply from the selected date/time. Old transactions remain unchanged.',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 11),
                           ),
                         ],
                       ),
@@ -303,8 +387,12 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
                   ),
                   FxObsidianActionBar(
                     busy: _busy,
-                    saveLabel: widget.mode == RateFormMode.editVersion ? 'Save new version' : 'Save rate',
-                    onCancel: _busy ? () {} : () => fxSafePop(context, fallbackRoute: '/rates'),
+                    saveLabel: widget.mode == RateFormMode.editVersion
+                        ? 'Save new version'
+                        : 'Save rate',
+                    onCancel: _busy
+                        ? () {}
+                        : () => fxSafePop(context, fallbackRoute: '/rates'),
                     onSave: _busy ? () {} : () => _save(profile.branchId),
                   ),
                 ],
@@ -325,7 +413,9 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
   Future<void> _save(String branchId) async {
     if (!_formKey.currentState!.validate()) return;
     if (_effectiveAt == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select effective date/time')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select effective date/time')),
+      );
       return;
     }
     final buy = double.parse(_buyCtrl.text);
@@ -352,19 +442,21 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
         return;
       }
       await repo.createRateVersion(
-            branchId: branchId,
-            currencyId: _currencyId!,
-            buyRate: buy,
-            sellRate: sell,
-            midRate: double.tryParse(_midCtrl.text),
-            effectiveAt: _effectiveAt!,
-            source: _source ?? 'manual',
-            notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-          );
+        branchId: branchId,
+        currencyId: _currencyId!,
+        buyRate: buy,
+        sellRate: sell,
+        midRate: double.tryParse(_midCtrl.text),
+        effectiveAt: _effectiveAt!,
+        source: _source ?? 'manual',
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
       ref.invalidate(ratesProvider);
       ref.invalidate(rateBoardPairsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rate saved.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Rate saved.')));
         context.pop();
       }
     } on RateEffectiveAtConflictException catch (_) {
@@ -374,7 +466,11 @@ class _RateFormScreenState extends ConsumerState<RateFormScreen> {
         );
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

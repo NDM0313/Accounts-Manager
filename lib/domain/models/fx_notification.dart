@@ -28,7 +28,9 @@ class FxNotification {
       title: json['title'] as String,
       body: json['body'] as String,
       remittanceId: json['remittance_id'] as String?,
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at'] as String) : null,
+      readAt: json['read_at'] != null
+          ? DateTime.parse(json['read_at'] as String)
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       payload: (json['payload'] as Map<String, dynamic>?) ?? {},
     );

@@ -24,15 +24,32 @@ class NotificationsInboxScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (items) {
           if (items.isEmpty) {
-            return Center(child: Text('No notifications', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)));
+            return Center(
+              child: Text(
+                'No notifications',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
+            );
           }
           return ListView.builder(
             itemCount: items.length,
             itemBuilder: (context, i) {
               final n = items[i];
               return ListTile(
-                title: Text(n.title, style: TextStyle(fontWeight: n.isUnread ? FontWeight.w700 : FontWeight.normal)),
-                subtitle: Text('${n.body}\n${_dtFmt.format(n.createdAt.toLocal())}'),
+                title: Text(
+                  n.title,
+                  style: TextStyle(
+                    fontWeight: n.isUnread
+                        ? FontWeight.w700
+                        : FontWeight.normal,
+                  ),
+                ),
+                subtitle: Text(
+                  '${n.body}\n${_dtFmt.format(n.createdAt.toLocal())}',
+                ),
                 isThreeLine: true,
                 onTap: () async {
                   await ref.read(notificationRepositoryProvider).markRead(n.id);

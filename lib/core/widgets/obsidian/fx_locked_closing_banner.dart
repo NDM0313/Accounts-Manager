@@ -3,7 +3,11 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class FxLockedClosingBanner extends StatelessWidget {
-  const FxLockedClosingBanner({super.key, this.onRequestEdit, this.onRequestDelete});
+  const FxLockedClosingBanner({
+    super.key,
+    this.onRequestEdit,
+    this.onRequestDelete,
+  });
 
   final VoidCallback? onRequestEdit;
   final VoidCallback? onRequestDelete;
@@ -28,7 +32,10 @@ class FxLockedClosingBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   'This day is already closed.',
-                  style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -36,7 +43,10 @@ class FxLockedClosingBanner extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Edit/Delete requires admin approval.',
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 12),
           ),
           if (onRequestEdit != null || onRequestDelete != null) ...[
             const SizedBox(height: 12),
@@ -49,12 +59,15 @@ class FxLockedClosingBanner extends StatelessWidget {
                       child: const Text('Request Edit'),
                     ),
                   ),
-                if (onRequestEdit != null && onRequestDelete != null) const SizedBox(width: 8),
+                if (onRequestEdit != null && onRequestDelete != null)
+                  const SizedBox(width: 8),
                 if (onRequestDelete != null)
                   Expanded(
                     child: OutlinedButton(
                       onPressed: onRequestDelete,
-                      style: OutlinedButton.styleFrom(foregroundColor: context.fx.error),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: context.fx.error,
+                      ),
                       child: const Text('Request Delete'),
                     ),
                   ),

@@ -23,7 +23,9 @@ class BalanceSheetScreen extends ConsumerWidget {
     final dateLabel = asOf.toIso8601String().split('T').first;
     final currencyView = ref.watch(reportCurrencyViewProvider);
     final displayCode = ref.watch(displayCurrencyCodeProvider);
-    final converter = ref.watch(currencyConverterAsOfProvider(asOf)).whenOrNull(data: (v) => v);
+    final converter = ref
+        .watch(currencyConverterAsOfProvider(asOf))
+        .whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -54,30 +56,54 @@ class BalanceSheetScreen extends ConsumerWidget {
       ),
       body: rowsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Unable to load balance sheet: $e')),
+        error: (e, _) =>
+            Center(child: Text('Unable to load balance sheet: $e')),
         data: (rows) {
           final assets = rows.where((r) => r.accountType == 'asset').toList();
-          final liabilities = rows.where((r) => r.accountType == 'liability').toList();
+          final liabilities = rows
+              .where((r) => r.accountType == 'liability')
+              .toList();
           final equity = rows.where((r) => r.accountType == 'equity').toList();
-          final totalAssets = assets.fold<double>(0, (s, r) => s + r.balancePkr);
-          final totalLiabilities = liabilities.fold<double>(0, (s, r) => s + r.balancePkr);
-          final totalEquity = equity.fold<double>(0, (s, r) => s + r.balancePkr);
+          final totalAssets = assets.fold<double>(
+            0,
+            (s, r) => s + r.balancePkr,
+          );
+          final totalLiabilities = liabilities.fold<double>(
+            0,
+            (s, r) => s + r.balancePkr,
+          );
+          final totalEquity = equity.fold<double>(
+            0,
+            (s, r) => s + r.balancePkr,
+          );
 
           if (rows.isEmpty) {
-            return Center(child: Text('No balance sheet balances as of $dateLabel.'));
+            return Center(
+              child: Text('No balance sheet balances as of $dateLabel.'),
+            );
           }
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              Text(
+                'As of $dateLabel',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
               const SizedBox(height: 8),
-              ref.watch(companyAccountingContextProvider).maybeWhen(
+              ref
+                  .watch(companyAccountingContextProvider)
+                  .maybeWhen(
                     data: (ctx) => FxReportCurrencyToggle(
                       view: currencyView,
                       displayCurrencyCode: displayCode,
                       baseCurrencyCode: ctx.baseCurrencyCode,
-                      onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                      onChanged: (v) => ref
+                          .read(reportCurrencyViewProvider.notifier)
+                          .setView(v),
                     ),
                     orElse: () => const SizedBox.shrink(),
                   ),
@@ -86,34 +112,70 @@ class BalanceSheetScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Assets', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                    Text(
+                      'Assets',
+                      style: AppTypography.labelCaps(
+                        context.fx.outline,
+                        context: context,
+                      ),
+                    ),
                     converter != null
                         ? FxConvertedAmount(
                             pkrAmount: totalAssets,
                             converter: converter,
-                            style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ).copyWith(fontWeight: FontWeight.w600),
                           )
-                        : Text('Assets ${fmt.format(totalAssets)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                        : Text(
+                            'Assets ${fmt.format(totalAssets)}',
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
                     const SizedBox(height: 4),
                     converter != null
                         ? FxConvertedAmount(
                             pkrAmount: totalLiabilities + totalEquity,
                             converter: converter,
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           )
                         : Text(
                             'Liabilities + Equity ${fmt.format(totalLiabilities + totalEquity)}',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              FxObsidianReportSection(label: 'Assets', children: _rows(context, fmt, assets, converter, currencyView)),
+              FxObsidianReportSection(
+                label: 'Assets',
+                children: _rows(context, fmt, assets, converter, currencyView),
+              ),
               const SizedBox(height: 16),
-              FxObsidianReportSection(label: 'Liabilities', children: _rows(context, fmt, liabilities, converter, currencyView)),
+              FxObsidianReportSection(
+                label: 'Liabilities',
+                children: _rows(
+                  context,
+                  fmt,
+                  liabilities,
+                  converter,
+                  currencyView,
+                ),
+              ),
               const SizedBox(height: 16),
-              FxObsidianReportSection(label: 'Equity', children: _rows(context, fmt, equity, converter, currencyView)),
+              FxObsidianReportSection(
+                label: 'Equity',
+                children: _rows(context, fmt, equity, converter, currencyView),
+              ),
             ],
           );
         },
@@ -139,15 +201,32 @@ class BalanceSheetScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       '${r.accountCode} · ${r.accountName}',
-                      style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   converter != null
                       ? Text(
-                          formatReportAmount(pkrAmount: r.balancePkr, converter: converter, view: currencyView, fmt: fmt),
-                          style: AppTypography.labelMono(context.fx.onSurface, context: context),
+                          formatReportAmount(
+                            pkrAmount: r.balancePkr,
+                            converter: converter,
+                            view: currencyView,
+                            fmt: fmt,
+                          ),
+                          style: AppTypography.labelMono(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
                         )
-                      : Text(fmt.format(r.balancePkr), style: AppTypography.labelMono(context.fx.onSurface, context: context)),
+                      : Text(
+                          fmt.format(r.balancePkr),
+                          style: AppTypography.labelMono(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
+                        ),
                 ],
               ),
             ),
@@ -156,7 +235,11 @@ class BalanceSheetScreen extends ConsumerWidget {
         .toList();
   }
 
-  Future<void> _pickDate(BuildContext context, WidgetRef ref, DateTime current) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime current,
+  ) async {
     final picked = await FxObsidianPickers.showDate(
       context,
       initialDate: current,

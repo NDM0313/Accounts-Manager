@@ -33,11 +33,11 @@ enum FxOpeningBalanceLineKind {
   }
 
   String get label => switch (this) {
-        cashBank => 'Cash / Bank',
-        currencyPosition => 'Currency Position',
-        partyReceivable => 'Receivable',
-        partyPayable => 'Payable',
-      };
+    cashBank => 'Cash / Bank',
+    currencyPosition => 'Currency Position',
+    partyReceivable => 'Receivable',
+    partyPayable => 'Payable',
+  };
 }
 
 class FxOpeningBalanceBatch {
@@ -87,8 +87,12 @@ class FxOpeningBalanceBatch {
       description: json['description'] as String?,
       notes: json['notes'] as String?,
       equityAccountId: json['equity_account_id'] as String?,
-      postedAt: json['posted_at'] != null ? DateTime.parse(json['posted_at'] as String) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      postedAt: json['posted_at'] != null
+          ? DateTime.parse(json['posted_at'] as String)
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
     );
   }
 
@@ -127,18 +131,19 @@ class FxOpeningBalanceLine {
   final String? memo;
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'line_no': lineNo,
-        'line_kind': lineKind.dbValue,
-        if (accountId != null) 'account_id': accountId,
-        if (partyId != null) 'party_id': partyId,
-        'currency_code': currencyCode,
-        'foreign_amount': foreignAmount,
-        'rate_used': rateUsed,
-        'pkr_amount': pkrAmount,
-        if (locationLabel != null && locationLabel!.isNotEmpty) 'location_label': locationLabel,
-        if (memo != null && memo!.isNotEmpty) 'memo': memo,
-      };
+    if (id != null) 'id': id,
+    'line_no': lineNo,
+    'line_kind': lineKind.dbValue,
+    if (accountId != null) 'account_id': accountId,
+    if (partyId != null) 'party_id': partyId,
+    'currency_code': currencyCode,
+    'foreign_amount': foreignAmount,
+    'rate_used': rateUsed,
+    'pkr_amount': pkrAmount,
+    if (locationLabel != null && locationLabel!.isNotEmpty)
+      'location_label': locationLabel,
+    if (memo != null && memo!.isNotEmpty) 'memo': memo,
+  };
 
   factory FxOpeningBalanceLine.fromJson(Map<String, dynamic> json) {
     return FxOpeningBalanceLine(
@@ -200,12 +205,14 @@ class FxOpeningBalanceView {
     final linesJson = json['lines'];
     return FxOpeningBalanceView(
       status: FxOpeningBalanceStatus.fromDb(json['status'] as String?),
-      batch: batchJson is Map<String, dynamic> ? FxOpeningBalanceBatch.fromJson(batchJson) : null,
+      batch: batchJson is Map<String, dynamic>
+          ? FxOpeningBalanceBatch.fromJson(batchJson)
+          : null,
       lines: linesJson is List
           ? linesJson
-              .cast<Map<String, dynamic>>()
-              .map(FxOpeningBalanceLine.fromJson)
-              .toList()
+                .cast<Map<String, dynamic>>()
+                .map(FxOpeningBalanceLine.fromJson)
+                .toList()
           : const [],
     );
   }

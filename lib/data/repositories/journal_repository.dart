@@ -20,15 +20,15 @@ class ManualJournalLineInput {
   final String? memo;
 
   Map<String, dynamic> toJson(int lineNo) => {
-        'line_no': lineNo,
-        'account_id': accountId,
-        'currency_code': currencyCode,
-        'foreign_amount': foreignAmount,
-        'rate_used': rateUsed,
-        'debit_pkr': debitPkr,
-        'credit_pkr': creditPkr,
-        if (memo != null) 'memo': memo,
-      };
+    'line_no': lineNo,
+    'account_id': accountId,
+    'currency_code': currencyCode,
+    'foreign_amount': foreignAmount,
+    'rate_used': rateUsed,
+    'debit_pkr': debitPkr,
+    'credit_pkr': creditPkr,
+    if (memo != null) 'memo': memo,
+  };
 }
 
 class JournalRepository {
@@ -47,7 +47,9 @@ class JournalRepository {
           'branch_id': branchId,
           'entry_date': entryDate.toIso8601String().split('T').first,
           'description': description,
-          'lines': [for (var i = 0; i < lines.length; i++) lines[i].toJson(i + 1)],
+          'lines': [
+            for (var i = 0; i < lines.length; i++) lines[i].toJson(i + 1),
+          ],
         },
       },
     );

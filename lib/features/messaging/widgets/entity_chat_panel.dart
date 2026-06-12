@@ -33,7 +33,9 @@ class EntityChatPanel extends ConsumerWidget {
         final profile = ref.read(currentProfileProvider).value;
         if (profile == null) return;
         try {
-          final id = await ref.read(messagingRepositoryProvider).getOrCreateEntityConversation(
+          final id = await ref
+              .read(messagingRepositoryProvider)
+              .getOrCreateEntityConversation(
                 branchId: profile.branchId,
                 type: type,
                 dealId: dealId,
@@ -45,11 +47,17 @@ class EntityChatPanel extends ConsumerWidget {
           if (context.mounted) context.push('/messages/$id');
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$e')));
           }
         }
       },
-      icon: Icon(Icons.chat_bubble_outline, size: 18, color: context.fx.primary),
+      icon: Icon(
+        Icons.chat_bubble_outline,
+        size: 18,
+        color: context.fx.primary,
+      ),
       label: const Text('Team chat'),
     );
   }

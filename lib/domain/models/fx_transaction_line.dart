@@ -20,17 +20,17 @@ class FxTransactionLineInput {
   final String? memo;
 
   Map<String, dynamic> toJson(String transactionId) => {
-        'transaction_id': transactionId,
-        'line_no': lineNo,
-        'account_id': accountId,
-        'currency_code': currencyCode,
-        'foreign_amount': foreignAmount,
-        'rate_used': rateUsed,
-        'base_amount_pkr': debitPkr > 0 ? debitPkr : creditPkr,
-        'debit_pkr': debitPkr,
-        'credit_pkr': creditPkr,
-        if (memo != null) 'memo': memo,
-      };
+    'transaction_id': transactionId,
+    'line_no': lineNo,
+    'account_id': accountId,
+    'currency_code': currencyCode,
+    'foreign_amount': foreignAmount,
+    'rate_used': rateUsed,
+    'base_amount_pkr': debitPkr > 0 ? debitPkr : creditPkr,
+    'debit_pkr': debitPkr,
+    'credit_pkr': creditPkr,
+    if (memo != null) 'memo': memo,
+  };
 }
 
 class FxTransactionLine {

@@ -25,7 +25,9 @@ abstract final class Env {
       );
     }
     if (!uri.host.endsWith('.supabase.co')) {
-      throw StateError('SUPABASE_URL must be a Supabase Cloud URL (*.supabase.co)');
+      throw StateError(
+        'SUPABASE_URL must be a Supabase Cloud URL (*.supabase.co)',
+      );
     }
     return value;
   }

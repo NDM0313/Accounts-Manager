@@ -20,7 +20,11 @@ void main() {
     });
 
     test('formatBalanceSheetCsv base view omits display column', () {
-      final csv = formatBalanceSheetCsv([], converter: converter, view: ReportCurrencyView.base);
+      final csv = formatBalanceSheetCsv(
+        [],
+        converter: converter,
+        view: ReportCurrencyView.base,
+      );
       expect(csv, isNot(contains('Balance Display')));
       expect(csv, contains('Balance PKR'));
     });

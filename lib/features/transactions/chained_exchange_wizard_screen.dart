@@ -36,10 +36,12 @@ class ChainedExchangeWizardScreen extends ConsumerStatefulWidget {
   const ChainedExchangeWizardScreen({super.key});
 
   @override
-  ConsumerState<ChainedExchangeWizardScreen> createState() => _ChainedExchangeWizardScreenState();
+  ConsumerState<ChainedExchangeWizardScreen> createState() =>
+      _ChainedExchangeWizardScreenState();
 }
 
-class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWizardScreen> {
+class _ChainedExchangeWizardScreenState
+    extends ConsumerState<ChainedExchangeWizardScreen> {
   int _step = 0;
   bool _busy = false;
 
@@ -126,7 +128,10 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
   Future<void> _saveDrafts() async {
     if (_transactionDate == null) return;
     if (_intermediateCurrency == null || _toCurrency == null) return;
-    if (_pkrAmount <= 0 || _buyRate <= 0 || _usdAmount <= 0 || _aedAmount <= 0) {
+    if (_pkrAmount <= 0 ||
+        _buyRate <= 0 ||
+        _usdAmount <= 0 ||
+        _aedAmount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter valid amounts and rates.')),
       );
@@ -185,12 +190,16 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
       ref.invalidate(draftTransactionsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Both drafts saved. Post each to ledger.')),
+          const SnackBar(
+            content: Text('Both drafts saved. Post each to ledger.'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -212,7 +221,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Post failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -238,9 +249,15 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (currencies) {
           final foreign = currencies.where((c) => !c.isBase).toList();
-          _intermediateCurrency ??= foreign.where((c) => c.code == 'USD').firstOrNull?.code ?? foreign.firstOrNull?.code;
-          _toCurrency ??= foreign.where((c) => c.code == 'AED').firstOrNull?.code ??
-              foreign.where((c) => c.code != _intermediateCurrency).firstOrNull?.code;
+          _intermediateCurrency ??=
+              foreign.where((c) => c.code == 'USD').firstOrNull?.code ??
+              foreign.firstOrNull?.code;
+          _toCurrency ??=
+              foreign.where((c) => c.code == 'AED').firstOrNull?.code ??
+              foreign
+                  .where((c) => c.code != _intermediateCurrency)
+                  .firstOrNull
+                  ?.code;
 
           return FxObsidianPage(
             child: Column(
@@ -282,8 +299,14 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
           DropdownButtonFormField<String>(
             initialValue: _intermediateCurrency,
             decoration: const InputDecoration(labelText: 'Buy currency'),
-            items: foreign.map((c) => DropdownMenuItem(value: c.code, child: Text(c.code))).toList(),
-            onChanged: _busy ? null : (v) => setState(() => _intermediateCurrency = v),
+            items: foreign
+                .map(
+                  (c) => DropdownMenuItem(value: c.code, child: Text(c.code)),
+                )
+                .toList(),
+            onChanged: _busy
+                ? null
+                : (v) => setState(() => _intermediateCurrency = v),
           ),
           const SizedBox(height: 12),
           FxObsidianFormField(
@@ -308,7 +331,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
             FxObsidianFormField(
               label: 'Buy rate (PKR per unit)',
               controller: _buyRateCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               enabled: !_busy,
             ),
           const SizedBox(height: 12),
@@ -338,7 +363,10 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
           const SizedBox(height: 12),
           Text(
             'Exchange $_intermediateCurrency received in step 1.',
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 12),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -346,7 +374,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
             decoration: const InputDecoration(labelText: 'To currency'),
             items: foreign
                 .where((c) => c.code != _intermediateCurrency)
-                .map((c) => DropdownMenuItem(value: c.code, child: Text(c.code)))
+                .map(
+                  (c) => DropdownMenuItem(value: c.code, child: Text(c.code)),
+                )
                 .toList(),
             onChanged: _busy ? null : (v) => setState(() => _toCurrency = v),
           ),
@@ -366,13 +396,16 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
               payAmountController: _aedAmountCtrl,
               rateSide: RateSide.reference,
               asOfDate: _transactionDate,
-              dealRateLabel: 'Cross rate (${_intermediateCurrency!} per ${_toCurrency!} unit)',
+              dealRateLabel:
+                  'Cross rate (${_intermediateCurrency!} per ${_toCurrency!} unit)',
             ),
           ] else
             FxObsidianFormField(
               label: 'Cross rate',
               controller: _crossRateCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               enabled: !_busy,
             ),
           const SizedBox(height: 12),
@@ -412,16 +445,22 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
               const SizedBox(height: 12),
               _ReviewCard(
                 title: 'Leg 1 — Currency Buy',
-                subtitle: '${fmt.format(_usdAmount)} $_intermediateCurrency for PKR ${fmt.format(_pkrAmount)}',
+                subtitle:
+                    '${fmt.format(_usdAmount)} $_intermediateCurrency for PKR ${fmt.format(_pkrAmount)}',
                 draftId: _buyDraftId,
-                onTap: _buyDraftId != null ? () => context.push('/transactions/$_buyDraftId') : null,
+                onTap: _buyDraftId != null
+                    ? () => context.push('/transactions/$_buyDraftId')
+                    : null,
               ),
               const SizedBox(height: 12),
               _ReviewCard(
                 title: 'Leg 2 — Cross Currency',
-                subtitle: '${fmt.format(_usdAmount)} $_intermediateCurrency → ${fmt.format(_aedAmount)} $_toCurrency',
+                subtitle:
+                    '${fmt.format(_usdAmount)} $_intermediateCurrency → ${fmt.format(_aedAmount)} $_toCurrency',
                 draftId: _crossDraftId,
-                onTap: _crossDraftId != null ? () => context.push('/transactions/$_crossDraftId') : null,
+                onTap: _crossDraftId != null
+                    ? () => context.push('/transactions/$_crossDraftId')
+                    : null,
               ),
             ],
           ),
@@ -451,11 +490,20 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const FxSectionLabel(label: 'Transaction date'),
-                Text(label, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                Text(
+                  label,
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ),
+                ),
               ],
             ),
           ),
-          Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
+          Icon(
+            Icons.calendar_today_outlined,
+            color: context.fx.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -463,7 +511,12 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
 
   Widget _buildActions() {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
       decoration: BoxDecoration(
         color: context.fx.surface,
         border: Border(top: BorderSide(color: context.fx.outlineVariant)),
@@ -484,7 +537,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
                       if (_step == 0) {
                         if (_pkrAmount <= 0 || _buyRate <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Enter PKR amount and buy rate.')),
+                            const SnackBar(
+                              content: Text('Enter PKR amount and buy rate.'),
+                            ),
                           );
                           return;
                         }
@@ -493,7 +548,9 @@ class _ChainedExchangeWizardScreenState extends ConsumerState<ChainedExchangeWiz
                         _saveDrafts();
                       }
                     },
-              child: Text(_step == 0 ? 'Next' : (_busy ? 'Saving…' : 'Save drafts')),
+              child: Text(
+                _step == 0 ? 'Next' : (_busy ? 'Saving…' : 'Save drafts'),
+              ),
             ),
           if (_step == 2) ...[
             OutlinedButton(
@@ -523,19 +580,39 @@ class _StepIndicator extends StatelessWidget {
       child: Row(
         children: [
           for (var i = 0; i < 3; i++) ...[
-            if (i > 0) Expanded(child: Container(height: 2, color: i <= current ? context.fx.primary : context.fx.outlineVariant)),
+            if (i > 0)
+              Expanded(
+                child: Container(
+                  height: 2,
+                  color: i <= current
+                      ? context.fx.primary
+                      : context.fx.outlineVariant,
+                ),
+              ),
             CircleAvatar(
               radius: 14,
-              backgroundColor: i <= current ? context.fx.primary : context.fx.surfaceContainerHighest,
+              backgroundColor: i <= current
+                  ? context.fx.primary
+                  : context.fx.surfaceContainerHighest,
               child: Text(
                 '${i + 1}',
                 style: AppTypography.bodyMd(
-                  i <= current ? context.fx.onPrimary : context.fx.onSurfaceVariant,
+                  i <= current
+                      ? context.fx.onPrimary
+                      : context.fx.onSurfaceVariant,
                   context: context,
                 ).copyWith(fontSize: 12),
               ),
             ),
-            if (i < 2) Expanded(child: Container(height: 2, color: i < current ? context.fx.primary : context.fx.outlineVariant)),
+            if (i < 2)
+              Expanded(
+                child: Container(
+                  height: 2,
+                  color: i < current
+                      ? context.fx.primary
+                      : context.fx.outlineVariant,
+                ),
+              ),
           ],
         ],
       ),
@@ -572,8 +649,20 @@ class _ReviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
-                    Text(subtitle, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                    Text(
+                      title,
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      subtitle,
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 12),
+                    ),
                   ],
                 ),
               ),

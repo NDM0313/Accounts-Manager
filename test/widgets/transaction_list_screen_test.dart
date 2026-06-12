@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Ledger list shows filter chips and search placeholder', (tester) async {
+  testWidgets('Ledger list shows filter chips and search placeholder', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -14,9 +16,7 @@ void main() {
           todayTransactionsProvider.overrideWith((ref) async => []),
           voidedTransactionsProvider.overrideWith((ref) async => []),
         ],
-        child: const MaterialApp(
-          home: TransactionListScreen(inShell: false),
-        ),
+        child: const MaterialApp(home: TransactionListScreen(inShell: false)),
       ),
     );
     await tester.pumpAndSettle();
@@ -28,7 +28,9 @@ void main() {
     expect(find.text('Search party or reference…'), findsOneWidget);
   });
 
-  testWidgets('Ledger list groups transactions with sticky date header', (tester) async {
+  testWidgets('Ledger list groups transactions with sticky date header', (
+    tester,
+  ) async {
     final now = DateTime.now();
     final tx = FxTransaction(
       id: 'tx-1',
@@ -51,9 +53,7 @@ void main() {
           todayTransactionsProvider.overrideWith((ref) async => [tx]),
           voidedTransactionsProvider.overrideWith((ref) async => []),
         ],
-        child: const MaterialApp(
-          home: TransactionListScreen(inShell: false),
-        ),
+        child: const MaterialApp(home: TransactionListScreen(inShell: false)),
       ),
     );
     await tester.pumpAndSettle();

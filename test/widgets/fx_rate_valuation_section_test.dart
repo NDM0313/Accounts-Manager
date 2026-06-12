@@ -27,8 +27,18 @@ void main() {
   group('applySuggestedDealRate', () {
     test('CNY selected uses CNY/PKR sell rate not USD', () {
       final controller = TextEditingController(text: '280.0000');
-      final usdQuote = svc.resolvePair(rates, 'USD', 'PKR', side: RateSide.sell);
-      final cnyQuote = svc.resolvePair(rates, 'CNY', 'PKR', side: RateSide.sell);
+      final usdQuote = svc.resolvePair(
+        rates,
+        'USD',
+        'PKR',
+        side: RateSide.sell,
+      );
+      final cnyQuote = svc.resolvePair(
+        rates,
+        'CNY',
+        'PKR',
+        side: RateSide.sell,
+      );
 
       expect(usdQuote.rate, 280);
       expect(cnyQuote.rate, 39);
@@ -47,7 +57,11 @@ void main() {
     test('USD selected uses USD/PKR sell rate', () {
       final controller = TextEditingController();
       final quote = svc.resolvePair(rates, 'USD', 'PKR', side: RateSide.sell);
-      applySuggestedDealRate(controller: controller, quote: quote, dealRateTouched: false);
+      applySuggestedDealRate(
+        controller: controller,
+        quote: quote,
+        dealRateTouched: false,
+      );
       expect(controller.text, '280.0000');
       controller.dispose();
     });
@@ -55,7 +69,11 @@ void main() {
     test('AED selected uses AED/PKR sell rate', () {
       final controller = TextEditingController();
       final quote = svc.resolvePair(rates, 'AED', 'PKR', side: RateSide.sell);
-      applySuggestedDealRate(controller: controller, quote: quote, dealRateTouched: false);
+      applySuggestedDealRate(
+        controller: controller,
+        quote: quote,
+        dealRateTouched: false,
+      );
       expect(controller.text, '76.0000');
       controller.dispose();
     });
@@ -63,14 +81,23 @@ void main() {
     test('AFN selected uses AFN/PKR sell rate', () {
       final controller = TextEditingController();
       final quote = svc.resolvePair(rates, 'AFN', 'PKR', side: RateSide.sell);
-      applySuggestedDealRate(controller: controller, quote: quote, dealRateTouched: false);
+      applySuggestedDealRate(
+        controller: controller,
+        quote: quote,
+        dealRateTouched: false,
+      );
       expect(controller.text, '3.4000');
       controller.dispose();
     });
 
     test('currency change updates rate when not manually edited', () {
       final controller = TextEditingController(text: '280.0000');
-      final cnyQuote = svc.resolvePair(rates, 'CNY', 'PKR', side: RateSide.sell);
+      final cnyQuote = svc.resolvePair(
+        rates,
+        'CNY',
+        'PKR',
+        side: RateSide.sell,
+      );
 
       applySuggestedDealRate(
         controller: controller,
@@ -85,7 +112,12 @@ void main() {
 
     test('does not overwrite when manually edited unless forced', () {
       final controller = TextEditingController(text: '42.5000');
-      final cnyQuote = svc.resolvePair(rates, 'CNY', 'PKR', side: RateSide.sell);
+      final cnyQuote = svc.resolvePair(
+        rates,
+        'CNY',
+        'PKR',
+        side: RateSide.sell,
+      );
 
       applySuggestedDealRate(
         controller: controller,

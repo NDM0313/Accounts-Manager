@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('rate pair card fits narrow width without overflow', (tester) async {
+  testWidgets('rate pair card fits narrow width without overflow', (
+    tester,
+  ) async {
     final pair = RateBoardPair(
       pairLabel: 'USD/PKR',
       fromCurrency: 'USD',

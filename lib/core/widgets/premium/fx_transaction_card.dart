@@ -28,13 +28,22 @@ class FxTransactionCard extends StatelessWidget {
     final title = transaction.partyName?.isNotEmpty == true
         ? transaction.partyName!
         : (transaction.description?.isNotEmpty == true
-            ? transaction.description!
-            : transaction.transactionType.label);
-    final ref = transaction.transactionNo ??
-        (transaction.id.length >= 8 ? transaction.id.substring(0, 8) : transaction.id).toUpperCase();
-    final timeSource = transaction.postedAt ?? transaction.createdAt ?? transaction.transactionDate;
+              ? transaction.description!
+              : transaction.transactionType.label);
+    final ref =
+        transaction.transactionNo ??
+        (transaction.id.length >= 8
+                ? transaction.id.substring(0, 8)
+                : transaction.id)
+            .toUpperCase();
+    final timeSource =
+        transaction.postedAt ??
+        transaction.createdAt ??
+        transaction.transactionDate;
     final timeLabel = DateFormat('HH:mm').format(timeSource);
-    final padding = compact ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10) : const EdgeInsets.all(12);
+    final padding = compact
+        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+        : const EdgeInsets.all(12);
 
     final row = Material(
       color: Colors.transparent,
@@ -44,7 +53,10 @@ class FxTransactionCard extends StatelessWidget {
           padding: padding,
           child: Row(
             children: [
-              _TypeIcon(type: transaction.transactionType, status: transaction.status),
+              _TypeIcon(
+                type: transaction.transactionType,
+                status: transaction.status,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -54,10 +66,16 @@ class FxTransactionCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        decoration: isVoided ? TextDecoration.lineThrough : null,
-                      ),
+                      style:
+                          AppTypography.bodyMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ).copyWith(
+                            fontWeight: FontWeight.w600,
+                            decoration: isVoided
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
                     ),
                     const SizedBox(height: 3),
                     Wrap(
@@ -65,12 +83,18 @@ class FxTransactionCard extends StatelessWidget {
                       runSpacing: 2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        FxTypeBadge(type: transaction.transactionType, compact: true),
+                        FxTypeBadge(
+                          type: transaction.transactionType,
+                          compact: true,
+                        ),
                         Text(
                           '$ref · $timeLabel',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 11),
                         ),
                       ],
                     ),
@@ -83,9 +107,15 @@ class FxTransactionCard extends StatelessWidget {
                 children: [
                   Text(
                     '${transaction.currencyCode} ${fmt.format(transaction.totalForeignAmount)}',
-                    style: AppTypography.dataMd(context.fx.onSurface, context: context).copyWith(
-                      decoration: isVoided ? TextDecoration.lineThrough : null,
-                    ),
+                    style:
+                        AppTypography.dataMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ).copyWith(
+                          decoration: isVoided
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   FxStatusBadge(
@@ -109,7 +139,11 @@ class FxTransactionCard extends StatelessWidget {
         children: [
           row,
           if (showDivider)
-            Divider(height: 1, thickness: 1, color: context.fx.outlineVariant.withValues(alpha: 0.6)),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: context.fx.outlineVariant.withValues(alpha: 0.6),
+            ),
         ],
       ),
     );
@@ -127,10 +161,22 @@ class _TypeIcon extends StatelessWidget {
     final isVoided = status == 'voided';
     final isDraft = status == 'draft';
     final (bg, fg, icon) = isVoided
-        ? (context.fx.errorContainer.withValues(alpha: 0.35), context.fx.error, Icons.block)
+        ? (
+            context.fx.errorContainer.withValues(alpha: 0.35),
+            context.fx.error,
+            Icons.block,
+          )
         : isDraft
-            ? (context.fx.warningContainer.withValues(alpha: 0.5), context.fx.warning, Icons.edit_note)
-            : (context.fx.secondary.withValues(alpha: 0.12), context.fx.secondary, _iconForType(type));
+        ? (
+            context.fx.warningContainer.withValues(alpha: 0.5),
+            context.fx.warning,
+            Icons.edit_note,
+          )
+        : (
+            context.fx.secondary.withValues(alpha: 0.12),
+            context.fx.secondary,
+            _iconForType(type),
+          );
 
     return Container(
       width: 40,

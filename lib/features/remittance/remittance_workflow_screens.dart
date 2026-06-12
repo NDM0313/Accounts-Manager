@@ -14,10 +14,12 @@ class RemittanceAssignAgentScreen extends ConsumerStatefulWidget {
   final String remittanceId;
 
   @override
-  ConsumerState<RemittanceAssignAgentScreen> createState() => _RemittanceAssignAgentScreenState();
+  ConsumerState<RemittanceAssignAgentScreen> createState() =>
+      _RemittanceAssignAgentScreenState();
 }
 
-class _RemittanceAssignAgentScreenState extends ConsumerState<RemittanceAssignAgentScreen> {
+class _RemittanceAssignAgentScreenState
+    extends ConsumerState<RemittanceAssignAgentScreen> {
   String? _agentId;
   final _notes = TextEditingController();
   bool _saving = false;
@@ -30,12 +32,16 @@ class _RemittanceAssignAgentScreenState extends ConsumerState<RemittanceAssignAg
 
   Future<void> _save() async {
     if (_agentId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select payout agent')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Select payout agent')));
       return;
     }
     setState(() => _saving = true);
     try {
-      await ref.read(remittanceRepositoryProvider).sendToAgent(
+      await ref
+          .read(remittanceRepositoryProvider)
+          .sendToAgent(
             remittanceId: widget.remittanceId,
             agentPartyId: _agentId!,
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
@@ -43,7 +49,11 @@ class _RemittanceAssignAgentScreenState extends ConsumerState<RemittanceAssignAg
       ref.read(remittancesRefreshProvider.notifier).refresh();
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -55,7 +65,11 @@ class _RemittanceAssignAgentScreenState extends ConsumerState<RemittanceAssignAg
     return FxPageScaffold(
       title: const Text('Send to Agent'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(onCancel: () => context.pop(), onSave: _saving ? null : _save, saveLabel: 'Send'),
+      bottomBar: FxObsidianActionBar(
+        onCancel: () => context.pop(),
+        onSave: _saving ? null : _save,
+        saveLabel: 'Send',
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -64,13 +78,24 @@ class _RemittanceAssignAgentScreenState extends ConsumerState<RemittanceAssignAg
               loading: () => const CircularProgressIndicator(),
               error: (e, _) => Text('$e'),
               data: (parties) => DropdownButtonFormField<String>(
-                value: _agentId,
-                decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Payout agent'),
-                items: parties.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+                initialValue: _agentId,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Payout agent',
+                ),
+                items: parties
+                    .map(
+                      (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _agentId = v),
               ),
             ),
-            FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
+            FxObsidianFormField(
+              controller: _notes,
+              label: 'Notes',
+              maxLines: 2,
+            ),
           ],
         ),
       ),
@@ -84,10 +109,12 @@ class RemittanceConfirmPayoutScreen extends ConsumerStatefulWidget {
   final String remittanceId;
 
   @override
-  ConsumerState<RemittanceConfirmPayoutScreen> createState() => _RemittanceConfirmPayoutScreenState();
+  ConsumerState<RemittanceConfirmPayoutScreen> createState() =>
+      _RemittanceConfirmPayoutScreenState();
 }
 
-class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfirmPayoutScreen> {
+class _RemittanceConfirmPayoutScreenState
+    extends ConsumerState<RemittanceConfirmPayoutScreen> {
   final _proof = TextEditingController();
   final _notes = TextEditingController();
   String _method = 'cash';
@@ -103,16 +130,24 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await ref.read(remittanceRepositoryProvider).confirmPayout(
+      await ref
+          .read(remittanceRepositoryProvider)
+          .confirmPayout(
             remittanceId: widget.remittanceId,
-            proofReference: _proof.text.trim().isEmpty ? null : _proof.text.trim(),
+            proofReference: _proof.text.trim().isEmpty
+                ? null
+                : _proof.text.trim(),
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
             payoutMethod: _method,
           );
       ref.read(remittancesRefreshProvider.notifier).refresh();
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -123,14 +158,21 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
     return FxPageScaffold(
       title: const Text('Confirm Payout'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(onCancel: () => context.pop(), onSave: _saving ? null : _save, saveLabel: 'Confirm'),
+      bottomBar: FxObsidianActionBar(
+        onCancel: () => context.pop(),
+        onSave: _saving ? null : _save,
+        saveLabel: 'Confirm',
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             DropdownButtonFormField<String>(
-              value: _method,
-              decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Payout method'),
+              initialValue: _method,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Payout method',
+              ),
               items: const [
                 DropdownMenuItem(value: 'cash', child: Text('Cash')),
                 DropdownMenuItem(value: 'bank', child: Text('Bank transfer')),
@@ -139,7 +181,11 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
               onChanged: (v) => setState(() => _method = v ?? 'cash'),
             ),
             FxObsidianFormField(controller: _proof, label: 'Proof / reference'),
-            FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
+            FxObsidianFormField(
+              controller: _notes,
+              label: 'Notes',
+              maxLines: 2,
+            ),
           ],
         ),
       ),
@@ -148,15 +194,20 @@ class _RemittanceConfirmPayoutScreenState extends ConsumerState<RemittanceConfir
 }
 
 class RemittanceAgentSettlementScreen extends ConsumerStatefulWidget {
-  const RemittanceAgentSettlementScreen({super.key, required this.remittanceId});
+  const RemittanceAgentSettlementScreen({
+    super.key,
+    required this.remittanceId,
+  });
 
   final String remittanceId;
 
   @override
-  ConsumerState<RemittanceAgentSettlementScreen> createState() => _RemittanceAgentSettlementScreenState();
+  ConsumerState<RemittanceAgentSettlementScreen> createState() =>
+      _RemittanceAgentSettlementScreenState();
 }
 
-class _RemittanceAgentSettlementScreenState extends ConsumerState<RemittanceAgentSettlementScreen> {
+class _RemittanceAgentSettlementScreenState
+    extends ConsumerState<RemittanceAgentSettlementScreen> {
   final _amount = TextEditingController();
   final _notes = TextEditingController();
   bool _saving = false;
@@ -171,12 +222,16 @@ class _RemittanceAgentSettlementScreenState extends ConsumerState<RemittanceAgen
   Future<void> _save() async {
     final amt = double.tryParse(_amount.text);
     if (amt == null || amt <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid amount')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter valid amount')));
       return;
     }
     setState(() => _saving = true);
     try {
-      await ref.read(remittanceRepositoryProvider).settleAgent(
+      await ref
+          .read(remittanceRepositoryProvider)
+          .settleAgent(
             remittanceId: widget.remittanceId,
             amount: amt,
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
@@ -184,7 +239,11 @@ class _RemittanceAgentSettlementScreenState extends ConsumerState<RemittanceAgen
       ref.read(remittancesRefreshProvider.notifier).refresh();
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -195,13 +254,27 @@ class _RemittanceAgentSettlementScreenState extends ConsumerState<RemittanceAgen
     return FxPageScaffold(
       title: const Text('Agent Settlement'),
       fallbackRoute: '/remittance',
-      bottomBar: FxObsidianActionBar(onCancel: () => context.pop(), onSave: _saving ? null : _save, saveLabel: 'Settle'),
+      bottomBar: FxObsidianActionBar(
+        onCancel: () => context.pop(),
+        onSave: _saving ? null : _save,
+        saveLabel: 'Settle',
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            FxObsidianFormField(controller: _amount, label: 'Settlement amount (PKR)', keyboardType: const TextInputType.numberWithOptions(decimal: true)),
-            FxObsidianFormField(controller: _notes, label: 'Notes', maxLines: 2),
+            FxObsidianFormField(
+              controller: _amount,
+              label: 'Settlement amount (PKR)',
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+            FxObsidianFormField(
+              controller: _notes,
+              label: 'Notes',
+              maxLines: 2,
+            ),
           ],
         ),
       ),

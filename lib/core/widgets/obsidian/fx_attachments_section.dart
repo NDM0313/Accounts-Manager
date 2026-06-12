@@ -22,7 +22,8 @@ class FxAttachmentsSection extends ConsumerStatefulWidget {
   final bool enabled;
 
   @override
-  ConsumerState<FxAttachmentsSection> createState() => _FxAttachmentsSectionState();
+  ConsumerState<FxAttachmentsSection> createState() =>
+      _FxAttachmentsSectionState();
 }
 
 class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
@@ -47,7 +48,9 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
         }
         return;
       }
-      await ref.read(attachmentRepositoryProvider).upload(
+      await ref
+          .read(attachmentRepositoryProvider)
+          .upload(
             transactionId: widget.transactionId,
             branchId: widget.branchId,
             fileName: sanitizeStorageFileName(file.name),
@@ -57,15 +60,15 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
           );
       ref.invalidate(attachmentsForTransactionProvider(widget.transactionId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Uploaded ${file.name}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Uploaded ${file.name}')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -83,7 +86,9 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
 
   Future<void> _openAttachment(FxAttachment attachment) async {
     try {
-      final url = await ref.read(attachmentRepositoryProvider).signedUrl(attachment.storagePath);
+      final url = await ref
+          .read(attachmentRepositoryProvider)
+          .signedUrl(attachment.storagePath);
       final uri = Uri.parse(url);
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         if (mounted) {
@@ -94,9 +99,9 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Open failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Open failed: $e')));
       }
     }
   }
@@ -104,7 +109,9 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
   @override
   Widget build(BuildContext context) {
     final fx = context.fx;
-    final attachmentsAsync = ref.watch(attachmentsForTransactionProvider(widget.transactionId));
+    final attachmentsAsync = ref.watch(
+      attachmentsForTransactionProvider(widget.transactionId),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +125,10 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
                 ? SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: fx.onSurfaceVariant),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: fx.onSurfaceVariant,
+                    ),
                   )
                 : const Icon(Icons.upload_file, size: 18),
             label: Text(_uploading ? 'Uploading…' : 'Upload file'),
@@ -126,12 +136,18 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
         const SizedBox(height: 8),
         attachmentsAsync.when(
           loading: () => const LinearProgressIndicator(),
-          error: (e, _) => Text('Attachments: $e', style: AppTypography.bodyMd(fx.error, context: context)),
+          error: (e, _) => Text(
+            'Attachments: $e',
+            style: AppTypography.bodyMd(fx.error, context: context),
+          ),
           data: (files) {
             if (files.isEmpty) {
               return Text(
                 'No files attached.',
-                style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                style: AppTypography.bodyMd(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 12),
               );
             }
             return Column(
@@ -140,9 +156,23 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
                     (f) => ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.attach_file, size: 18, color: fx.onSurfaceVariant),
-                      title: Text(f.fileName, style: AppTypography.bodyMd(fx.onSurface, context: context)),
-                      trailing: Icon(Icons.open_in_new, size: 16, color: fx.onSurfaceVariant),
+                      leading: Icon(
+                        Icons.attach_file,
+                        size: 18,
+                        color: fx.onSurfaceVariant,
+                      ),
+                      title: Text(
+                        f.fileName,
+                        style: AppTypography.bodyMd(
+                          fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: fx.onSurfaceVariant,
+                      ),
                       onTap: () => _openAttachment(f),
                     ),
                   )

@@ -15,7 +15,10 @@ class RateHistoryUtils {
   }
 
   /// Pick latest rate per currency effective at or before [asOf].
-  static List<FxRate> latestPerCurrencyAsOf(List<FxRate> allRowsNewestFirst, DateTime asOf) {
+  static List<FxRate> latestPerCurrencyAsOf(
+    List<FxRate> allRowsNewestFirst,
+    DateTime asOf,
+  ) {
     final asOfUtc = asOf.toUtc();
     final byCurrency = <String, FxRate>{};
     for (final row in allRowsNewestFirst) {

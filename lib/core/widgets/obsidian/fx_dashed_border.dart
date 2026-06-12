@@ -57,7 +57,12 @@ class _DashedRectPainter extends CustomPainter {
       ..strokeWidth = strokeWidth;
 
     final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth, size.height - strokeWidth),
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
       Radius.circular(radius),
     );
 
@@ -66,7 +71,10 @@ class _DashedRectPainter extends CustomPainter {
       var distance = 0.0;
       while (distance < metric.length) {
         final next = distance + dashLength;
-        final extract = metric.extractPath(distance, next.clamp(0, metric.length));
+        final extract = metric.extractPath(
+          distance,
+          next.clamp(0, metric.length),
+        );
         canvas.drawPath(extract, paint);
         distance = next + gapLength;
       }
@@ -75,5 +83,7 @@ class _DashedRectPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DashedRectPainter old) =>
-      old.color != color || old.radius != radius || old.strokeWidth != strokeWidth;
+      old.color != color ||
+      old.radius != radius ||
+      old.strokeWidth != strokeWidth;
 }

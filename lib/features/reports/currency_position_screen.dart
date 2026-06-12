@@ -24,7 +24,9 @@ class CurrencyPositionScreen extends ConsumerWidget {
     final extended = FeatureFlags.dealsWorkflowEnabled;
     final currencyView = ref.watch(reportCurrencyViewProvider);
     final userDisplayCode = ref.watch(displayCurrencyCodeProvider);
-    final converter = ref.watch(currencyConverterAsOfProvider(asOf)).whenOrNull(data: (v) => v);
+    final converter = ref
+        .watch(currencyConverterAsOfProvider(asOf))
+        .whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -58,30 +60,48 @@ class CurrencyPositionScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Unable to load position: $e')),
         data: (rows) {
           if (rows.isEmpty) {
-            return Center(child: Text('No cash currency position as of $dateLabel.'));
+            return Center(
+              child: Text('No cash currency position as of $dateLabel.'),
+            );
           }
 
-          final totalPkr = rows.fold<double>(0, (s, r) => s + r.baseEquivalentPkr);
+          final totalPkr = rows.fold<double>(
+            0,
+            (s, r) => s + r.baseEquivalentPkr,
+          );
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text('As of $dateLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              Text(
+                'As of $dateLabel',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
               if (extended)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     'Includes committed / required balances from open FX deals.',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 11),
                   ),
                 ),
               const SizedBox(height: 8),
-              ref.watch(companyAccountingContextProvider).maybeWhen(
+              ref
+                  .watch(companyAccountingContextProvider)
+                  .maybeWhen(
                     data: (ctx) => FxReportCurrencyToggle(
                       view: currencyView,
                       displayCurrencyCode: userDisplayCode,
                       baseCurrencyCode: ctx.baseCurrencyCode,
-                      onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                      onChanged: (v) => ref
+                          .read(reportCurrencyViewProvider.notifier)
+                          .setView(v),
                     ),
                     orElse: () => const SizedBox.shrink(),
                   ),
@@ -90,14 +110,29 @@ class CurrencyPositionScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Total PKR equivalent', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                    Text(
+                      'Total PKR equivalent',
+                      style: AppTypography.labelCaps(
+                        context.fx.outline,
+                        context: context,
+                      ),
+                    ),
                     converter != null
                         ? FxConvertedAmount(
                             pkrAmount: totalPkr,
                             converter: converter,
-                            style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+                            style: AppTypography.headlineMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ),
                           )
-                        : Text(fmt.format(totalPkr), style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                        : Text(
+                            fmt.format(totalPkr),
+                            style: AppTypography.headlineMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ),
+                          ),
                   ],
                 ),
               ),
@@ -107,7 +142,10 @@ class CurrencyPositionScreen extends ConsumerWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: FxObsidianReportPanel(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -116,32 +154,82 @@ class CurrencyPositionScreen extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 displayCurrencyCode(r.currencyCode),
-                                style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18),
+                                style: AppTypography.headlineMd(
+                                  context.fx.onSurface,
+                                  context: context,
+                                ).copyWith(fontSize: 18),
                               ),
                             ),
                             converter != null
                                 ? Text(
-                                    formatReportAmount(pkrAmount: r.baseEquivalentPkr, converter: converter, view: currencyView, fmt: fmt),
-                                    style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                                    formatReportAmount(
+                                      pkrAmount: r.baseEquivalentPkr,
+                                      converter: converter,
+                                      view: currencyView,
+                                      fmt: fmt,
+                                    ),
+                                    style: AppTypography.bodyMd(
+                                      context.fx.onSurface,
+                                      context: context,
+                                    ).copyWith(fontWeight: FontWeight.w600),
                                   )
-                                : Text('PKR ${fmt.format(r.baseEquivalentPkr)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                                : Text(
+                                    'PKR ${fmt.format(r.baseEquivalentPkr)}',
+                                    style: AppTypography.bodyMd(
+                                      context.fx.onSurface,
+                                      context: context,
+                                    ).copyWith(fontWeight: FontWeight.w600),
+                                  ),
                           ],
                         ),
                         if (showExtended) ...[
                           const SizedBox(height: 8),
-                          _metricRow(context, 'Actual', r.actualBalance ?? r.foreignBalance, fmt),
-                          if (r.committedBalance != null && r.committedBalance! > 0)
-                            _metricRow(context, 'Committed', r.committedBalance!, fmt, color: Colors.orange),
+                          _metricRow(
+                            context,
+                            'Actual',
+                            r.actualBalance ?? r.foreignBalance,
+                            fmt,
+                          ),
+                          if (r.committedBalance != null &&
+                              r.committedBalance! > 0)
+                            _metricRow(
+                              context,
+                              'Committed',
+                              r.committedBalance!,
+                              fmt,
+                              color: Colors.orange,
+                            ),
                           if (r.onOrderBalance != null && r.onOrderBalance! > 0)
-                            _metricRow(context, 'On order', r.onOrderBalance!, fmt),
-                          if (r.requiredBalance != null && r.requiredBalance! > 0)
-                            _metricRow(context, 'To source', r.requiredBalance!, fmt, color: Colors.red.shade300),
+                            _metricRow(
+                              context,
+                              'On order',
+                              r.onOrderBalance!,
+                              fmt,
+                            ),
+                          if (r.requiredBalance != null &&
+                              r.requiredBalance! > 0)
+                            _metricRow(
+                              context,
+                              'To source',
+                              r.requiredBalance!,
+                              fmt,
+                              color: Colors.red.shade300,
+                            ),
                           if (r.availableBalance != null)
-                            _metricRow(context, 'Available', r.availableBalance!, fmt, bold: true),
+                            _metricRow(
+                              context,
+                              'Available',
+                              r.availableBalance!,
+                              fmt,
+                              bold: true,
+                            ),
                         ] else
                           Text(
                             'Foreign ${fmt.format(r.foreignBalance)}',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           ),
                         if (extended && (r.requiredBalance ?? 0) > 0)
                           TextButton(
@@ -160,26 +248,47 @@ class CurrencyPositionScreen extends ConsumerWidget {
     );
   }
 
-  Widget _metricRow(BuildContext context, String label, double value, NumberFormat fmt, {Color? color, bool bold = false}) {
+  Widget _metricRow(
+    BuildContext context,
+    String label,
+    double value,
+    NumberFormat fmt, {
+    Color? color,
+    bool bold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.bodyMd(color ?? context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+          Text(
+            label,
+            style: AppTypography.bodyMd(
+              color ?? context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 11),
+          ),
           Text(
             fmt.format(value),
-            style: AppTypography.bodyMd(color ?? context.fx.onSurface, context: context).copyWith(
-              fontSize: 11,
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            ),
+            style:
+                AppTypography.bodyMd(
+                  color ?? context.fx.onSurface,
+                  context: context,
+                ).copyWith(
+                  fontSize: 11,
+                  fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+                ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _pickDate(BuildContext context, WidgetRef ref, DateTime current) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime current,
+  ) async {
     final picked = await FxObsidianPickers.showDate(
       context,
       initialDate: current,

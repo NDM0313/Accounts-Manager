@@ -1,6 +1,5 @@
 import 'package:accounts_manager/core/export/receipt_redaction.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
-import 'package:accounts_manager/domain/models/fx_transaction_line.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

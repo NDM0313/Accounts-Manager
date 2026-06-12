@@ -30,13 +30,16 @@ class FxProofAttachmentsSection extends ConsumerStatefulWidget {
   final String? attachmentType;
 
   bool get canUpload =>
-      enabled && (transactionId != null || (dealId != null && dealLegId != null));
+      enabled &&
+      (transactionId != null || (dealId != null && dealLegId != null));
 
   @override
-  ConsumerState<FxProofAttachmentsSection> createState() => _FxProofAttachmentsSectionState();
+  ConsumerState<FxProofAttachmentsSection> createState() =>
+      _FxProofAttachmentsSectionState();
 }
 
-class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSection> {
+class _FxProofAttachmentsSectionState
+    extends ConsumerState<FxProofAttachmentsSection> {
   bool _uploading = false;
   List<FxAttachment>? _attachments;
 
@@ -57,10 +60,14 @@ class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSe
 
   Future<void> _load() async {
     if (widget.dealLegId != null) {
-      final list = await ref.read(attachmentRepositoryProvider).fetchForLeg(widget.dealLegId!);
+      final list = await ref
+          .read(attachmentRepositoryProvider)
+          .fetchForLeg(widget.dealLegId!);
       if (mounted) setState(() => _attachments = list);
     } else if (widget.transactionId != null) {
-      final list = await ref.read(attachmentRepositoryProvider).fetchForTransaction(widget.transactionId!);
+      final list = await ref
+          .read(attachmentRepositoryProvider)
+          .fetchForTransaction(widget.transactionId!);
       if (mounted) setState(() => _attachments = list);
     } else {
       if (mounted) setState(() => _attachments = []);
@@ -81,7 +88,9 @@ class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSe
       final bytes = file.bytes;
       if (bytes == null) return;
 
-      await ref.read(attachmentRepositoryProvider).upload(
+      await ref
+          .read(attachmentRepositoryProvider)
+          .upload(
             branchId: widget.branchId,
             fileName: file.name,
             bytes: bytes,
@@ -94,7 +103,9 @@ class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSe
       await _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -112,9 +123,13 @@ class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSe
   }
 
   Future<void> _open(FxAttachment a) async {
-    final url = await ref.read(attachmentRepositoryProvider).signedUrl(a.storagePath);
+    final url = await ref
+        .read(attachmentRepositoryProvider)
+        .signedUrl(a.storagePath);
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -129,29 +144,55 @@ class _FxProofAttachmentsSectionState extends ConsumerState<FxProofAttachmentsSe
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'Save this step first, then add proof from the deal timeline.',
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
           ),
         if (widget.canUpload)
           OutlinedButton.icon(
             onPressed: _uploading ? null : _pickAndUpload,
             icon: _uploading
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.attach_file),
             label: Text(_uploading ? 'Uploading…' : 'Attach file / photo'),
           ),
         if (list.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text('No proof attached yet.', style: AppTypography.bodyMd(context.fx.outline, context: context).copyWith(fontSize: 12)),
+            child: Text(
+              'No proof attached yet.',
+              style: AppTypography.bodyMd(
+                context.fx.outline,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
           )
         else
           ...list.map(
             (a) => ListTile(
               dense: true,
-              leading: Icon(Icons.insert_drive_file, color: context.fx.primary, size: 20),
-              title: Text(a.fileName, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 13)),
-              trailing: IconButton(icon: const Icon(Icons.open_in_new, size: 18), onPressed: () => _open(a)),
+              leading: Icon(
+                Icons.insert_drive_file,
+                color: context.fx.primary,
+                size: 20,
+              ),
+              title: Text(
+                a.fileName,
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontSize: 13),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.open_in_new, size: 18),
+                onPressed: () => _open(a),
+              ),
               onTap: () => _open(a),
             ),
           ),

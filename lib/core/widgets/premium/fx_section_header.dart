@@ -3,11 +3,7 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class FxSectionHeader extends StatelessWidget {
-  const FxSectionHeader({
-    super.key,
-    required this.label,
-    this.trailing,
-  });
+  const FxSectionHeader({super.key, required this.label, this.trailing});
 
   final String label;
   final Widget? trailing;
@@ -23,10 +19,13 @@ class FxSectionHeader extends StatelessWidget {
               label.toUpperCase(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context),
+              style: AppTypography.labelCaps(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );

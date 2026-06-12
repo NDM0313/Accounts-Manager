@@ -26,10 +26,12 @@ class DealSettlementLegScreen extends ConsumerStatefulWidget {
   final String? legId;
 
   @override
-  ConsumerState<DealSettlementLegScreen> createState() => _DealSettlementLegScreenState();
+  ConsumerState<DealSettlementLegScreen> createState() =>
+      _DealSettlementLegScreenState();
 }
 
-class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScreen> {
+class _DealSettlementLegScreenState
+    extends ConsumerState<DealSettlementLegScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
@@ -50,7 +52,9 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
       _loadingLeg = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadLegForEdit());
     } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeWarnDuplicate());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _maybeWarnDuplicate(),
+      );
     }
   }
 
@@ -63,11 +67,15 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
 
   Future<void> _loadLegForEdit() async {
     try {
-      final leg = await ref.read(dealRepositoryProvider).fetchLeg(widget.legId!);
+      final leg = await ref
+          .read(dealRepositoryProvider)
+          .fetchLeg(widget.legId!);
       if (!mounted || leg == null) return;
       setState(() {
         _partyId = leg.counterpartyPartyId;
-        _currency = _isReceipt ? (leg.receiveCurrency ?? 'USD') : (leg.payCurrency ?? 'PKR');
+        _currency = _isReceipt
+            ? (leg.receiveCurrency ?? 'USD')
+            : (leg.payCurrency ?? 'PKR');
         final amount = _isReceipt ? leg.receiveAmount : leg.payAmount;
         _amountCtrl.text = amount > 0 ? amount.toString() : '';
         _notesCtrl.text = leg.notes ?? '';
@@ -76,13 +84,17 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
     } catch (e) {
       if (mounted) {
         setState(() => _loadingLeg = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
   }
 
   void _maybeWarnDuplicate() {
-    final legs = ref.read(dealTimelineProvider(widget.dealId)).whenOrNull(data: (v) => v);
+    final legs = ref
+        .read(dealTimelineProvider(widget.dealId))
+        .whenOrNull(data: (v) => v);
     if (legs == null) return;
     if (DealLegPermissions.hasPendingLegOfType(legs, widget.legType)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,7 +110,9 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
   @override
   Widget build(BuildContext context) {
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
-    final title = _isEdit ? 'Edit ${widget.legType.label}' : widget.legType.label;
+    final title = _isEdit
+        ? 'Edit ${widget.legType.label}'
+        : widget.legType.label;
 
     if (_loadingLeg) {
       return FxPageScaffold(
@@ -122,7 +136,11 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
               data: (agents) => DropdownButtonFormField<String>(
                 initialValue: _partyId,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: agents.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
+                items: agents
+                    .map(
+                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _partyId = v),
                 validator: (v) => v == null ? 'Select agent' : null,
               ),
@@ -135,25 +153,36 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
                 labelText: _isReceipt ? 'Receive currency' : 'Pay currency',
                 border: const OutlineInputBorder(),
               ),
-              items: ['PKR', 'AED', 'USD', 'CNY']
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
+              items: [
+                'PKR',
+                'AED',
+                'USD',
+                'CNY',
+              ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
               onChanged: (v) => setState(() => _currency = v ?? 'PKR'),
             ),
             FxObsidianFormField(
               controller: _amountCtrl,
               label: _isReceipt ? 'Receive amount' : 'Pay amount',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) => double.tryParse(v ?? '') == null ? 'Enter amount' : null,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: (v) =>
+                  double.tryParse(v ?? '') == null ? 'Enter amount' : null,
             ),
-            FxObsidianFormField(controller: _notesCtrl, label: 'Notes / reference no.', maxLines: 2),
+            FxObsidianFormField(
+              controller: _notesCtrl,
+              label: 'Notes / reference no.',
+              maxLines: 2,
+            ),
             if (!_isEdit) ...[
               const SizedBox(height: 12),
               FxPendingProofPicker(key: _proofPickerKey),
             ],
             const SizedBox(height: 24),
             FxObsidianActionBar(
-              onCancel: () => fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
+              onCancel: () =>
+                  fxSafePop(context, fallbackRoute: '/deals/${widget.dealId}'),
               onSave: _busy ? null : _submit,
               saveLabel: _isEdit ? 'Save changes' : 'Save leg',
               busy: _busy,
@@ -169,9 +198,13 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
     final amount = double.parse(_amountCtrl.text);
     setState(() => _busy = true);
     try {
-      final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
+      final notes = _notesCtrl.text.trim().isEmpty
+          ? null
+          : _notesCtrl.text.trim();
       if (_isEdit) {
-        await ref.read(dealRepositoryProvider).updateLeg(
+        await ref
+            .read(dealRepositoryProvider)
+            .updateLeg(
               legId: widget.legId!,
               counterpartyPartyId: _partyId,
               receiveCurrency: _isReceipt ? _currency : null,
@@ -181,7 +214,9 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
               notes: notes,
             );
       } else {
-        final legId = await ref.read(dealRepositoryProvider).addLeg(
+        final legId = await ref
+            .read(dealRepositoryProvider)
+            .addLeg(
               dealId: widget.dealId,
               legType: widget.legType,
               counterpartyPartyId: _partyId,
@@ -206,7 +241,11 @@ class _DealSettlementLegScreenState extends ConsumerState<DealSettlementLegScree
       ref.read(dealsRefreshProvider.notifier).refresh();
       if (mounted) context.go('/deals/${widget.dealId}');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

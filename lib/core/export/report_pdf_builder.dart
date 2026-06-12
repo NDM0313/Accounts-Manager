@@ -14,7 +14,7 @@ Future<Uint8List> buildSimpleReportPdf({
 }) async {
   final doc = pw.Document();
   final generated = DateFormat('d MMM yyyy HH:mm').format(DateTime.now());
-  final orgLine = [if (companyName != null) companyName, if (branchName != null) branchName].join(' · ');
+  final orgLine = [?companyName, ?branchName].join(' · ');
 
   doc.addPage(
     pw.MultiPage(
@@ -22,11 +22,21 @@ Future<Uint8List> buildSimpleReportPdf({
       header: (context) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('FX Cash Ledger', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-          if (orgLine.isNotEmpty) pw.Text(orgLine, style: const pw.TextStyle(fontSize: 9)),
-          pw.Text(title, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'FX Cash Ledger',
+            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+          if (orgLine.isNotEmpty)
+            pw.Text(orgLine, style: const pw.TextStyle(fontSize: 9)),
+          pw.Text(
+            title,
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
           pw.Text(subtitle, style: const pw.TextStyle(fontSize: 10)),
-          pw.Text('Generated: $generated', style: const pw.TextStyle(fontSize: 9)),
+          pw.Text(
+            'Generated: $generated',
+            style: const pw.TextStyle(fontSize: 9),
+          ),
           pw.SizedBox(height: 8),
           pw.Divider(),
         ],
@@ -36,10 +46,13 @@ Future<Uint8List> buildSimpleReportPdf({
         style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
       ),
       build: (context) => [
-        pw.Table.fromTextArray(
+        pw.TableHelper.fromTextArray(
           headers: headers,
           data: rows,
-          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+          headerStyle: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold,
+            fontSize: 9,
+          ),
           cellStyle: const pw.TextStyle(fontSize: 8),
           cellAlignment: pw.Alignment.centerLeft,
         ),
@@ -63,8 +76,17 @@ Future<Uint8List> buildStatementPdf({
 }) async {
   return buildSimpleReportPdf(
     title: title,
-    subtitle: '$partyName · $periodLabel · Display: $displayCurrency${internal ? '' : ' (customer copy)'}',
-    headers: const ['Date', 'Ref', 'Type', 'Currency', 'Debit', 'Credit', 'Balance'],
+    subtitle:
+        '$partyName · $periodLabel · Display: $displayCurrency${internal ? '' : ' (customer copy)'}',
+    headers: const [
+      'Date',
+      'Ref',
+      'Type',
+      'Currency',
+      'Debit',
+      'Credit',
+      'Balance',
+    ],
     rows: lineRows,
     footer: internal
         ? 'Internal ledger statement'

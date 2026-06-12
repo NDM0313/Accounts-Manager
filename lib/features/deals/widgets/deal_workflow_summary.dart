@@ -7,7 +7,11 @@ import 'package:accounts_manager/domain/services/deal_workflow_narrative.dart';
 import 'package:flutter/material.dart';
 
 class DealWorkflowSummary extends StatelessWidget {
-  const DealWorkflowSummary({super.key, required this.deal, required this.legs});
+  const DealWorkflowSummary({
+    super.key,
+    required this.deal,
+    required this.legs,
+  });
 
   final FxDeal deal;
   final List<FxDealLeg> legs;
@@ -21,7 +25,10 @@ class DealWorkflowSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('WHAT HAPPENED?', style: AppTypography.labelCaps(fx.primary, context: context)),
+          Text(
+            'WHAT HAPPENED?',
+            style: AppTypography.labelCaps(fx.primary, context: context),
+          ),
           const SizedBox(height: 12),
           ...sections.map(
             (s) => Padding(
@@ -29,12 +36,24 @@ class DealWorkflowSummary extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.title, style: AppTypography.bodyMd(fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                  Text(
+                    s.title,
+                    style: AppTypography.bodyMd(
+                      fx.onSurface,
+                      context: context,
+                    ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
                   const SizedBox(height: 4),
                   ...s.lines.map(
                     (line) => Padding(
                       padding: const EdgeInsets.only(left: 8, bottom: 2),
-                      child: Text('• $line', style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                      child: Text(
+                        '• $line',
+                        style: AppTypography.bodyMd(
+                          fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
+                      ),
                     ),
                   ),
                 ],

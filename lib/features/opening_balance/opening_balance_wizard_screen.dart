@@ -22,10 +22,12 @@ class OpeningBalanceWizardScreen extends ConsumerStatefulWidget {
   const OpeningBalanceWizardScreen({super.key});
 
   @override
-  ConsumerState<OpeningBalanceWizardScreen> createState() => _OpeningBalanceWizardScreenState();
+  ConsumerState<OpeningBalanceWizardScreen> createState() =>
+      _OpeningBalanceWizardScreenState();
 }
 
-class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizardScreen> {
+class _OpeningBalanceWizardScreenState
+    extends ConsumerState<OpeningBalanceWizardScreen> {
   static const _stepTitles = [
     'Opening Setup',
     'Cash & Bank',
@@ -99,13 +101,19 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
   Future<void> _saveDraft(FxUserProfile profile) async {
     setState(() => _busy = true);
     try {
-      final view = await ref.read(openingBalanceRepositoryProvider).saveDraft(
+      final view = await ref
+          .read(openingBalanceRepositoryProvider)
+          .saveDraft(
             companyId: profile.companyId,
             branchId: profile.branchId,
             openingDate: _openingDate,
             batchId: _batchId,
-            description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
-            notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+            description: _descriptionCtrl.text.trim().isEmpty
+                ? null
+                : _descriptionCtrl.text.trim(),
+            notes: _notesCtrl.text.trim().isEmpty
+                ? null
+                : _notesCtrl.text.trim(),
             equityAccountId: _equityAccountId,
             lines: _allLines,
           );
@@ -115,11 +123,15 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         _batchId = view.batch?.id;
         _busy = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Draft saved')));
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     }
   }
@@ -137,8 +149,14 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
           'Ensure all amounts are correct before continuing.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Post')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Post'),
+          ),
         ],
       ),
     );
@@ -162,7 +180,9 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Post failed: $e')));
       }
     }
   }
@@ -195,13 +215,18 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
         data: (profile) {
-          if (profile == null) return const Center(child: Text('Sign in required'));
+          if (profile == null) {
+            return const Center(child: Text('Sign in required'));
+          }
           return accountsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Accounts error: $e')),
             data: (accounts) {
               _equityAccountId ??= OpeningBalanceLineMapper.equityCode.let(
-                (c) => accounts.where((a) => a.code == c).map((a) => a.id).firstOrNull,
+                (c) => accounts
+                    .where((a) => a.code == c)
+                    .map((a) => a.id)
+                    .firstOrNull,
               );
 
               return Column(
@@ -222,7 +247,11 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                   ),
                   _WizardActionBar(
                     busy: _busy,
-                    primaryLabel: _step == 4 ? 'Post Opening Balance' : _step == 5 ? 'Done' : 'Next',
+                    primaryLabel: _step == 4
+                        ? 'Post Opening Balance'
+                        : _step == 5
+                        ? 'Done'
+                        : 'Next',
                     onPrimary: () {
                       if (_step == 5) {
                         context.go('/opening-balances');
@@ -244,34 +273,58 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
     );
   }
 
-  Widget _buildSetupStep(BuildContext context, AsyncValue<BranchContext?> branchAsync, List<FxAccount> accounts) {
-    final branchLabel = branchAsync.whenOrNull(data: (c) => c != null ? '${c.companyName} · ${c.branchName}' : null);
+  Widget _buildSetupStep(
+    BuildContext context,
+    AsyncValue<BranchContext?> branchAsync,
+    List<FxAccount> accounts,
+  ) {
+    final branchLabel = branchAsync.whenOrNull(
+      data: (c) => c != null ? '${c.companyName} · ${c.branchName}' : null,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _WarningBanner(
-          text: 'Opening balances should be entered once before real transactions.',
+          text:
+              'Opening balances should be entered once before real transactions.',
         ),
         const SizedBox(height: 16),
-        if (branchLabel != null) ListTile(title: const Text('Company / Branch'), subtitle: Text(branchLabel)),
+        if (branchLabel != null)
+          ListTile(
+            title: const Text('Company / Branch'),
+            subtitle: Text(branchLabel),
+          ),
         ListTile(
           title: const Text('Opening date'),
           subtitle: Text(DateFormat.yMMMd().format(_openingDate)),
           trailing: const Icon(Icons.calendar_today_outlined),
           onTap: () async {
-            final picked = await FxObsidianPickers.showDate(context, initialDate: _openingDate);
+            final picked = await FxObsidianPickers.showDate(
+              context,
+              initialDate: _openingDate,
+            );
             if (picked != null) setState(() => _openingDate = picked);
           },
         ),
         const ListTile(title: Text('Base currency'), subtitle: Text('PKR')),
         const SizedBox(height: 8),
-        FxObsidianFormField(controller: _descriptionCtrl, label: 'Description (optional)'),
+        FxObsidianFormField(
+          controller: _descriptionCtrl,
+          label: 'Description (optional)',
+        ),
         const SizedBox(height: 12),
-        FxObsidianFormField(controller: _notesCtrl, label: 'Notes (optional)', maxLines: 2),
+        FxObsidianFormField(
+          controller: _notesCtrl,
+          label: 'Notes (optional)',
+          maxLines: 2,
+        ),
         const SizedBox(height: 16),
         Text(
           'Balancing account: Owner Capital (${OpeningBalanceLineMapper.equityCode})',
-          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
         ),
       ],
     );
@@ -284,11 +337,13 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       children: [
         const FxSectionLabel(label: 'Cash & bank balances'),
         const SizedBox(height: 8),
-        ..._cashLines.asMap().entries.map((e) => _LineCard(
-              line: e.value,
-              accounts: accounts,
-              onDelete: () => setState(() => _cashLines.removeAt(e.key)),
-            )),
+        ..._cashLines.asMap().entries.map(
+          (e) => _LineCard(
+            line: e.value,
+            accounts: accounts,
+            onDelete: () => setState(() => _cashLines.removeAt(e.key)),
+          ),
+        ),
         OutlinedButton.icon(
           onPressed: () => _showAddLineSheet(
             context: context,
@@ -312,14 +367,19 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         const FxSectionLabel(label: 'Currency positions'),
         Text(
           'Foreign currency held with average cost and location.',
-          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
         ),
         const SizedBox(height: 8),
-        ..._positionLines.asMap().entries.map((e) => _LineCard(
-              line: e.value,
-              accounts: accounts,
-              onDelete: () => setState(() => _positionLines.removeAt(e.key)),
-            )),
+        ..._positionLines.asMap().entries.map(
+          (e) => _LineCard(
+            line: e.value,
+            accounts: accounts,
+            onDelete: () => setState(() => _positionLines.removeAt(e.key)),
+          ),
+        ),
         OutlinedButton.icon(
           onPressed: () => _showAddLineSheet(
             context: context,
@@ -342,13 +402,18 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       children: [
         const FxSectionLabel(label: 'Party & agent balances'),
         const SizedBox(height: 8),
-        ..._partyLines.asMap().entries.map((e) => _LineCard(
-              line: e.value,
-              accounts: accounts,
-              onDelete: () => setState(() => _partyLines.removeAt(e.key)),
-            )),
+        ..._partyLines.asMap().entries.map(
+          (e) => _LineCard(
+            line: e.value,
+            accounts: accounts,
+            onDelete: () => setState(() => _partyLines.removeAt(e.key)),
+          ),
+        ),
         OutlinedButton.icon(
-          onPressed: () => _showAddPartySheet(context: context, onAdd: (line) => setState(() => _partyLines.add(line))),
+          onPressed: () => _showAddPartySheet(
+            context: context,
+            onAdd: (line) => setState(() => _partyLines.add(line)),
+          ),
           icon: const Icon(Icons.add),
           label: const Text('Add party / agent balance'),
         ),
@@ -365,11 +430,20 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!_isBalanced && _allLines.isNotEmpty)
-          _WarningBanner(text: 'Batch is unbalanced by PKR ${fmt.format(diff)}'),
-        if (_allLines.isEmpty) _WarningBanner(text: 'Add at least one line before posting'),
+          _WarningBanner(
+            text: 'Batch is unbalanced by PKR ${fmt.format(diff)}',
+          ),
+        if (_allLines.isEmpty)
+          _WarningBanner(text: 'Add at least one line before posting'),
         const SizedBox(height: 16),
-        _SummaryRow(label: 'Total debits (PKR)', value: fmt.format(totals.totalDebit)),
-        _SummaryRow(label: 'Total credits (PKR)', value: fmt.format(totals.totalCredit)),
+        _SummaryRow(
+          label: 'Total debits (PKR)',
+          value: fmt.format(totals.totalDebit),
+        ),
+        _SummaryRow(
+          label: 'Total credits (PKR)',
+          value: fmt.format(totals.totalCredit),
+        ),
         _SummaryRow(label: 'Difference', value: fmt.format(diff)),
         const SizedBox(height: 16),
         const FxSectionLabel(label: 'Balancing account'),
@@ -379,7 +453,9 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         ),
         const SizedBox(height: 16),
         const FxSectionLabel(label: 'All lines'),
-        ..._allLines.map((l) => _LineCard(line: l, accounts: accounts, onDelete: null)),
+        ..._allLines.map(
+          (l) => _LineCard(line: l, accounts: accounts, onDelete: null),
+        ),
       ],
     );
   }
@@ -396,11 +472,18 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.check_circle_outline, size: 48, color: context.fx.tertiary),
+            Icon(
+              Icons.check_circle_outline,
+              size: 48,
+              color: context.fx.tertiary,
+            ),
             const SizedBox(height: 12),
             Text(
               'Opening balance posted',
-              style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -445,7 +528,10 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       if (currency == 'PKR') {
         rateCtrl.text = '1';
       } else {
-        final r = rates.where((x) => x.currencyCode == currency).map((x) => x.buyRate).firstOrNull;
+        final r = rates
+            .where((x) => x.currencyCode == currency)
+            .map((x) => x.buyRate)
+            .firstOrNull;
         if (r != null) rateCtrl.text = r.toString();
       }
     }
@@ -456,7 +542,12 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       isScrollControlled: true,
       builder: (ctx) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(ctx).bottom + 16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            MediaQuery.viewInsetsOf(ctx).bottom + 16,
+          ),
           child: StatefulBuilder(
             builder: (ctx, setLocal) {
               final foreign = double.tryParse(amountCtrl.text) ?? 0;
@@ -471,13 +562,24 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(kind.label, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                  Text(
+                    kind.label,
+                    style: AppTypography.headlineMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: accountId,
                     decoration: const InputDecoration(labelText: 'Account'),
                     items: cashAccounts
-                        .map((a) => DropdownMenuItem(value: a.id, child: Text('${a.code} ${a.name}')))
+                        .map(
+                          (a) => DropdownMenuItem(
+                            value: a.id,
+                            child: Text('${a.code} ${a.name}'),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setLocal(() => accountId = v),
                   ),
@@ -494,28 +596,61 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                       });
                     },
                   ),
-                  TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (_) => setLocal(() {})),
+                  TextField(
+                    controller: amountCtrl,
+                    decoration: const InputDecoration(labelText: 'Amount'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) => setLocal(() {}),
+                  ),
                   if (currency != 'PKR')
-                    TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Rate to PKR'), keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (_) => setLocal(() {})),
-                  Text('PKR equivalent: ${NumberFormat('#,##0.00').format(pkr)}'),
-                  if (showLocation) TextField(controller: locationCtrl, decoration: const InputDecoration(labelText: 'Location / counter')),
-                  TextField(controller: memoCtrl, decoration: const InputDecoration(labelText: 'Notes')),
+                    TextField(
+                      controller: rateCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Rate to PKR',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (_) => setLocal(() {}),
+                    ),
+                  Text(
+                    'PKR equivalent: ${NumberFormat('#,##0.00').format(pkr)}',
+                  ),
+                  if (showLocation)
+                    TextField(
+                      controller: locationCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Location / counter',
+                      ),
+                    ),
+                  TextField(
+                    controller: memoCtrl,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
                   const SizedBox(height: 12),
                   FilledButton(
                     onPressed: accountId == null || pkr <= 0
                         ? null
                         : () {
-                            onAdd(FxOpeningBalanceLine(
-                              lineNo: 0,
-                              lineKind: kind,
-                              accountId: accountId,
-                              currencyCode: currency,
-                              foreignAmount: foreign,
-                              rateUsed: currency == 'PKR' ? 1 : rate,
-                              pkrAmount: pkr,
-                              locationLabel: locationCtrl.text.trim().isEmpty ? null : locationCtrl.text.trim(),
-                              memo: memoCtrl.text.trim().isEmpty ? null : memoCtrl.text.trim(),
-                            ));
+                            onAdd(
+                              FxOpeningBalanceLine(
+                                lineNo: 0,
+                                lineKind: kind,
+                                accountId: accountId,
+                                currencyCode: currency,
+                                foreignAmount: foreign,
+                                rateUsed: currency == 'PKR' ? 1 : rate,
+                                pkrAmount: pkr,
+                                locationLabel: locationCtrl.text.trim().isEmpty
+                                    ? null
+                                    : locationCtrl.text.trim(),
+                                memo: memoCtrl.text.trim().isEmpty
+                                    ? null
+                                    : memoCtrl.text.trim(),
+                              ),
+                            );
                             Navigator.pop(ctx);
                           },
                     child: const Text('Add'),
@@ -551,7 +686,12 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
       isScrollControlled: true,
       builder: (ctx) {
         return Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.viewInsetsOf(ctx).bottom + 16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            MediaQuery.viewInsetsOf(ctx).bottom + 16,
+          ),
           child: StatefulBuilder(
             builder: (ctx, setLocal) {
               final foreign = double.tryParse(amountCtrl.text) ?? 0;
@@ -566,19 +706,40 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Party / agent balance', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                  Text(
+                    'Party / agent balance',
+                    style: AppTypography.headlineMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
+                  ),
                   DropdownButtonFormField<FxParty>(
                     initialValue: party,
                     decoration: const InputDecoration(labelText: 'Party'),
-                    items: parties.map((p) => DropdownMenuItem(value: p, child: Text('${p.partyType.label}: ${p.name}'))).toList(),
+                    items: parties
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p,
+                            child: Text('${p.partyType.label}: ${p.name}'),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (v) => setLocal(() => party = v),
                   ),
                   DropdownButtonFormField<FxOpeningBalanceLineKind>(
                     initialValue: kind,
-                    decoration: const InputDecoration(labelText: 'Balance type'),
+                    decoration: const InputDecoration(
+                      labelText: 'Balance type',
+                    ),
                     items: const [
-                      DropdownMenuItem(value: FxOpeningBalanceLineKind.partyReceivable, child: Text('Receivable (they owe us)')),
-                      DropdownMenuItem(value: FxOpeningBalanceLineKind.partyPayable, child: Text('Payable (we owe them)')),
+                      DropdownMenuItem(
+                        value: FxOpeningBalanceLineKind.partyReceivable,
+                        child: Text('Receivable (they owe us)'),
+                      ),
+                      DropdownMenuItem(
+                        value: FxOpeningBalanceLineKind.partyPayable,
+                        child: Text('Payable (we owe them)'),
+                      ),
                     ],
                     onChanged: (v) => setLocal(() => kind = v ?? kind),
                   ),
@@ -590,25 +751,50 @@ class _OpeningBalanceWizardScreenState extends ConsumerState<OpeningBalanceWizar
                         .toList(),
                     onChanged: (v) => setLocal(() => currency = v ?? 'PKR'),
                   ),
-                  TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (_) => setLocal(() {})),
+                  TextField(
+                    controller: amountCtrl,
+                    decoration: const InputDecoration(labelText: 'Amount'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) => setLocal(() {}),
+                  ),
                   if (currency != 'PKR')
-                    TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Rate to PKR'), keyboardType: const TextInputType.numberWithOptions(decimal: true), onChanged: (_) => setLocal(() {})),
-                  Text('PKR equivalent: ${NumberFormat('#,##0.00').format(pkr)}'),
-                  TextField(controller: memoCtrl, decoration: const InputDecoration(labelText: 'Notes')),
+                    TextField(
+                      controller: rateCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Rate to PKR',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (_) => setLocal(() {}),
+                    ),
+                  Text(
+                    'PKR equivalent: ${NumberFormat('#,##0.00').format(pkr)}',
+                  ),
+                  TextField(
+                    controller: memoCtrl,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
                   FilledButton(
                     onPressed: party == null || pkr <= 0
                         ? null
                         : () {
-                            onAdd(FxOpeningBalanceLine(
-                              lineNo: 0,
-                              lineKind: kind,
-                              partyId: party!.id,
-                              currencyCode: currency,
-                              foreignAmount: foreign,
-                              rateUsed: currency == 'PKR' ? 1 : rate,
-                              pkrAmount: pkr,
-                              memo: memoCtrl.text.trim().isEmpty ? null : memoCtrl.text.trim(),
-                            ));
+                            onAdd(
+                              FxOpeningBalanceLine(
+                                lineNo: 0,
+                                lineKind: kind,
+                                partyId: party!.id,
+                                currencyCode: currency,
+                                foreignAmount: foreign,
+                                rateUsed: currency == 'PKR' ? 1 : rate,
+                                pkrAmount: pkr,
+                                memo: memoCtrl.text.trim().isEmpty
+                                    ? null
+                                    : memoCtrl.text.trim(),
+                              ),
+                            );
                             Navigator.pop(ctx);
                           },
                     child: const Text('Add'),
@@ -652,7 +838,12 @@ class _WizardActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
       decoration: BoxDecoration(
         color: context.fx.surface,
         border: Border(top: BorderSide(color: context.fx.outlineVariant)),
@@ -660,16 +851,26 @@ class _WizardActionBar extends StatelessWidget {
       child: Row(
         children: [
           if (showBack)
-            OutlinedButton(onPressed: busy ? null : onBack, child: const Text('Back')),
+            OutlinedButton(
+              onPressed: busy ? null : onBack,
+              child: const Text('Back'),
+            ),
           if (showSaveDraft) ...[
             if (showBack) const SizedBox(width: 8),
-            TextButton(onPressed: busy ? null : onSaveDraft, child: const Text('Save draft')),
+            TextButton(
+              onPressed: busy ? null : onSaveDraft,
+              child: const Text('Save draft'),
+            ),
           ],
           const Spacer(),
           FilledButton(
             onPressed: busy ? null : onPrimary,
             child: busy
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Text(primaryLabel),
           ),
         ],
@@ -690,7 +891,13 @@ class _StepIndicator extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
-          Text('Step ${current + 1} of $total', style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context)),
+          Text(
+            'Step ${current + 1} of $total',
+            style: AppTypography.labelCaps(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: LinearProgressIndicator(value: (current + 1) / total),
@@ -719,7 +926,15 @@ class _WarningBanner extends StatelessWidget {
         children: [
           Icon(Icons.info_outline, color: context.fx.error, size: 20),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: AppTypography.bodyMd(context.fx.onSurface, context: context))),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTypography.bodyMd(
+                context.fx.onSurface,
+                context: context,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -739,8 +954,17 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
-          Text(value, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+          Text(
+            label,
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
+          ),
+          Text(
+            value,
+            style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+          ),
         ],
       ),
     );
@@ -758,13 +982,18 @@ class _LineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final fmt = NumberFormat('#,##0.00');
     final accountLabel = line.accountId != null
-        ? accounts.where((a) => a.id == line.accountId).map((a) => '${a.code} ${a.name}').firstOrNull
+        ? accounts
+              .where((a) => a.id == line.accountId)
+              .map((a) => '${a.code} ${a.name}')
+              .firstOrNull
         : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Text('${line.lineKind.label} — ${line.currencyCode} ${fmt.format(line.foreignAmount)}'),
+        title: Text(
+          '${line.lineKind.label} — ${line.currencyCode} ${fmt.format(line.foreignAmount)}',
+        ),
         subtitle: Text(
           [
             ?accountLabel,
@@ -773,7 +1002,10 @@ class _LineCard extends StatelessWidget {
           ].join('\n'),
         ),
         trailing: onDelete != null
-            ? IconButton(icon: const Icon(Icons.delete_outline), onPressed: onDelete)
+            ? IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: onDelete,
+              )
             : null,
       ),
     );

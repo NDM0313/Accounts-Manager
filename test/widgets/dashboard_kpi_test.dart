@@ -12,7 +12,11 @@ void main() {
         home: Scaffold(
           body: SingleChildScrollView(
             child: DashboardKpiRow(
-              kpi: const DashboardKpiTotals(assets: 100000, liabilities: 20000, equity: 80000),
+              kpi: const DashboardKpiTotals(
+                assets: 100000,
+                liabilities: 20000,
+                equity: 80000,
+              ),
               todayPl: 1500,
               tbBalanced: true,
               unpostedCount: 2,

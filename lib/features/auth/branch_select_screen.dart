@@ -22,13 +22,21 @@ class BranchSelectScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('Error: $e')),
           data: (ctx) {
             if (ctx == null) {
-              return const Center(child: Text('No branch assigned to your profile.'));
+              return const Center(
+                child: Text('No branch assigned to your profile.'),
+              );
             }
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Your workspace', style: AppTypography.headlineLg(context.fx.onSurface, context: context)),
+                Text(
+                  'Your workspace',
+                  style: AppTypography.headlineLg(
+                    context.fx.onSurface,
+                    context: context,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -40,11 +48,35 @@ class BranchSelectScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(ctx.companyName, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-                      Text('Code: ${ctx.companyCode}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                      Text(
+                        ctx.companyName,
+                        style: AppTypography.headlineMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      Text(
+                        'Code: ${ctx.companyCode}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      Text(ctx.branchName, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                      Text('Branch: ${ctx.branchCode}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                      Text(
+                        ctx.branchName,
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      Text(
+                        'Branch: ${ctx.branchCode}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ),
+                      ),
                     ],
                   ),
                 ),

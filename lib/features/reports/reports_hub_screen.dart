@@ -9,19 +9,84 @@ class ReportsHubScreen extends StatefulWidget {
   const ReportsHubScreen({super.key});
 
   static const reports = [
-    ('Chart of Accounts', 'Read-only COA from fx_accounts', Icons.account_tree_outlined, '/accounts'),
-    ('General Ledger', 'Posted journal entries', Icons.menu_book_outlined, '/reports/general-ledger'),
-    ('Trial Balance', 'Account balances as of date', Icons.balance_outlined, '/reports/trial-balance'),
-    ('Profit & Loss', 'Income and expenses', Icons.trending_up_outlined, '/reports/profit-loss'),
-    ('Balance Sheet', 'Assets, liabilities, equity', Icons.account_balance_outlined, '/reports/balance-sheet'),
-    ('Currency Position', 'Foreign currency exposure', Icons.public_outlined, '/reports/currency-position'),
-    ('Manual Journal', 'Post balanced journal entry', Icons.edit_note_outlined, '/journal/new'),
-    ('Parties', 'Customers, agents, settlements', Icons.people_outline, '/parties'),
-    ('Agent Ledger', 'Settlement agents', Icons.support_agent_outlined, '/parties/agents'),
-    ('Daily Closing', 'Close the day\'s session', Icons.lock_clock_outlined, '/closing'),
-    ('Remittance', 'Hawala / payout orders', Icons.public_outlined, '/remittance'),
-    ('Team Messages', 'Internal staff chat', Icons.chat_bubble_outline, '/messages'),
-    ('Audit Log', 'Change history', Icons.history_outlined, '/reports/audit-log'),
+    (
+      'Chart of Accounts',
+      'Read-only COA from fx_accounts',
+      Icons.account_tree_outlined,
+      '/accounts',
+    ),
+    (
+      'General Ledger',
+      'Posted journal entries',
+      Icons.menu_book_outlined,
+      '/reports/general-ledger',
+    ),
+    (
+      'Trial Balance',
+      'Account balances as of date',
+      Icons.balance_outlined,
+      '/reports/trial-balance',
+    ),
+    (
+      'Profit & Loss',
+      'Income and expenses',
+      Icons.trending_up_outlined,
+      '/reports/profit-loss',
+    ),
+    (
+      'Balance Sheet',
+      'Assets, liabilities, equity',
+      Icons.account_balance_outlined,
+      '/reports/balance-sheet',
+    ),
+    (
+      'Currency Position',
+      'Foreign currency exposure',
+      Icons.public_outlined,
+      '/reports/currency-position',
+    ),
+    (
+      'Manual Journal',
+      'Post balanced journal entry',
+      Icons.edit_note_outlined,
+      '/journal/new',
+    ),
+    (
+      'Parties',
+      'Customers, agents, settlements',
+      Icons.people_outline,
+      '/parties',
+    ),
+    (
+      'Agent Ledger',
+      'Settlement agents',
+      Icons.support_agent_outlined,
+      '/parties/agents',
+    ),
+    (
+      'Daily Closing',
+      'Close the day\'s session',
+      Icons.lock_clock_outlined,
+      '/closing',
+    ),
+    (
+      'Remittance',
+      'Hawala / payout orders',
+      Icons.public_outlined,
+      '/remittance',
+    ),
+    (
+      'Team Messages',
+      'Internal staff chat',
+      Icons.chat_bubble_outline,
+      '/messages',
+    ),
+    (
+      'Audit Log',
+      'Change history',
+      Icons.history_outlined,
+      '/reports/audit-log',
+    ),
   ];
 
   @override
@@ -34,7 +99,9 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 900;
-    final horizontal = isDesktop ? AppSpacing.marginDesktop : AppSpacing.marginMobile;
+    final horizontal = isDesktop
+        ? AppSpacing.marginDesktop
+        : AppSpacing.marginMobile;
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -60,11 +127,20 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
           child: ListView(
             padding: EdgeInsets.fromLTRB(horizontal, 24, 16, 24),
             children: [
-              Text('Reports', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+              Text(
+                'Reports',
+                style: AppTypography.headlineMd(
+                  context.fx.onSurface,
+                  context: context,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 'Financial reports and daily closing.',
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 12),
               ),
               const SizedBox(height: 24),
               for (var i = 0; i < ReportsHubScreen.reports.length; i++)
@@ -85,22 +161,41 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: context.fx.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
+                        ),
                       ),
-                      child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+                      child: Icon(
+                        icon,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-                          Text(subtitle, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                          Text(
+                            title,
+                            style: AppTypography.headlineMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ),
+                          ),
+                          Text(
+                            subtitle,
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     FilledButton(
-                      onPressed: () => context.push(ReportsHubScreen.reports[_selectedIndex].$4),
+                      onPressed: () => context.push(
+                        ReportsHubScreen.reports[_selectedIndex].$4,
+                      ),
                       style: FilledButton.styleFrom(
                         backgroundColor: context.fx.primary,
                         foregroundColor: context.fx.onPrimary,
@@ -142,13 +237,28 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
             ),
             child: Row(
               children: [
-                Icon(icon, size: 20, color: selected ? context.fx.primary : context.fx.onSurfaceVariant),
+                Icon(
+                  icon,
+                  size: 20,
+                  color: selected
+                      ? context.fx.primary
+                      : context.fx.onSurfaceVariant,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     title,
-                    style: AppTypography.bodyMd(selected ? context.fx.onSurface : context.fx.onSurfaceVariant, context: context)
-                        .copyWith(fontWeight: selected ? FontWeight.w600 : FontWeight.normal),
+                    style:
+                        AppTypography.bodyMd(
+                          selected
+                              ? context.fx.onSurface
+                              : context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
                   ),
                 ),
                 if (selected)
@@ -171,10 +281,15 @@ class _ReportsHubScreenState extends State<ReportsHubScreen> {
       children: [
         Text(
           'Financial reports and daily closing for your branch.',
-          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
         ),
         const SizedBox(height: 24),
-        _reportGrid(crossCount: MediaQuery.sizeOf(context).width >= 720 ? 2 : 1),
+        _reportGrid(
+          crossCount: MediaQuery.sizeOf(context).width >= 720 ? 2 : 1,
+        ),
       ],
     );
   }

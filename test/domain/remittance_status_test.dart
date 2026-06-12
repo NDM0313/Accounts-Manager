@@ -10,7 +10,10 @@ void main() {
   });
 
   test('FxRemittanceStatus fromDb round-trip', () {
-    expect(FxRemittanceStatus.fromDb('customer_paid'), FxRemittanceStatus.customerPaid);
+    expect(
+      FxRemittanceStatus.fromDb('customer_paid'),
+      FxRemittanceStatus.customerPaid,
+    );
     expect(FxRemittanceStatus.fromDb('paid_out'), FxRemittanceStatus.paidOut);
   });
 

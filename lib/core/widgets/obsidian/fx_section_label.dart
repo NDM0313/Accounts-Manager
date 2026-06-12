@@ -13,7 +13,13 @@ class FxSectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(label.toUpperCase(), style: AppTypography.labelCaps(Theme.of(context).colorScheme.onSurfaceVariant, context: context)),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.labelCaps(
+              Theme.of(context).colorScheme.onSurfaceVariant,
+              context: context,
+            ),
+          ),
           if (trailing != null) ...[const Spacer(), trailing!],
         ],
       ),
@@ -22,29 +28,29 @@ class FxSectionLabel extends StatelessWidget {
 }
 
 String currencyFlagEmoji(String code) => switch (code) {
-      'USD' => '🇺🇸',
-      'AED' => '🇦🇪',
-      'CNY' => '🇨🇳',
-      'SAR' => '🇸🇦',
-      'PKR' => '🇵🇰',
-      _ => '💱',
-    };
+  'USD' => '🇺🇸',
+  'AED' => '🇦🇪',
+  'CNY' => '🇨🇳',
+  'SAR' => '🇸🇦',
+  'PKR' => '🇵🇰',
+  _ => '💱',
+};
 
 String currencyDisplayName(String code) => switch (code) {
-      'USD' => 'US Dollar',
-      'AED' => 'UAE Dirham',
-      'CNY' => 'Chinese Yuan',
-      'SAR' => 'Saudi Riyal',
-      'PKR' => 'Pakistani Rupee',
-      _ => code,
-    };
+  'USD' => 'US Dollar',
+  'AED' => 'UAE Dirham',
+  'CNY' => 'Chinese Yuan',
+  'SAR' => 'Saudi Riyal',
+  'PKR' => 'Pakistani Rupee',
+  _ => code,
+};
 
 String currencySymbol(String code) => switch (code) {
-      'USD' => '\$',
-      'EUR' => '€',
-      'AED' => 'د.إ',
-      'CNY' => '¥',
-      'SAR' => '﷼',
-      'PKR' => 'PKR ',
-      _ => '',
-    };
+  'USD' => '\$',
+  'EUR' => '€',
+  'AED' => 'د.إ',
+  'CNY' => '¥',
+  'SAR' => '﷼',
+  'PKR' => 'PKR ',
+  _ => '',
+};

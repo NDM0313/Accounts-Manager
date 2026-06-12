@@ -31,29 +31,33 @@ abstract final class DealWorkflowNarrative {
     final view = DealWorkflowGuide.build(deal: deal, legs: legs);
     final sections = <DealNarrativeSection>[];
 
-    sections.add(DealNarrativeSection(
-      title: 'Customer order',
-      lines: [
-        'Customer ${deal.customerName ?? '—'} wants ${deal.sellAmount} ${deal.sellCurrencyCode}.',
-        'Customer payable PKR ${deal.customerPayablePkr.toStringAsFixed(0)}.',
-        'Customer paid PKR ${deal.customerPaidPkr.toStringAsFixed(0)}.',
-        'Receivable PKR ${deal.customerReceivablePkr.toStringAsFixed(0)}.',
-      ],
-    ));
+    sections.add(
+      DealNarrativeSection(
+        title: 'Customer order',
+        lines: [
+          'Customer ${deal.customerName ?? '—'} wants ${deal.sellAmount} ${deal.sellCurrencyCode}.',
+          'Customer payable PKR ${deal.customerPayablePkr.toStringAsFixed(0)}.',
+          'Customer paid PKR ${deal.customerPaidPkr.toStringAsFixed(0)}.',
+          'Receivable PKR ${deal.customerReceivablePkr.toStringAsFixed(0)}.',
+        ],
+      ),
+    );
 
     final sourcing = _find(legs, FxDealLegType.sourcingRequirement);
     if (sourcing != null ||
         deal.status == FxDealStatus.sourcingRequired ||
         deal.status == FxDealStatus.sourcingInProgress) {
-      sections.add(DealNarrativeSection(
-        title: 'Sourcing required',
-        lines: [
-          'We need to arrange ${deal.sellAmount} ${deal.sellCurrencyCode}.',
-          'Current status: ${deal.status.label}.',
-          if (sourcing != null)
-            'Sourcing leg: ${sourcing.receiveAmount} ${sourcing.receiveCurrency ?? deal.sellCurrencyCode} (${sourcing.status.label}).',
-        ],
-      ));
+      sections.add(
+        DealNarrativeSection(
+          title: 'Sourcing required',
+          lines: [
+            'We need to arrange ${deal.sellAmount} ${deal.sellCurrencyCode}.',
+            'Current status: ${deal.status.label}.',
+            if (sourcing != null)
+              'Sourcing leg: ${sourcing.receiveAmount} ${sourcing.receiveCurrency ?? deal.sellCurrencyCode} (${sourcing.status.label}).',
+          ],
+        ),
+      );
     }
 
     final agentSrc = _find(legs, FxDealLegType.agentSource);
@@ -62,7 +66,8 @@ abstract final class DealWorkflowNarrative {
         'Agent ${agentSrc.counterpartyName ?? '—'} will provide currency.',
         if (agentSrc.receiveAmount > 0)
           'Receive ${agentSrc.receiveAmount} ${agentSrc.receiveCurrency ?? deal.sellCurrencyCode}.',
-        if (agentSrc.payAmount > 0) 'Pay ${agentSrc.payAmount} ${agentSrc.payCurrency ?? 'PKR'}.',
+        if (agentSrc.payAmount > 0)
+          'Pay ${agentSrc.payAmount} ${agentSrc.payCurrency ?? 'PKR'}.',
         'Leg status: ${agentSrc.status.label}.',
       ];
       sections.add(DealNarrativeSection(title: 'Agent source', lines: lines));
@@ -70,22 +75,24 @@ abstract final class DealWorkflowNarrative {
 
     final agentPay = _find(legs, FxDealLegType.agentPayment);
     if (agentPay != null) {
-      sections.add(DealNarrativeSection(
-        title: 'Agent payment',
-        lines: [
-          'Payment to agent ${agentPay.counterpartyName ?? '—'}: ${agentPay.status.label}.',
-          if (agentPay.payAmount > 0) 'Amount: ${agentPay.payAmount} ${agentPay.payCurrency ?? 'PKR'}.',
-        ],
-      ));
+      sections.add(
+        DealNarrativeSection(
+          title: 'Agent payment',
+          lines: [
+            'Payment to agent ${agentPay.counterpartyName ?? '—'}: ${agentPay.status.label}.',
+            if (agentPay.payAmount > 0)
+              'Amount: ${agentPay.payAmount} ${agentPay.payCurrency ?? 'PKR'}.',
+          ],
+        ),
+      );
     }
 
-    sections.add(DealNarrativeSection(
-      title: 'Next action',
-      lines: [
-        view.nextActionTitle,
-        _afterActionHint(view.nextActionTitle),
-      ],
-    ));
+    sections.add(
+      DealNarrativeSection(
+        title: 'Next action',
+        lines: [view.nextActionTitle, _afterActionHint(view.nextActionTitle)],
+      ),
+    );
 
     return sections;
   }
@@ -112,18 +119,26 @@ abstract final class DealWorkflowNarrative {
   }
 
   static String _statusMeaning(FxDealStatus status) => switch (status) {
-        FxDealStatus.booked => 'Customer order is booked. Payment and sourcing may still be open.',
-        FxDealStatus.customerPartiallyPaid => 'Customer has paid part of the PKR receivable.',
-        FxDealStatus.customerPaid => 'Customer has fully paid in PKR.',
-        FxDealStatus.sourcingRequired => 'Foreign currency must be sourced before delivery.',
-        FxDealStatus.sourcingInProgress => 'Agent sourcing is underway; currency not yet confirmed in hand.',
-        FxDealStatus.agentPartiallyPaid => 'Agent has been partially paid for sourced currency.',
-        FxDealStatus.agentPaid => 'Agent has been paid; confirm receipt of foreign currency.',
-        FxDealStatus.currencyReceived => 'Foreign currency is in hand; proceed to customer delivery.',
-        FxDealStatus.delivered => 'Currency delivered to customer; finalize profit/loss.',
-        FxDealStatus.completed => 'Deal is complete; profit/loss is recorded.',
-        _ => status.label,
-      };
+    FxDealStatus.booked =>
+      'Customer order is booked. Payment and sourcing may still be open.',
+    FxDealStatus.customerPartiallyPaid =>
+      'Customer has paid part of the PKR receivable.',
+    FxDealStatus.customerPaid => 'Customer has fully paid in PKR.',
+    FxDealStatus.sourcingRequired =>
+      'Foreign currency must be sourced before delivery.',
+    FxDealStatus.sourcingInProgress =>
+      'Agent sourcing is underway; currency not yet confirmed in hand.',
+    FxDealStatus.agentPartiallyPaid =>
+      'Agent has been partially paid for sourced currency.',
+    FxDealStatus.agentPaid =>
+      'Agent has been paid; confirm receipt of foreign currency.',
+    FxDealStatus.currencyReceived =>
+      'Foreign currency is in hand; proceed to customer delivery.',
+    FxDealStatus.delivered =>
+      'Currency delivered to customer; finalize profit/loss.',
+    FxDealStatus.completed => 'Deal is complete; profit/loss is recorded.',
+    _ => status.label,
+  };
 
   static String _afterActionHint(String nextAction) {
     final lower = nextAction.toLowerCase();
@@ -153,8 +168,12 @@ abstract final class DealWorkflowNarrative {
     List<FxDealLeg> legs,
     String nextAction,
   ) {
-    final items = <String>['Customer statement (${deal.customerName ?? 'customer'})'];
-    final agent = _find(legs, FxDealLegType.agentSource) ?? _find(legs, FxDealLegType.agentPayment);
+    final items = <String>[
+      'Customer statement (${deal.customerName ?? 'customer'})',
+    ];
+    final agent =
+        _find(legs, FxDealLegType.agentSource) ??
+        _find(legs, FxDealLegType.agentPayment);
     if (agent?.counterpartyName != null) {
       items.add('Agent statement (${agent!.counterpartyName})');
     }
@@ -169,7 +188,11 @@ abstract final class DealWorkflowNarrative {
 
 /// Per-leg timeline action label and optional route.
 class DealLegTimelineAction {
-  const DealLegTimelineAction({required this.label, this.route, this.onTapKind});
+  const DealLegTimelineAction({
+    required this.label,
+    this.route,
+    this.onTapKind,
+  });
 
   final String label;
   final String? route;
@@ -186,39 +209,40 @@ abstract final class DealLegTimelineActions {
   }) {
     if (leg.status == FxDealLegStatus.completed) {
       return switch (leg.legType) {
-        FxDealLegType.customerOrder when customerPartyId != null => DealLegTimelineAction(
+        FxDealLegType.customerOrder when customerPartyId != null =>
+          DealLegTimelineAction(
             label: 'View customer statement',
             onTapKind: DealLegActionKind.viewCustomerStatement,
           ),
         _ when leg.attachmentCount > 0 => DealLegTimelineAction(
-            label: 'View proof',
-            onTapKind: DealLegActionKind.viewProof,
-          ),
+          label: 'View proof',
+          onTapKind: DealLegActionKind.viewProof,
+        ),
         _ => null,
       };
     }
 
     return switch (leg.legType) {
       FxDealLegType.sourcingRequirement => DealLegTimelineAction(
-          label: 'Source currency',
-          route: '/deals/${deal.id}/legs/agent-source',
-        ),
+        label: 'Source currency',
+        route: '/deals/${deal.id}/legs/agent-source',
+      ),
       FxDealLegType.agentSource => DealLegTimelineAction(
-          label: 'Confirm received',
-          route: '/deals/${deal.id}/legs/currency-receipt',
-        ),
+        label: 'Confirm received',
+        route: '/deals/${deal.id}/legs/currency-receipt',
+      ),
       FxDealLegType.agentPayment => DealLegTimelineAction(
-          label: 'Pay agent',
-          route: '/deals/${deal.id}/legs/agent-payment',
-        ),
+        label: 'Pay agent',
+        route: '/deals/${deal.id}/legs/agent-payment',
+      ),
       FxDealLegType.currencyReceipt => DealLegTimelineAction(
-          label: 'Confirm received',
-          route: '/deals/${deal.id}/legs/currency-receipt',
-        ),
+        label: 'Confirm received',
+        route: '/deals/${deal.id}/legs/currency-receipt',
+      ),
       FxDealLegType.delivery => DealLegTimelineAction(
-          label: 'Confirm delivery',
-          route: '/deals/${deal.id}/delivery',
-        ),
+        label: 'Confirm delivery',
+        route: '/deals/${deal.id}/delivery',
+      ),
       _ => null,
     };
   }

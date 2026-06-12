@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Stitch layout: max 1280px width, responsive horizontal margins.
 class FxPageLayout extends StatelessWidget {
-  const FxPageLayout({
-    super.key,
-    required this.child,
-    this.padding,
-  });
+  const FxPageLayout({super.key, required this.child, this.padding});
 
   final Widget child;
   final EdgeInsets? padding;

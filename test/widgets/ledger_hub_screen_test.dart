@@ -7,14 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 Widget _hubHarness(Widget child) {
   return MaterialApp(
-    home: Scaffold(
-      body: SizedBox(width: 800, height: 700, child: child),
-    ),
+    home: Scaffold(body: SizedBox(width: 800, height: 700, child: child)),
   );
 }
 
 void main() {
-  testWidgets('Ledger hub shows TRANSACTIONS and ACCOUNT STATEMENT segments', (tester) async {
+  testWidgets('Ledger hub shows TRANSACTIONS and ACCOUNT STATEMENT segments', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -33,7 +33,9 @@ void main() {
     expect(find.text('Active'), findsOneWidget);
   });
 
-  testWidgets('Account statement tab prompts account selection', (tester) async {
+  testWidgets('Account statement tab prompts account selection', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -61,7 +63,10 @@ void main() {
     await tester.tap(find.text('Account statement'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Select an account to view its statement.'), findsOneWidget);
+    expect(
+      find.text('Select an account to view its statement.'),
+      findsOneWidget,
+    );
     expect(find.byType(DropdownButtonFormField<String?>), findsOneWidget);
   });
 }

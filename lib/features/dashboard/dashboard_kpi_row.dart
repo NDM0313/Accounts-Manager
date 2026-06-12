@@ -35,21 +35,42 @@ class DashboardKpiRow extends StatelessWidget {
           crossAxisSpacing: 12,
           childAspectRatio: cols == 4 ? 1.65 : 1.9,
           children: [
-            _KpiTile(label: 'Assets', value: kpi != null ? fmt.format(kpi!.assets) : '—'),
-            _KpiTile(label: 'Liabilities', value: kpi != null ? fmt.format(kpi!.liabilities) : '—'),
-            _KpiTile(label: 'Equity', value: kpi != null ? fmt.format(kpi!.equity) : '—'),
+            _KpiTile(
+              label: 'Assets',
+              value: kpi != null ? fmt.format(kpi!.assets) : '—',
+            ),
+            _KpiTile(
+              label: 'Liabilities',
+              value: kpi != null ? fmt.format(kpi!.liabilities) : '—',
+            ),
+            _KpiTile(
+              label: 'Equity',
+              value: kpi != null ? fmt.format(kpi!.equity) : '—',
+            ),
             _KpiTile(
               label: 'Today P&L',
               value: todayPl != null ? fmt.format(todayPl) : '—',
-              accent: todayPl != null && todayPl! >= 0 ? context.fx.tertiary : context.fx.error,
+              accent: todayPl != null && todayPl! >= 0
+                  ? context.fx.tertiary
+                  : context.fx.error,
             ),
             _KpiTile(
               label: 'Trial Balance',
-              value: tbBalanced == null ? '—' : (tbBalanced! ? 'Balanced' : 'Out of balance'),
-              accent: tbBalanced == true ? context.fx.tertiary : context.fx.error,
+              value: tbBalanced == null
+                  ? '—'
+                  : (tbBalanced! ? 'Balanced' : 'Out of balance'),
+              accent: tbBalanced == true
+                  ? context.fx.tertiary
+                  : context.fx.error,
             ),
-            _KpiTile(label: 'Unposted', value: unpostedCount?.toString() ?? '—'),
-            _KpiTile(label: 'Settlements', value: pendingSettlements?.toString() ?? '—'),
+            _KpiTile(
+              label: 'Unposted',
+              value: unpostedCount?.toString() ?? '—',
+            ),
+            _KpiTile(
+              label: 'Settlements',
+              value: pendingSettlements?.toString() ?? '—',
+            ),
           ],
         );
       },
@@ -81,7 +102,10 @@ class _KpiTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: AppTypography.headlineMd(accent ?? context.fx.onSurface, context: context).copyWith(fontSize: 16),
+            style: AppTypography.headlineMd(
+              accent ?? context.fx.onSurface,
+              context: context,
+            ).copyWith(fontSize: 16),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

@@ -32,7 +32,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController {
   Future<void> signIn({required String email, required String password}) async {
-    await supabase.auth.signInWithPassword(email: email.trim(), password: password);
+    await supabase.auth.signInWithPassword(
+      email: email.trim(),
+      password: password,
+    );
   }
 
   Future<void> signUp({required String email, required String password}) async {
@@ -47,7 +50,9 @@ class AuthController {
 final authControllerProvider = Provider((ref) => AuthController());
 
 final accountRepositoryProvider = Provider((ref) => AccountRepository());
-final transactionRepositoryProvider = Provider((ref) => TransactionRepository());
+final transactionRepositoryProvider = Provider(
+  (ref) => TransactionRepository(),
+);
 final reportRepositoryProvider = Provider((ref) => ReportRepository());
 final currencyRepositoryProvider = Provider((ref) => CurrencyRepository());
 final rateRepositoryProvider = Provider((ref) => RateRepository());
@@ -115,24 +120,30 @@ final ratesProvider = FutureProvider<List<FxRate>>((ref) async {
   return ref.read(rateRepositoryProvider).fetchLatestRates();
 });
 
-final ratesAsOfProvider = FutureProvider.family<List<FxRate>, DateTime>((ref, asOf) async {
+final ratesAsOfProvider = FutureProvider.family<List<FxRate>, DateTime>((
+  ref,
+  asOf,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
-  return ref.read(rateRepositoryProvider).fetchRatesAsOf(
-        RateSuggestionService.endOfDay(asOf),
-      );
+  return ref
+      .read(rateRepositoryProvider)
+      .fetchRatesAsOf(RateSuggestionService.endOfDay(asOf));
 });
 
-final rateSuggestionServiceProvider = Provider((ref) => const RateSuggestionService());
+final rateSuggestionServiceProvider = Provider(
+  (ref) => const RateSuggestionService(),
+);
 
 final rateBoardPairsProvider = FutureProvider<List<RateBoardPair>>((ref) async {
   final rates = await ref.watch(ratesProvider.future);
   return ref.read(rateSuggestionServiceProvider).buildDashboardPairs(rates);
 });
 
-final trialBalanceAsOfProvider = NotifierProvider<TrialBalanceAsOfNotifier, DateTime>(
-  TrialBalanceAsOfNotifier.new,
-);
+final trialBalanceAsOfProvider =
+    NotifierProvider<TrialBalanceAsOfNotifier, DateTime>(
+      TrialBalanceAsOfNotifier.new,
+    );
 
 class TrialBalanceAsOfNotifier extends Notifier<DateTime> {
   @override
@@ -146,7 +157,9 @@ class TrialBalanceAsOfNotifier extends Notifier<DateTime> {
   }
 }
 
-final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) async {
+final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((
+  ref,
+) async {
   ref.watch(authSessionProvider);
   ref.watch(currentProfileProvider);
   final profile = await ref.watch(currentProfileProvider.future);
@@ -154,7 +167,9 @@ final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) asyn
   return ref.read(transactionRepositoryProvider).fetchDrafts(profile.branchId);
 });
 
-final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) async {
+final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((
+  ref,
+) async {
   ref.watch(authSessionProvider);
   ref.watch(currentProfileProvider);
   final profile = await ref.watch(currentProfileProvider.future);
@@ -162,60 +177,87 @@ final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) asy
   return ref.read(transactionRepositoryProvider).fetchVoided(profile.branchId);
 });
 
-final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((ref) async {
+final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((
+  ref,
+) async {
   ref.watch(authSessionProvider);
   ref.watch(currentProfileProvider);
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchRecentPosted(profile.branchId);
+  return ref
+      .read(transactionRepositoryProvider)
+      .fetchRecentPosted(profile.branchId);
 });
 
-final transactionDetailProvider = FutureProvider.family<FxTransaction, String>((ref, id) async {
+final transactionDetailProvider = FutureProvider.family<FxTransaction, String>((
+  ref,
+  id,
+) async {
   return ref.read(transactionRepositoryProvider).fetchTransactionWithLines(id);
 });
 
 final linkedExchangeTransactionsProvider =
     FutureProvider.family<List<FxTransaction>, String>((ref, groupId) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchByExchangeGroup(profile.branchId, groupId);
-});
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(transactionRepositoryProvider)
+          .fetchByExchangeGroup(profile.branchId, groupId);
+    });
 
 final journalForTransactionProvider =
     FutureProvider.family<FxJournalEntry?, String>((ref, transactionId) async {
-  return ref.read(transactionRepositoryProvider).fetchJournalForTransaction(transactionId);
-});
+      return ref
+          .read(transactionRepositoryProvider)
+          .fetchJournalForTransaction(transactionId);
+    });
 
-final journalEntryProvider = FutureProvider.family<FxJournalEntry, String>((ref, entryId) async {
+final journalEntryProvider = FutureProvider.family<FxJournalEntry, String>((
+  ref,
+  entryId,
+) async {
   return ref.read(transactionRepositoryProvider).fetchJournalEntry(entryId);
 });
 
 typedef AccountJournalQuery = (String accountCode, DateTime asOf);
 
 final accountJournalLinesProvider =
-    FutureProvider.family<List<FxJournalLine>, AccountJournalQuery>((ref, query) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchJournalLinesForAccount(
-        branchId: profile.branchId,
-        accountCode: query.$1,
-        asOf: query.$2,
-      );
-});
+    FutureProvider.family<List<FxJournalLine>, AccountJournalQuery>((
+      ref,
+      query,
+    ) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(transactionRepositoryProvider)
+          .fetchJournalLinesForAccount(
+            branchId: profile.branchId,
+            accountCode: query.$1,
+            asOf: query.$2,
+          );
+    });
 
 final auditLogsProvider = FutureProvider<List<AuditLogRow>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchRecentAuditLogs(profile.branchId);
+  return ref
+      .read(transactionRepositoryProvider)
+      .fetchRecentAuditLogs(profile.branchId);
 });
 
-final auditLogsForEntityProvider = FutureProvider.family<List<AuditLogRow>, String>((ref, entityId) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchAuditLogsForEntity(profile.branchId, entityId);
-});
+final auditLogsForEntityProvider =
+    FutureProvider.family<List<AuditLogRow>, String>((ref, entityId) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(transactionRepositoryProvider)
+          .fetchAuditLogsForEntity(profile.branchId, entityId);
+    });
 
-final isDayClosedForDateProvider = FutureProvider.family<bool, DateTime>((ref, date) async {
+final isDayClosedForDateProvider = FutureProvider.family<bool, DateTime>((
+  ref,
+  date,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return false;
   final d = DateTime(date.year, date.month, date.day);
@@ -232,23 +274,34 @@ final trialBalanceProvider = FutureProvider<List<TrialBalanceRow>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final asOf = ref.watch(trialBalanceAsOfProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchTrialBalance(profile.branchId, asOf: asOf);
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchTrialBalance(profile.branchId, asOf: asOf);
 });
 
-final trialBalanceTotalsProvider = FutureProvider<TrialBalanceTotals>((ref) async {
+final trialBalanceTotalsProvider = FutureProvider<TrialBalanceTotals>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final asOf = ref.watch(trialBalanceAsOfProvider);
   if (profile == null) {
-    return const TrialBalanceTotals(totalDebit: 0, totalCredit: 0, isBalanced: true);
+    return const TrialBalanceTotals(
+      totalDebit: 0,
+      totalCredit: 0,
+      isBalanced: true,
+    );
   }
-  return ref.read(reportRepositoryProvider).fetchTrialBalanceTotals(profile.branchId, asOf: asOf);
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchTrialBalanceTotals(profile.branchId, asOf: asOf);
 });
 
 typedef ReportDateRange = ({DateTime from, DateTime to});
 
-final reportDateRangeProvider = NotifierProvider<ReportDateRangeNotifier, ReportDateRange>(
-  ReportDateRangeNotifier.new,
-);
+final reportDateRangeProvider =
+    NotifierProvider<ReportDateRangeNotifier, ReportDateRange>(
+      ReportDateRangeNotifier.new,
+    );
 
 class ReportDateRangeNotifier extends Notifier<ReportDateRange> {
   @override
@@ -266,7 +319,9 @@ class ReportDateRangeNotifier extends Notifier<ReportDateRange> {
   }
 }
 
-final reportAsOfProvider = NotifierProvider<ReportAsOfNotifier, DateTime>(ReportAsOfNotifier.new);
+final reportAsOfProvider = NotifierProvider<ReportAsOfNotifier, DateTime>(
+  ReportAsOfNotifier.new,
+);
 
 class ReportAsOfNotifier extends Notifier<DateTime> {
   @override
@@ -280,7 +335,9 @@ class ReportAsOfNotifier extends Notifier<DateTime> {
   }
 }
 
-final closingDateProvider = NotifierProvider<ClosingDateNotifier, DateTime>(ClosingDateNotifier.new);
+final closingDateProvider = NotifierProvider<ClosingDateNotifier, DateTime>(
+  ClosingDateNotifier.new,
+);
 
 class ClosingDateNotifier extends Notifier<DateTime> {
   @override
@@ -294,9 +351,10 @@ class ClosingDateNotifier extends Notifier<DateTime> {
   }
 }
 
-final generalLedgerAccountFilterProvider = NotifierProvider<GeneralLedgerAccountFilterNotifier, String?>(
-  GeneralLedgerAccountFilterNotifier.new,
-);
+final generalLedgerAccountFilterProvider =
+    NotifierProvider<GeneralLedgerAccountFilterNotifier, String?>(
+      GeneralLedgerAccountFilterNotifier.new,
+    );
 
 class GeneralLedgerAccountFilterNotifier extends Notifier<String?> {
   @override
@@ -305,12 +363,16 @@ class GeneralLedgerAccountFilterNotifier extends Notifier<String?> {
   void set(String? code) => state = code;
 }
 
-final generalLedgerProvider = FutureProvider<List<GeneralLedgerRow>>((ref) async {
+final generalLedgerProvider = FutureProvider<List<GeneralLedgerRow>>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final range = ref.watch(reportDateRangeProvider);
   final accountCode = ref.watch(generalLedgerAccountFilterProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchGeneralLedger(
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchGeneralLedger(
         profile.branchId,
         from: range.from,
         to: range.to,
@@ -318,9 +380,10 @@ final generalLedgerProvider = FutureProvider<List<GeneralLedgerRow>>((ref) async
       );
 });
 
-final ledgerStatementAccountProvider = NotifierProvider<LedgerStatementAccountNotifier, String?>(
-  LedgerStatementAccountNotifier.new,
-);
+final ledgerStatementAccountProvider =
+    NotifierProvider<LedgerStatementAccountNotifier, String?>(
+      LedgerStatementAccountNotifier.new,
+    );
 
 class LedgerStatementAccountNotifier extends Notifier<String?> {
   @override
@@ -329,9 +392,10 @@ class LedgerStatementAccountNotifier extends Notifier<String?> {
   void set(String? code) => state = code;
 }
 
-final ledgerStatementRangeProvider = NotifierProvider<LedgerStatementRangeNotifier, ReportDateRange>(
-  LedgerStatementRangeNotifier.new,
-);
+final ledgerStatementRangeProvider =
+    NotifierProvider<LedgerStatementRangeNotifier, ReportDateRange>(
+      LedgerStatementRangeNotifier.new,
+    );
 
 class LedgerStatementRangeNotifier extends Notifier<ReportDateRange> {
   @override
@@ -349,7 +413,9 @@ class LedgerStatementRangeNotifier extends Notifier<ReportDateRange> {
   }
 }
 
-final accountStatementProvider = FutureProvider<AccountStatementView?>((ref) async {
+final accountStatementProvider = FutureProvider<AccountStatementView?>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final accountCode = ref.watch(ledgerStatementAccountProvider);
   final range = ref.watch(ledgerStatementRangeProvider);
@@ -366,10 +432,9 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((ref) asy
   if (account == null) return null;
 
   final openingDate = range.from.subtract(const Duration(days: 1));
-  final trialRows = await ref.read(reportRepositoryProvider).fetchTrialBalance(
-        profile.branchId,
-        asOf: openingDate,
-      );
+  final trialRows = await ref
+      .read(reportRepositoryProvider)
+      .fetchTrialBalance(profile.branchId, asOf: openingDate);
   TrialBalanceRow? tbRow;
   for (final r in trialRows) {
     if (r.accountCode == accountCode) {
@@ -379,7 +444,9 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((ref) asy
   }
   final openingBalance = tbRow?.netPkr ?? 0.0;
 
-  final ledgerRows = await ref.read(reportRepositoryProvider).fetchGeneralLedger(
+  final ledgerRows = await ref
+      .read(reportRepositoryProvider)
+      .fetchGeneralLedger(
         profile.branchId,
         from: range.from,
         to: range.to,
@@ -401,25 +468,29 @@ final profitLossProvider = FutureProvider<List<ProfitLossRow>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final range = ref.watch(reportDateRangeProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchProfitAndLoss(
-        profile.branchId,
-        from: range.from,
-        to: range.to,
-      );
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchProfitAndLoss(profile.branchId, from: range.from, to: range.to);
 });
 
 final balanceSheetProvider = FutureProvider<List<BalanceSheetRow>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final asOf = ref.watch(reportAsOfProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchBalanceSheet(profile.branchId, asOf: asOf);
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchBalanceSheet(profile.branchId, asOf: asOf);
 });
 
-final currencyPositionProvider = FutureProvider<List<CurrencyPositionRow>>((ref) async {
+final currencyPositionProvider = FutureProvider<List<CurrencyPositionRow>>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final asOf = ref.watch(reportAsOfProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchCurrencyPositionExtended(profile.branchId, asOf: asOf);
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchCurrencyPositionExtended(profile.branchId, asOf: asOf);
 });
 
 final dealsListProvider = FutureProvider<List<FxDeal>>((ref) async {
@@ -436,76 +507,108 @@ class DealsRefreshNotifier extends Notifier<int> {
   void refresh() => state++;
 }
 
-final dealsRefreshProvider = NotifierProvider<DealsRefreshNotifier, int>(DealsRefreshNotifier.new);
+final dealsRefreshProvider = NotifierProvider<DealsRefreshNotifier, int>(
+  DealsRefreshNotifier.new,
+);
 
-final dealDetailProvider = FutureProvider.family<FxDeal?, String>((ref, dealId) async {
+final dealDetailProvider = FutureProvider.family<FxDeal?, String>((
+  ref,
+  dealId,
+) async {
   ref.watch(dealsRefreshProvider);
   return ref.read(dealRepositoryProvider).fetchDeal(dealId);
 });
 
-final dealTimelineProvider = FutureProvider.family<List<FxDealLeg>, String>((ref, dealId) async {
+final dealTimelineProvider = FutureProvider.family<List<FxDealLeg>, String>((
+  ref,
+  dealId,
+) async {
   ref.watch(dealsRefreshProvider);
   return ref.read(dealRepositoryProvider).fetchTimeline(dealId);
 });
 
-final dealLegMetaProvider = FutureProvider.family<List<FxDealLeg>, String>((ref, dealId) async {
+final dealLegMetaProvider = FutureProvider.family<List<FxDealLeg>, String>((
+  ref,
+  dealId,
+) async {
   ref.watch(dealsRefreshProvider);
   return ref.read(dealRepositoryProvider).fetchLegMeta(dealId);
 });
 
-final partyDealOpenItemsProvider = FutureProvider.family<List<PartyDealOpenItem>, String>((ref, partyId) async {
-  ref.watch(dealsRefreshProvider);
-  try {
-    return ref.read(dealRepositoryProvider).fetchPartyOpenItems(partyId);
-  } catch (_) {
-    return [];
-  }
-});
+final partyDealOpenItemsProvider =
+    FutureProvider.family<List<PartyDealOpenItem>, String>((
+      ref,
+      partyId,
+    ) async {
+      ref.watch(dealsRefreshProvider);
+      try {
+        return ref.read(dealRepositoryProvider).fetchPartyOpenItems(partyId);
+      } catch (_) {
+        return [];
+      }
+    });
 
-final closingPreviewProvider = FutureProvider<List<ClosingPreviewRow>>((ref) async {
+final closingPreviewProvider = FutureProvider<List<ClosingPreviewRow>>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   final date = ref.watch(closingDateProvider);
   if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchClosingPreview(profile.branchId, closingDate: date);
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchClosingPreview(profile.branchId, closingDate: date);
 });
 
 final dayClosedProvider = FutureProvider<bool>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return false;
   final today = DateTime.now();
-  return ref.read(reportRepositoryProvider).isDayClosed(
+  return ref
+      .read(reportRepositoryProvider)
+      .isDayClosed(
         profile.branchId,
         DateTime(today.year, today.month, today.day),
       );
 });
 
-final partiesProvider = FutureProvider.family<List<FxParty>, FxPartyType?>((ref, filter) async {
+final partiesProvider = FutureProvider.family<List<FxParty>, FxPartyType?>((
+  ref,
+  filter,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
-  return ref.read(partyRepositoryProvider).fetchParties(
-        companyId: profile.companyId,
-        partyType: filter,
-      );
+  return ref
+      .read(partyRepositoryProvider)
+      .fetchParties(companyId: profile.companyId, partyType: filter);
 });
 
 class CustomerOrderPartyChoices {
-  const CustomerOrderPartyChoices({required this.parties, required this.isFallback});
+  const CustomerOrderPartyChoices({
+    required this.parties,
+    required this.isFallback,
+  });
 
   final List<FxParty> parties;
   final bool isFallback;
 }
 
-final customerOrderPartyChoicesProvider = FutureProvider<CustomerOrderPartyChoices>((ref) async {
-  final customers = await ref.watch(partiesProvider(FxPartyType.customer).future);
-  if (customers.isNotEmpty) {
-    return CustomerOrderPartyChoices(parties: customers, isFallback: false);
-  }
-  final all = await ref.watch(partiesProvider(null).future);
-  final sorted = [...all]..sort((a, b) => a.name.compareTo(b.name));
-  return CustomerOrderPartyChoices(parties: sorted, isFallback: true);
-});
+final customerOrderPartyChoicesProvider =
+    FutureProvider<CustomerOrderPartyChoices>((ref) async {
+      final customers = await ref.watch(
+        partiesProvider(FxPartyType.customer).future,
+      );
+      if (customers.isNotEmpty) {
+        return CustomerOrderPartyChoices(parties: customers, isFallback: false);
+      }
+      final all = await ref.watch(partiesProvider(null).future);
+      final sorted = [...all]..sort((a, b) => a.name.compareTo(b.name));
+      return CustomerOrderPartyChoices(parties: sorted, isFallback: true);
+    });
 
-final partyDetailProvider = FutureProvider.family<FxParty?, String>((ref, partyId) async {
+final partyDetailProvider = FutureProvider.family<FxParty?, String>((
+  ref,
+  partyId,
+) async {
   try {
     return await ref.read(partyRepositoryProvider).fetchParty(partyId);
   } catch (_) {
@@ -513,15 +616,19 @@ final partyDetailProvider = FutureProvider.family<FxParty?, String>((ref, partyI
   }
 });
 
-final partyTransactionsProvider = FutureProvider.family<List<FxTransaction>, String>((ref, partyId) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(transactionRepositoryProvider).fetchByParty(profile.branchId, partyId);
-});
+final partyTransactionsProvider =
+    FutureProvider.family<List<FxTransaction>, String>((ref, partyId) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(transactionRepositoryProvider)
+          .fetchByParty(profile.branchId, partyId);
+    });
 
-final partyStatementFiltersProvider = NotifierProvider<PartyStatementFiltersNotifier, PartyStatementFilters>(
-  PartyStatementFiltersNotifier.new,
-);
+final partyStatementFiltersProvider =
+    NotifierProvider<PartyStatementFiltersNotifier, PartyStatementFilters>(
+      PartyStatementFiltersNotifier.new,
+    );
 
 class PartyStatementFiltersNotifier extends Notifier<PartyStatementFilters> {
   @override
@@ -542,67 +649,77 @@ class PartyStatementFiltersNotifier extends Notifier<PartyStatementFilters> {
     );
   }
 
-  void setStatus(PartyStatementStatusFilter status) => state = state.copyWith(status: status);
+  void setStatus(PartyStatementStatusFilter status) =>
+      state = state.copyWith(status: status);
 
   void setSearch(String search) => state = state.copyWith(search: search);
 
-  void setCurrency(String? code) => state = state.copyWith(currencyCode: code, clearCurrency: code == null);
+  void setCurrency(String? code) =>
+      state = state.copyWith(currencyCode: code, clearCurrency: code == null);
 
   void setTransactionType(FxTransactionType? type) =>
       state = state.copyWith(transactionType: type, clearType: type == null);
 
-  void setInternalView(bool internal) => state = state.copyWith(isInternalView: internal);
+  void setInternalView(bool internal) =>
+      state = state.copyWith(isInternalView: internal);
 }
 
-final partyStatementProvider = FutureProvider.family<PartyStatementView?, String>((ref, partyId) async {
-  ref.watch(partyStatementFiltersProvider);
-  final filters = ref.read(partyStatementFiltersProvider);
-  final profile = await ref.watch(currentProfileProvider.future);
-  final party = await ref.watch(partyDetailProvider(partyId).future);
-  if (profile == null || party == null) return null;
+final partyStatementProvider =
+    FutureProvider.family<PartyStatementView?, String>((ref, partyId) async {
+      ref.watch(partyStatementFiltersProvider);
+      final filters = ref.read(partyStatementFiltersProvider);
+      final profile = await ref.watch(currentProfileProvider.future);
+      final party = await ref.watch(partyDetailProvider(partyId).future);
+      if (profile == null || party == null) return null;
 
-  final txs = await ref.read(transactionRepositoryProvider).fetchPartyTransactionsForStatement(
-        branchId: profile.branchId,
-        partyId: partyId,
+      final txs = await ref
+          .read(transactionRepositoryProvider)
+          .fetchPartyTransactionsForStatement(
+            branchId: profile.branchId,
+            partyId: partyId,
+            from: filters.from,
+            to: filters.to,
+            status: filters.status,
+            transactionType: filters.transactionType,
+            currencyCode: filters.currencyCode,
+            search: filters.search,
+          );
+
+      final priorTxs = await ref
+          .read(transactionRepositoryProvider)
+          .fetchPartyTransactionsPriorTo(
+            branchId: profile.branchId,
+            partyId: partyId,
+            before: filters.from,
+            status: filters.status,
+          );
+
+      final openingBalance = PartyStatementBuilder.computeOpeningBalance(
+        party: party,
+        priorTransactions: priorTxs,
+      );
+
+      final attachmentIds = await ref
+          .read(attachmentRepositoryProvider)
+          .fetchTransactionIdsWithAttachments(txs.map((t) => t.id).toList());
+
+      return PartyStatementBuilder.build(
+        party: party,
         from: filters.from,
         to: filters.to,
-        status: filters.status,
-        transactionType: filters.transactionType,
-        currencyCode: filters.currencyCode,
-        search: filters.search,
+        transactions: txs,
+        transactionIdsWithAttachments: attachmentIds,
+        isInternalView: filters.isInternalView,
+        openingBalancePkr: openingBalance,
       );
-
-  final priorTxs = await ref.read(transactionRepositoryProvider).fetchPartyTransactionsPriorTo(
-        branchId: profile.branchId,
-        partyId: partyId,
-        before: filters.from,
-        status: filters.status,
-      );
-
-  final openingBalance = PartyStatementBuilder.computeOpeningBalance(
-    party: party,
-    priorTransactions: priorTxs,
-  );
-
-  final attachmentIds = await ref.read(attachmentRepositoryProvider).fetchTransactionIdsWithAttachments(
-        txs.map((t) => t.id).toList(),
-      );
-
-  return PartyStatementBuilder.build(
-    party: party,
-    from: filters.from,
-    to: filters.to,
-    transactions: txs,
-    transactionIdsWithAttachments: attachmentIds,
-    isInternalView: filters.isInternalView,
-    openingBalancePkr: openingBalance,
-  );
-});
+    });
 
 final pendingSettlementsCountProvider = FutureProvider<int>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return 0;
-  return ref.read(transactionRepositoryProvider).countPendingSettlements(profile.branchId);
+  return ref
+      .read(transactionRepositoryProvider)
+      .countPendingSettlements(profile.branchId);
 });
 
 final todayProfitLossProvider = FutureProvider<double>((ref) async {
@@ -610,18 +727,20 @@ final todayProfitLossProvider = FutureProvider<double>((ref) async {
   if (profile == null) return 0;
   final today = DateTime.now();
   final start = DateTime(today.year, today.month, today.day);
-  final rows = await ref.read(reportRepositoryProvider).fetchProfitAndLoss(
-        profile.branchId,
-        from: start,
-        to: start,
-      );
+  final rows = await ref
+      .read(reportRepositoryProvider)
+      .fetchProfitAndLoss(profile.branchId, from: start, to: start);
   return rows.fold<double>(0, (s, r) => s + r.amountPkr);
 });
 
 final dashboardKpiProvider = FutureProvider<DashboardKpiTotals>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return const DashboardKpiTotals(assets: 0, liabilities: 0, equity: 0);
-  final rows = await ref.read(reportRepositoryProvider).fetchBalanceSheet(profile.branchId);
+  if (profile == null) {
+    return const DashboardKpiTotals(assets: 0, liabilities: 0, equity: 0);
+  }
+  final rows = await ref
+      .read(reportRepositoryProvider)
+      .fetchBalanceSheet(profile.branchId);
   double assets = 0, liabilities = 0, equity = 0;
   for (final r in rows) {
     switch (r.accountType) {
@@ -635,19 +754,28 @@ final dashboardKpiProvider = FutureProvider<DashboardKpiTotals>((ref) async {
         break;
     }
   }
-  return DashboardKpiTotals(assets: assets, liabilities: liabilities, equity: equity);
+  return DashboardKpiTotals(
+    assets: assets,
+    liabilities: liabilities,
+    equity: equity,
+  );
 });
 
 class DashboardKpiTotals {
-  const DashboardKpiTotals({required this.assets, required this.liabilities, required this.equity});
+  const DashboardKpiTotals({
+    required this.assets,
+    required this.liabilities,
+    required this.equity,
+  });
   final double assets;
   final double liabilities;
   final double equity;
 }
 
-final attachmentsForTransactionProvider = FutureProvider.family<List<FxAttachment>, String>((ref, txId) async {
-  return ref.read(attachmentRepositoryProvider).fetchForTransaction(txId);
-});
+final attachmentsForTransactionProvider =
+    FutureProvider.family<List<FxAttachment>, String>((ref, txId) async {
+      return ref.read(attachmentRepositoryProvider).fetchForTransaction(txId);
+    });
 
 final branchContextProvider = FutureProvider<BranchContext?>((ref) async {
   return ref.read(profileRepositoryProvider).fetchBranchContext();

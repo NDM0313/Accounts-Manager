@@ -38,7 +38,13 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
       backgroundColor: context.fx.background,
       appBar: AppBar(
         backgroundColor: context.fx.background,
-        title: Text('New rate', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+        title: Text(
+          'New rate',
+          style: AppTypography.headlineMd(
+            context.fx.onSurface,
+            context: context,
+          ),
+        ),
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -49,7 +55,8 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
           }
           return currenciesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Unable to load currencies: $e')),
+            error: (e, _) =>
+                Center(child: Text('Unable to load currencies: $e')),
             data: (currencies) {
               final fxCurrencies = currencies.where((c) => !c.isBase).toList();
               _currencyId ??= fxCurrencies.firstOrNull?.id;
@@ -63,10 +70,19 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                         children: [
                           Text(
                             'Set buy and sell rates for a foreign currency.',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
                           ),
                           const SizedBox(height: 24),
-                          Text('Currency', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                          Text(
+                            'Currency',
+                            style: AppTypography.labelCaps(
+                              context.fx.outline,
+                              context: context,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             key: ValueKey(_currencyId),
@@ -76,37 +92,65 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                               filled: true,
                               fillColor: context.fx.surfaceContainerLow,
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                                borderSide: BorderSide(color: context.fx.outlineVariant),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusLg,
+                                ),
+                                borderSide: BorderSide(
+                                  color: context.fx.outlineVariant,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                                borderSide: BorderSide(color: context.fx.outlineVariant),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusLg,
+                                ),
+                                borderSide: BorderSide(
+                                  color: context.fx.outlineVariant,
+                                ),
                               ),
                             ),
                             items: fxCurrencies
                                 .map(
                                   (c) => DropdownMenuItem(
                                     value: c.id,
-                                    child: Text('${c.code} · ${c.name}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                                    child: Text(
+                                      '${c.code} · ${c.name}',
+                                      style: AppTypography.bodyMd(
+                                        context.fx.onSurface,
+                                        context: context,
+                                      ),
+                                    ),
                                   ),
                                 )
                                 .toList(),
-                            onChanged: _busy ? null : (v) => setState(() => _currencyId = v),
-                            validator: (v) => v == null ? 'Select currency' : null,
+                            onChanged: _busy
+                                ? null
+                                : (v) => setState(() => _currencyId = v),
+                            validator: (v) =>
+                                v == null ? 'Select currency' : null,
                           ),
                           const SizedBox(height: 12),
                           Text(
                             'Reference (mid): ${((double.tryParse(_buyCtrl.text) ?? 0) + (double.tryParse(_sellCtrl.text) ?? 0)) / 2}',
-                            style: AppTypography.bodyMd(context.fx.tertiary, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.tertiary,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           ),
                           const SizedBox(height: 8),
-                          Text('Source: manual', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+                          Text(
+                            'Source: manual',
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 11),
+                          ),
                           const SizedBox(height: 20),
                           FxObsidianFormField(
                             label: 'Buy rate (PKR)',
                             controller: _buyCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             enabled: !_busy,
                             validator: _positiveRate,
                             accentTertiary: true,
@@ -116,7 +160,9 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                           FxObsidianFormField(
                             label: 'Sell rate (PKR)',
                             controller: _sellCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             enabled: !_busy,
                             validator: _positiveRate,
                             accentTertiary: true,
@@ -130,7 +176,9 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
                     busy: _busy,
                     saveLabel: 'Save rate',
                     onCancel: _busy ? () {} : () => context.pop(),
-                    onSave: _busy ? () {} : () => _save(profile.branchId, fxCurrencies),
+                    onSave: _busy
+                        ? () {}
+                        : () => _save(profile.branchId, fxCurrencies),
                   ),
                 ],
               );
@@ -160,12 +208,16 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
     if (!_formKey.currentState!.validate()) return;
     final spreadError = _validateSpread();
     if (spreadError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(spreadError)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(spreadError)));
       return;
     }
     setState(() => _busy = true);
     try {
-      await ref.read(rateRepositoryProvider).createRate(
+      await ref
+          .read(rateRepositoryProvider)
+          .createRate(
             branchId: branchId,
             currencyId: _currencyId!,
             buyRate: double.parse(_buyCtrl.text),
@@ -173,14 +225,16 @@ class _RateEntryScreenState extends ConsumerState<RateEntryScreen> {
           );
       ref.invalidate(ratesProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Rate saved.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Rate saved.')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

@@ -23,16 +23,18 @@ class FxObsidianReportPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FxPremiumCard(padding: padding, onTap: onTap, color: color, child: child);
+    return FxPremiumCard(
+      padding: padding,
+      onTap: onTap,
+      color: color,
+      child: child,
+    );
   }
 }
 
 /// Uppercase column headers for tabular report layouts.
 class FxObsidianReportTableHeader extends StatelessWidget {
-  const FxObsidianReportTableHeader({
-    super.key,
-    required this.columns,
-  });
+  const FxObsidianReportTableHeader({super.key, required this.columns});
 
   final List<Widget> columns;
 
@@ -51,11 +53,18 @@ class FxObsidianReportTableHeader extends StatelessWidget {
     );
   }
 
-  static Widget columnLabel(BuildContext context, String text, {TextAlign align = TextAlign.start}) {
+  static Widget columnLabel(
+    BuildContext context,
+    String text, {
+    TextAlign align = TextAlign.start,
+  }) {
     return Text(
       text.toUpperCase(),
       textAlign: align,
-      style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 10, letterSpacing: 1.2),
+      style: AppTypography.labelCaps(
+        context.fx.outline,
+        context: context,
+      ).copyWith(fontSize: 10, letterSpacing: 1.2),
     );
   }
 }

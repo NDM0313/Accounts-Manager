@@ -7,7 +7,11 @@ import 'package:intl/intl.dart';
 
 /// Daily closing report cards grouped by currency (Stitch daily_closing_report mock).
 class FxClosingReportView extends StatelessWidget {
-  const FxClosingReportView({super.key, required this.rows, required this.dateLabel});
+  const FxClosingReportView({
+    super.key,
+    required this.rows,
+    required this.dateLabel,
+  });
 
   final List<ClosingPreviewRow> rows;
   final String dateLabel;
@@ -53,7 +57,8 @@ class _CurrencyCard extends StatelessWidget {
   final List<ClosingPreviewRow> accounts;
   final NumberFormat fmt;
 
-  double get _totalClosing => accounts.fold<double>(0, (s, r) => s + r.systemBalance);
+  double get _totalClosing =>
+      accounts.fold<double>(0, (s, r) => s + r.systemBalance);
 
   @override
   Widget build(BuildContext context) {
@@ -69,20 +74,44 @@ class _CurrencyCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(currencyCode, style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18)),
+              Text(
+                currencyCode,
+                style: AppTypography.headlineMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontSize: 18),
+              ),
               const Spacer(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('Closing balance', style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 10)),
-                  Text(fmt.format(_totalClosing), style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 16)),
+                  Text(
+                    'Closing balance',
+                    style: AppTypography.labelCaps(
+                      context.fx.outline,
+                      context: context,
+                    ).copyWith(fontSize: 10),
+                  ),
+                  Text(
+                    fmt.format(_totalClosing),
+                    style: AppTypography.labelMono(
+                      context.fx.tertiary,
+                      context: context,
+                    ).copyWith(fontSize: 16),
+                  ),
                 ],
               ),
             ],
           ),
           if (accounts.length > 1) ...[
             const SizedBox(height: 16),
-            Text('By account', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+            Text(
+              'By account',
+              style: AppTypography.labelCaps(
+                context.fx.outline,
+                context: context,
+              ),
+            ),
             const SizedBox(height: 8),
             for (final r in accounts)
               Padding(
@@ -92,9 +121,18 @@ class _CurrencyCard extends StatelessWidget {
                   children: [
                     Text(
                       '${r.accountCode} · ${r.accountName}',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 12),
                     ),
-                    Text(fmt.format(r.systemBalance), style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                    Text(
+                      fmt.format(r.systemBalance),
+                      style: AppTypography.labelMono(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 12),
+                    ),
                   ],
                 ),
               ),

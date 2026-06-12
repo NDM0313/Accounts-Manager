@@ -180,7 +180,8 @@ class CurrencyPositionRow {
   factory CurrencyPositionRow.fromJson(Map<String, dynamic> json) {
     return CurrencyPositionRow(
       currencyCode: json['currency_code'] as String,
-      foreignBalance: (json['foreign_balance'] as num?)?.toDouble() ??
+      foreignBalance:
+          (json['foreign_balance'] as num?)?.toDouble() ??
           (json['actual_balance'] as num?)?.toDouble() ??
           0,
       baseEquivalentPkr: (json['base_equivalent_pkr'] as num).toDouble(),
@@ -246,16 +247,25 @@ class DailyClosingResult {
 }
 
 class ReportRepository {
-  Future<List<TrialBalanceRow>> fetchTrialBalance(String branchId, {DateTime? asOf}) async {
+  Future<List<TrialBalanceRow>> fetchTrialBalance(
+    String branchId, {
+    DateTime? asOf,
+  }) async {
     final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
     final rows = await supabase.rpc(
       'fx_get_trial_balance',
       params: {'p_branch_id': branchId, 'p_as_of': date},
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(TrialBalanceRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(TrialBalanceRow.fromJson)
+        .toList();
   }
 
-  Future<TrialBalanceTotals> fetchTrialBalanceTotals(String branchId, {DateTime? asOf}) async {
+  Future<TrialBalanceTotals> fetchTrialBalanceTotals(
+    String branchId, {
+    DateTime? asOf,
+  }) async {
     final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
     final row = await supabase.rpc(
       'fx_get_trial_balance_totals',
@@ -270,7 +280,10 @@ class ReportRepository {
       'fx_get_cash_balances',
       params: {'p_branch_id': branchId},
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(CashBalanceRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(CashBalanceRow.fromJson)
+        .toList();
   }
 
   Future<List<GeneralLedgerRow>> fetchGeneralLedger(
@@ -288,7 +301,10 @@ class ReportRepository {
         'p_account_code': accountCode,
       },
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(GeneralLedgerRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(GeneralLedgerRow.fromJson)
+        .toList();
   }
 
   Future<List<ProfitLossRow>> fetchProfitAndLoss(
@@ -304,47 +320,77 @@ class ReportRepository {
         'p_to': to.toIso8601String().split('T').first,
       },
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(ProfitLossRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(ProfitLossRow.fromJson)
+        .toList();
   }
 
-  Future<List<BalanceSheetRow>> fetchBalanceSheet(String branchId, {DateTime? asOf}) async {
+  Future<List<BalanceSheetRow>> fetchBalanceSheet(
+    String branchId, {
+    DateTime? asOf,
+  }) async {
     final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
     final rows = await supabase.rpc(
       'fx_get_balance_sheet',
       params: {'p_branch_id': branchId, 'p_as_of': date},
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(BalanceSheetRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(BalanceSheetRow.fromJson)
+        .toList();
   }
 
-  Future<List<CurrencyPositionRow>> fetchCurrencyPosition(String branchId, {DateTime? asOf}) async {
+  Future<List<CurrencyPositionRow>> fetchCurrencyPosition(
+    String branchId, {
+    DateTime? asOf,
+  }) async {
     final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
     final rows = await supabase.rpc(
       'fx_get_currency_position',
       params: {'p_branch_id': branchId, 'p_as_of': date},
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(CurrencyPositionRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(CurrencyPositionRow.fromJson)
+        .toList();
   }
 
-  Future<List<CurrencyPositionRow>> fetchCurrencyPositionExtended(String branchId, {DateTime? asOf}) async {
+  Future<List<CurrencyPositionRow>> fetchCurrencyPositionExtended(
+    String branchId, {
+    DateTime? asOf,
+  }) async {
     final date = (asOf ?? DateTime.now()).toIso8601String().split('T').first;
     try {
       final rows = await supabase.rpc(
         'fx_get_currency_position_extended',
         params: {'p_branch_id': branchId, 'p_as_of': date},
       );
-      return (rows as List).cast<Map<String, dynamic>>().map(CurrencyPositionRow.fromJson).toList();
+      return (rows as List)
+          .cast<Map<String, dynamic>>()
+          .map(CurrencyPositionRow.fromJson)
+          .toList();
     } catch (_) {
       return fetchCurrencyPosition(branchId, asOf: asOf);
     }
   }
 
-  Future<List<ClosingPreviewRow>> fetchClosingPreview(String branchId, {DateTime? closingDate}) async {
-    final date = (closingDate ?? DateTime.now()).toIso8601String().split('T').first;
+  Future<List<ClosingPreviewRow>> fetchClosingPreview(
+    String branchId, {
+    DateTime? closingDate,
+  }) async {
+    final date = (closingDate ?? DateTime.now())
+        .toIso8601String()
+        .split('T')
+        .first;
     final rows = await supabase.rpc(
       'fx_get_closing_preview',
       params: {'p_branch_id': branchId, 'p_closing_date': date},
     );
-    return (rows as List).cast<Map<String, dynamic>>().map(ClosingPreviewRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(ClosingPreviewRow.fromJson)
+        .toList();
   }
 
   Future<bool> isDayClosed(String branchId, DateTime date) async {
@@ -358,8 +404,15 @@ class ReportRepository {
     return result as bool;
   }
 
-  Future<DailyClosingResult> closeDay(String branchId, {DateTime? closingDate, String? notes}) async {
-    final date = (closingDate ?? DateTime.now()).toIso8601String().split('T').first;
+  Future<DailyClosingResult> closeDay(
+    String branchId, {
+    DateTime? closingDate,
+    String? notes,
+  }) async {
+    final date = (closingDate ?? DateTime.now())
+        .toIso8601String()
+        .split('T')
+        .first;
     final row = await supabase.rpc(
       'fx_close_day',
       params: {

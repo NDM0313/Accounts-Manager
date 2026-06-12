@@ -45,7 +45,11 @@ class FxBottomActionBar extends StatelessWidget {
               child: FilledButton(
                 onPressed: primaryEnabled && !isLoading ? onPrimary : null,
                 child: isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : Text(primaryLabel),
               ),
             ),

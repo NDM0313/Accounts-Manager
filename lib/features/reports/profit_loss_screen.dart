@@ -24,7 +24,9 @@ class ProfitLossScreen extends ConsumerWidget {
     final toLabel = range.to.toIso8601String().split('T').first;
     final currencyView = ref.watch(reportCurrencyViewProvider);
     final displayCode = ref.watch(displayCurrencyCodeProvider);
-    final converter = ref.watch(currencyConverterAsOfProvider(range.to)).whenOrNull(data: (v) => v);
+    final converter = ref
+        .watch(currencyConverterAsOfProvider(range.to))
+        .whenOrNull(data: (v) => v);
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -59,28 +61,45 @@ class ProfitLossScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Unable to load P&L: $e')),
         data: (rows) {
           final income = rows.where((r) => r.accountType == 'income').toList();
-          final expense = rows.where((r) => r.accountType == 'expense').toList();
+          final expense = rows
+              .where((r) => r.accountType == 'expense')
+              .toList();
           final totalIncome = income.fold<double>(0, (s, r) => s + r.amountPkr);
-          final totalExpense = expense.fold<double>(0, (s, r) => s + r.amountPkr);
+          final totalExpense = expense.fold<double>(
+            0,
+            (s, r) => s + r.amountPkr,
+          );
           final net = totalIncome - totalExpense;
 
           if (rows.isEmpty) {
             return Center(
-              child: Text('No income or expense activity from $fromLabel to $toLabel.'),
+              child: Text(
+                'No income or expense activity from $fromLabel to $toLabel.',
+              ),
             );
           }
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text('$fromLabel → $toLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+              Text(
+                '$fromLabel → $toLabel',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
               const SizedBox(height: 8),
-              ref.watch(companyAccountingContextProvider).maybeWhen(
+              ref
+                  .watch(companyAccountingContextProvider)
+                  .maybeWhen(
                     data: (ctx) => FxReportCurrencyToggle(
                       view: currencyView,
                       displayCurrencyCode: displayCode,
                       baseCurrencyCode: ctx.baseCurrencyCode,
-                      onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                      onChanged: (v) => ref
+                          .read(reportCurrencyViewProvider.notifier)
+                          .setView(v),
                     ),
                     orElse: () => const SizedBox.shrink(),
                   ),
@@ -92,16 +111,32 @@ class ProfitLossScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Net profit', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                          Text(
+                            'Net profit',
+                            style: AppTypography.labelCaps(
+                              context.fx.outline,
+                              context: context,
+                            ),
+                          ),
                           converter != null
                               ? FxConvertedAmount(
                                   pkrAmount: net,
                                   converter: converter,
-                                  style: AppTypography.headlineMd(net >= 0 ? context.fx.tertiary : context.fx.error, context: context),
+                                  style: AppTypography.headlineMd(
+                                    net >= 0
+                                        ? context.fx.tertiary
+                                        : context.fx.error,
+                                    context: context,
+                                  ),
                                 )
                               : Text(
                                   fmt.format(net),
-                                  style: AppTypography.headlineMd(net >= 0 ? context.fx.tertiary : context.fx.error, context: context),
+                                  style: AppTypography.headlineMd(
+                                    net >= 0
+                                        ? context.fx.tertiary
+                                        : context.fx.error,
+                                    context: context,
+                                  ),
                                 ),
                         ],
                       ),
@@ -113,13 +148,19 @@ class ProfitLossScreen extends ConsumerWidget {
                           converter != null
                               ? 'Income ${formatReportAmount(pkrAmount: totalIncome, converter: converter, view: currencyView, fmt: fmt)}'
                               : 'Income ${fmt.format(totalIncome)}',
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 12),
                         ),
                         Text(
                           converter != null
                               ? 'Expense ${formatReportAmount(pkrAmount: totalExpense, converter: converter, view: currencyView, fmt: fmt)}'
                               : 'Expense ${fmt.format(totalExpense)}',
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 12),
                         ),
                       ],
                     ),
@@ -129,12 +170,16 @@ class ProfitLossScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               FxObsidianReportSection(
                 label: 'Income',
-                children: income.map((r) => _row(context, fmt, r, converter, currencyView)).toList(),
+                children: income
+                    .map((r) => _row(context, fmt, r, converter, currencyView))
+                    .toList(),
               ),
               const SizedBox(height: 16),
               FxObsidianReportSection(
                 label: 'Expense',
-                children: expense.map((r) => _row(context, fmt, r, converter, currencyView)).toList(),
+                children: expense
+                    .map((r) => _row(context, fmt, r, converter, currencyView))
+                    .toList(),
               ),
             ],
           );
@@ -143,7 +188,13 @@ class ProfitLossScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(BuildContext context, NumberFormat fmt, ProfitLossRow r, ReportingCurrencyConverter? converter, ReportCurrencyView currencyView) {
+  Widget _row(
+    BuildContext context,
+    NumberFormat fmt,
+    ProfitLossRow r,
+    ReportingCurrencyConverter? converter,
+    ReportCurrencyView currencyView,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: FxObsidianReportPanel(
@@ -153,22 +204,43 @@ class ProfitLossScreen extends ConsumerWidget {
             Expanded(
               child: Text(
                 '${r.accountCode} · ${r.accountName}',
-                style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             converter != null
                 ? Text(
-                    formatReportAmount(pkrAmount: r.amountPkr, converter: converter, view: currencyView, fmt: fmt),
-                    style: AppTypography.labelMono(context.fx.onSurface, context: context),
+                    formatReportAmount(
+                      pkrAmount: r.amountPkr,
+                      converter: converter,
+                      view: currencyView,
+                      fmt: fmt,
+                    ),
+                    style: AppTypography.labelMono(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
                   )
-                : Text(fmt.format(r.amountPkr), style: AppTypography.labelMono(context.fx.onSurface, context: context)),
+                : Text(
+                    fmt.format(r.amountPkr),
+                    style: AppTypography.labelMono(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
+                  ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _pickRange(BuildContext context, WidgetRef ref, ReportDateRange current) async {
+  Future<void> _pickRange(
+    BuildContext context,
+    WidgetRef ref,
+    ReportDateRange current,
+  ) async {
     final from = await FxObsidianPickers.showDate(
       context,
       initialDate: current.from,

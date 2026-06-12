@@ -37,7 +37,13 @@ class GeneralLedgerScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text('$fromLabel → $toLabel', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+            child: Text(
+              '$fromLabel → $toLabel',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -51,7 +57,10 @@ class GeneralLedgerScreen extends ConsumerWidget {
                   dropdownColor: context.fx.surfaceContainerHigh,
                   decoration: InputDecoration(
                     labelText: 'Account filter',
-                    labelStyle: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                    labelStyle: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
                     isDense: true,
                     filled: true,
                     fillColor: context.fx.surfaceContainerLow,
@@ -61,15 +70,32 @@ class GeneralLedgerScreen extends ConsumerWidget {
                     ),
                   ),
                   items: [
-                    DropdownMenuItem(value: null, child: Text('All accounts', style: AppTypography.bodyMd(context.fx.onSurface, context: context))),
+                    DropdownMenuItem(
+                      value: null,
+                      child: Text(
+                        'All accounts',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                    ),
                     ...accounts.map(
                       (a) => DropdownMenuItem(
                         value: a.code,
-                        child: Text('${a.code} · ${a.name}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                        child: Text(
+                          '${a.code} · ${a.name}',
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                  onChanged: (v) => ref.read(generalLedgerAccountFilterProvider.notifier).set(v),
+                  onChanged: (v) => ref
+                      .read(generalLedgerAccountFilterProvider.notifier)
+                      .set(v),
                 );
               },
             ),
@@ -81,7 +107,13 @@ class GeneralLedgerScreen extends ConsumerWidget {
               data: (rows) {
                 if (rows.isEmpty) {
                   return Center(
-                    child: Text('No journal entries in this period.', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                    child: Text(
+                      'No journal entries in this period.',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
+                    ),
                   );
                 }
                 return ListView.builder(
@@ -92,37 +124,77 @@ class GeneralLedgerScreen extends ConsumerWidget {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: FxObsidianReportPanel(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Text(
-                                  row.entryDate.toIso8601String().split('T').first,
-                                  style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 10),
+                                  row.entryDate
+                                      .toIso8601String()
+                                      .split('T')
+                                      .first,
+                                  style: AppTypography.labelCaps(
+                                    context.fx.outline,
+                                    context: context,
+                                  ).copyWith(fontSize: 10),
                                 ),
                                 const Spacer(),
-                                Text(row.entryNo, style: AppTypography.labelMono(context.fx.outline, context: context).copyWith(fontSize: 10)),
+                                Text(
+                                  row.entryNo,
+                                  style: AppTypography.labelMono(
+                                    context.fx.outline,
+                                    context: context,
+                                  ).copyWith(fontSize: 10),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(
                               '${row.accountCode} · ${row.accountName}',
-                              style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurface,
+                                context: context,
+                              ).copyWith(fontWeight: FontWeight.w600),
                             ),
-                            if (row.description != null && row.description!.isNotEmpty)
-                              Text(row.description!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                            if (row.description != null &&
+                                row.description!.isNotEmpty)
+                              Text(
+                                row.description!,
+                                style: AppTypography.bodyMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ).copyWith(fontSize: 12),
+                              ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Text('Dr ${fmt.format(row.debitPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                                Text(
+                                  'Dr ${fmt.format(row.debitPkr)}',
+                                  style: AppTypography.bodyMd(
+                                    context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 12),
+                                ),
                                 const SizedBox(width: 12),
-                                Text('Cr ${fmt.format(row.creditPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                                Text(
+                                  'Cr ${fmt.format(row.creditPkr)}',
+                                  style: AppTypography.bodyMd(
+                                    context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 12),
+                                ),
                                 const Spacer(),
                                 Text(
                                   '${row.currencyCode} ${fmt.format(row.foreignAmount)}',
-                                  style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 12),
+                                  style: AppTypography.labelMono(
+                                    context.fx.onSurface,
+                                    context: context,
+                                  ).copyWith(fontSize: 12),
                                 ),
                               ],
                             ),
@@ -140,7 +212,11 @@ class GeneralLedgerScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickRange(BuildContext context, WidgetRef ref, ReportDateRange current) async {
+  Future<void> _pickRange(
+    BuildContext context,
+    WidgetRef ref,
+    ReportDateRange current,
+  ) async {
     final from = await FxObsidianPickers.showDate(
       context,
       initialDate: current.from,

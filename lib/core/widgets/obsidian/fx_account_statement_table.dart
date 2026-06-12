@@ -38,23 +38,43 @@ class FxAccountStatementTable extends StatelessWidget {
           Expanded(flex: 2, child: _colLabel(context, 'Date')),
           Expanded(flex: 2, child: _colLabel(context, 'Ref')),
           Expanded(flex: 3, child: _colLabel(context, 'Description')),
-          Expanded(flex: 2, child: _colLabel(context, 'Debit', align: TextAlign.end)),
-          Expanded(flex: 2, child: _colLabel(context, 'Credit', align: TextAlign.end)),
-          Expanded(flex: 2, child: _colLabel(context, 'Balance', align: TextAlign.end)),
+          Expanded(
+            flex: 2,
+            child: _colLabel(context, 'Debit', align: TextAlign.end),
+          ),
+          Expanded(
+            flex: 2,
+            child: _colLabel(context, 'Credit', align: TextAlign.end),
+          ),
+          Expanded(
+            flex: 2,
+            child: _colLabel(context, 'Balance', align: TextAlign.end),
+          ),
         ],
       ),
     );
   }
 
-  Widget _colLabel(BuildContext context, String text, {TextAlign align = TextAlign.start}) {
+  Widget _colLabel(
+    BuildContext context,
+    String text, {
+    TextAlign align = TextAlign.start,
+  }) {
     return Text(
       text.toUpperCase(),
       textAlign: align,
-      style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 9, letterSpacing: 1),
+      style: AppTypography.labelCaps(
+        context.fx.outline,
+        context: context,
+      ).copyWith(fontSize: 9, letterSpacing: 1),
     );
   }
 
-  Widget _openingRow(BuildContext context, NumberFormat fmt, DateFormat dateFmt) {
+  Widget _openingRow(
+    BuildContext context,
+    NumberFormat fmt,
+    DateFormat dateFmt,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -65,11 +85,35 @@ class FxAccountStatementTable extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text('—', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12))),
-          Expanded(flex: 2, child: Text('OPEN', style: AppTypography.labelMono(context.fx.outline, context: context).copyWith(fontSize: 10))),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '—',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'OPEN',
+              style: AppTypography.labelMono(
+                context.fx.outline,
+                context: context,
+              ).copyWith(fontSize: 10),
+            ),
+          ),
           Expanded(
             flex: 3,
-            child: Text('Opening balance', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+            child: Text(
+              'Opening balance',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
           ),
           const Expanded(flex: 2, child: SizedBox()),
           const Expanded(flex: 2, child: SizedBox()),
@@ -78,7 +122,10 @@ class FxAccountStatementTable extends StatelessWidget {
             child: Text(
               fmt.format(openingBalancePkr),
               textAlign: TextAlign.end,
-              style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 12),
+              style: AppTypography.labelMono(
+                context.fx.tertiary,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
           ),
         ],
@@ -86,7 +133,12 @@ class FxAccountStatementTable extends StatelessWidget {
     );
   }
 
-  Widget _dataRow(BuildContext context, NumberFormat fmt, DateFormat dateFmt, AccountStatementLine line) {
+  Widget _dataRow(
+    BuildContext context,
+    NumberFormat fmt,
+    DateFormat dateFmt,
+    AccountStatementLine line,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -100,11 +152,23 @@ class FxAccountStatementTable extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text(dateFmt.format(line.entryDate), style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+            child: Text(
+              dateFmt.format(line.entryDate),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 11),
+            ),
           ),
           Expanded(
             flex: 2,
-            child: Text(line.entryNo, style: AppTypography.labelMono(context.fx.outline, context: context).copyWith(fontSize: 10)),
+            child: Text(
+              line.entryNo,
+              style: AppTypography.labelMono(
+                context.fx.outline,
+                context: context,
+              ).copyWith(fontSize: 10),
+            ),
           ),
           Expanded(
             flex: 3,
@@ -112,7 +176,10 @@ class FxAccountStatementTable extends StatelessWidget {
               line.description ?? '—',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
           ),
           Expanded(
@@ -120,7 +187,10 @@ class FxAccountStatementTable extends StatelessWidget {
             child: Text(
               line.debitPkr > 0 ? fmt.format(line.debitPkr) : '—',
               textAlign: TextAlign.end,
-              style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+              style: AppTypography.labelMono(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 11),
             ),
           ),
           Expanded(
@@ -128,7 +198,10 @@ class FxAccountStatementTable extends StatelessWidget {
             child: Text(
               line.creditPkr > 0 ? fmt.format(line.creditPkr) : '—',
               textAlign: TextAlign.end,
-              style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+              style: AppTypography.labelMono(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 11),
             ),
           ),
           Expanded(
@@ -136,7 +209,10 @@ class FxAccountStatementTable extends StatelessWidget {
             child: Text(
               fmt.format(line.runningBalancePkr),
               textAlign: TextAlign.end,
-              style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+              style: AppTypography.labelMono(
+                context.fx.tertiary,
+                context: context,
+              ).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
             ),
           ),
         ],

@@ -74,12 +74,7 @@ class PartyStatementView {
 }
 
 /// Filter options for party statement queries.
-enum PartyStatementStatusFilter {
-  all,
-  posted,
-  draft,
-  voided,
-}
+enum PartyStatementStatusFilter { all, posted, draft, voided }
 
 class PartyStatementFilters {
   const PartyStatementFilters({
@@ -115,7 +110,9 @@ class PartyStatementFilters {
       from: from ?? this.from,
       to: to ?? this.to,
       currencyCode: clearCurrency ? null : (currencyCode ?? this.currencyCode),
-      transactionType: clearType ? null : (transactionType ?? this.transactionType),
+      transactionType: clearType
+          ? null
+          : (transactionType ?? this.transactionType),
       status: status ?? this.status,
       search: search ?? this.search,
       isInternalView: isInternalView ?? this.isInternalView,

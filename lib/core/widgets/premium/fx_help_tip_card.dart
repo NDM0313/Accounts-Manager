@@ -39,15 +39,19 @@ class _FxHelpTipCardState extends State<FxHelpTipCard> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 16, color: context.fx.secondary),
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                    color: context.fx.secondary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       widget.title,
-                      style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
                     ),
                   ),
                   Icon(
@@ -61,10 +65,10 @@ class _FxHelpTipCardState extends State<FxHelpTipCard> {
                 const SizedBox(height: 8),
                 Text(
                   widget.body,
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(
-                    fontSize: 12,
-                    height: 1.45,
-                  ),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ).copyWith(fontSize: 12, height: 1.45),
                 ),
               ],
             ],

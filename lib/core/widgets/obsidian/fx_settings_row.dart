@@ -29,7 +29,9 @@ class FxSettingsRow extends StatelessWidget {
         color: context.fx.surfaceContainer,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          side: BorderSide(color: context.fx.outlineVariant.withValues(alpha: 0.3)),
+          side: BorderSide(
+            color: context.fx.outlineVariant.withValues(alpha: 0.3),
+          ),
         ),
         child: InkWell(
           onTap: enabled ? onTap : null,
@@ -45,20 +47,37 @@ class FxSettingsRow extends StatelessWidget {
                     color: context.fx.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                   ),
-                  child: Icon(icon, color: theme.colorScheme.onSurface, size: 22),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.onSurface,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTypography.bodyMd(theme.colorScheme.onSurface, context: context).copyWith(fontWeight: FontWeight.w500)),
+                      Text(
+                        title,
+                        style: AppTypography.bodyMd(
+                          theme.colorScheme.onSurface,
+                          context: context,
+                        ).copyWith(fontWeight: FontWeight.w500),
+                      ),
                       if (subtitle != null)
-                        Text(subtitle!, style: AppTypography.bodyMd(theme.colorScheme.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                        Text(
+                          subtitle!,
+                          style: AppTypography.bodyMd(
+                            theme.colorScheme.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 12),
+                        ),
                     ],
                   ),
                 ),
-                trailing ?? Icon(Icons.chevron_right, color: context.fx.outline),
+                trailing ??
+                    Icon(Icons.chevron_right, color: context.fx.outline),
               ],
             ),
           ),
@@ -79,7 +98,10 @@ class FxSettingsSectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 12),
       child: Text(
         label.toUpperCase(),
-        style: AppTypography.labelCaps(Theme.of(context).colorScheme.onSurfaceVariant, context: context).copyWith(letterSpacing: 0.15),
+        style: AppTypography.labelCaps(
+          Theme.of(context).colorScheme.onSurfaceVariant,
+          context: context,
+        ).copyWith(letterSpacing: 0.15),
       ),
     );
   }

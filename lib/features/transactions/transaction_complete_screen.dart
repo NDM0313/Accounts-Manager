@@ -75,14 +75,21 @@ class TransactionCompleteScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      child: Icon(Icons.check_circle, color: context.fx.tertiary, size: 48),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: context.fx.tertiary,
+                        size: 48,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       draftMode != TransactionDraftMode.standard
                           ? draftMode.successTitle
                           : 'Transaction Posted',
-                      style: AppTypography.headlineLg(context.fx.onSurface, context: context),
+                      style: AppTypography.headlineLg(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -90,7 +97,10 @@ class TransactionCompleteScreen extends ConsumerWidget {
                       tx.partyName != null
                           ? '${tx.currencyCode} ${fmt.format(tx.totalForeignAmount)} · ${tx.partyName}'
                           : 'Your ledger has been updated successfully.',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -110,7 +120,9 @@ class TransactionCompleteScreen extends ConsumerWidget {
                         onPressed: tx.partyId != null
                             ? () => context.go('/parties/${tx.partyId}/ledger')
                             : () => context.go('/transactions/$transactionId'),
-                        child: Text(tx.partyId != null ? 'View Statement' : 'View Detail'),
+                        child: Text(
+                          tx.partyId != null ? 'View Statement' : 'View Detail',
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -153,23 +165,35 @@ class _ReceiptCard extends StatelessWidget {
         children: [
           Text(
             tx.transactionType.label.toUpperCase(),
-            style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context),
+            style: AppTypography.labelCaps(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             '${tx.currencyCode} ${fmt.format(tx.totalForeignAmount)}',
-            style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+            style: AppTypography.headlineMd(
+              context.fx.onSurface,
+              context: context,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'PKR ${fmt.format(tx.totalBaseAmountPkr)}',
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
           ),
           if (tx.transactionNo != null) ...[
             const SizedBox(height: 12),
             Text(
               'Ref ${tx.transactionNo}',
-              style: AppTypography.labelMono(context.fx.outline, context: context),
+              style: AppTypography.labelMono(
+                context.fx.outline,
+                context: context,
+              ),
             ),
           ],
         ],

@@ -18,10 +18,12 @@ class CurrencyManagementScreen extends ConsumerStatefulWidget {
   const CurrencyManagementScreen({super.key});
 
   @override
-  ConsumerState<CurrencyManagementScreen> createState() => _CurrencyManagementScreenState();
+  ConsumerState<CurrencyManagementScreen> createState() =>
+      _CurrencyManagementScreenState();
 }
 
-class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScreen> {
+class _CurrencyManagementScreenState
+    extends ConsumerState<CurrencyManagementScreen> {
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _symbolCtrl = TextEditingController();
@@ -49,7 +51,9 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
     }
     setState(() => _busy = true);
     try {
-      await ref.read(currencyRepositoryProvider).createCurrency(
+      await ref
+          .read(currencyRepositoryProvider)
+          .createCurrency(
             code: code,
             name: name,
             symbol: _symbolCtrl.text.trim(),
@@ -69,7 +73,9 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -82,10 +88,18 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Deactivate ${c.code}?'),
-        content: const Text('Currency will be hidden from new transactions. Cannot deactivate if used on posted records.'),
+        content: const Text(
+          'Currency will be hidden from new transactions. Cannot deactivate if used on posted records.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Deactivate')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Deactivate'),
+          ),
         ],
       ),
     );
@@ -94,9 +108,17 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
       await ref.read(currencyRepositoryProvider).deactivateCurrency(c.code);
       ref.invalidate(currenciesProvider);
       ref.invalidate(allCurrenciesProvider);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${c.code} deactivated')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${c.code} deactivated')));
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 
@@ -115,7 +137,10 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
           children: [
             Text(
               'Manage currencies. PKR is the base currency. Each new currency gets a cash account in the chart of accounts.',
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
             const SizedBox(height: 20),
             Container(
@@ -130,11 +155,23 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
                 children: [
                   const FxSectionLabel(label: 'Add currency'),
                   const SizedBox(height: 12),
-                  FxObsidianFormField(label: 'Code (e.g. GBP)', controller: _codeCtrl, enabled: !_busy),
+                  FxObsidianFormField(
+                    label: 'Code (e.g. GBP)',
+                    controller: _codeCtrl,
+                    enabled: !_busy,
+                  ),
                   const SizedBox(height: 12),
-                  FxObsidianFormField(label: 'Name', controller: _nameCtrl, enabled: !_busy),
+                  FxObsidianFormField(
+                    label: 'Name',
+                    controller: _nameCtrl,
+                    enabled: !_busy,
+                  ),
                   const SizedBox(height: 12),
-                  FxObsidianFormField(label: 'Symbol (optional)', controller: _symbolCtrl, enabled: !_busy),
+                  FxObsidianFormField(
+                    label: 'Symbol (optional)',
+                    controller: _symbolCtrl,
+                    enabled: !_busy,
+                  ),
                   const SizedBox(height: 12),
                   FxObsidianFormField(
                     label: 'Decimal places',
@@ -146,7 +183,11 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
                   FilledButton(
                     onPressed: _busy ? null : _addCurrency,
                     child: _busy
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('Add currency'),
                   ),
                 ],
@@ -167,27 +208,40 @@ class _CurrencyManagementScreenState extends ConsumerState<CurrencyManagementScr
                 child: Column(
                   children: [
                     for (var i = 0; i < currencies.length; i++) ...[
-                      if (i > 0) Divider(height: 1, color: context.fx.outlineVariant),
+                      if (i > 0)
+                        Divider(height: 1, color: context.fx.outlineVariant),
                       ListTile(
                         title: Text(
                           '${currencies[i].code} — ${currencies[i].name}',
-                          style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
                         ),
                         subtitle: Text(
                           currencies[i].isBase
                               ? 'Base currency · ${currencies[i].decimalPlaces} decimals'
                               : '${currencies[i].isActive ? 'Active' : 'Inactive'} · ${currencies[i].decimalPlaces} decimals · sym ${currencies[i].symbol.isEmpty ? '—' : currencies[i].symbol}',
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 12),
                         ),
                         trailing: currencies[i].isBase
                             ? null
                             : currencies[i].isActive
-                                ? IconButton(
-                                    icon: Icon(Icons.toggle_on, color: context.fx.tertiary),
-                                    tooltip: 'Deactivate',
-                                    onPressed: () => _deactivate(currencies[i]),
-                                  )
-                                : Icon(Icons.toggle_off, color: context.fx.onSurfaceVariant),
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.toggle_on,
+                                  color: context.fx.tertiary,
+                                ),
+                                tooltip: 'Deactivate',
+                                onPressed: () => _deactivate(currencies[i]),
+                              )
+                            : Icon(
+                                Icons.toggle_off,
+                                color: context.fx.onSurfaceVariant,
+                              ),
                       ),
                     ],
                   ],

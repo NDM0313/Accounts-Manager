@@ -63,7 +63,9 @@ class AccountStatementView {
     final lines = <AccountStatementLine>[];
 
     for (final row in ledgerRows) {
-      balance += debitNormal ? row.debitPkr - row.creditPkr : row.creditPkr - row.debitPkr;
+      balance += debitNormal
+          ? row.debitPkr - row.creditPkr
+          : row.creditPkr - row.debitPkr;
       lines.add(
         AccountStatementLine(
           entryDate: row.entryDate,
@@ -85,7 +87,9 @@ class AccountStatementView {
       from: from,
       to: to,
       openingBalancePkr: openingBalancePkr,
-      closingBalancePkr: lines.isEmpty ? openingBalancePkr : lines.last.runningBalancePkr,
+      closingBalancePkr: lines.isEmpty
+          ? openingBalancePkr
+          : lines.last.runningBalancePkr,
       lines: lines,
     );
   }

@@ -9,10 +9,7 @@ enum PremiumNav { home, ledger, accounts, audit, settings }
 
 /// Main app shell: top bar + premium bottom navigation with active pill.
 class FxPremiumShell extends ConsumerWidget {
-  const FxPremiumShell({
-    super.key,
-    required this.navigationShell,
-  });
+  const FxPremiumShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
@@ -27,7 +24,10 @@ class FxPremiumShell extends ConsumerWidget {
   PremiumNav get _currentNav => PremiumNav.values[navigationShell.currentIndex];
 
   void _goBranch(int index) {
-    navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
@@ -44,20 +44,33 @@ class FxPremiumShell extends ConsumerWidget {
           color: context.fx.surface,
           child: Container(
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.fx.outlineVariant)),
+              border: Border(
+                bottom: BorderSide(color: context.fx.outlineVariant),
+              ),
             ),
-            padding: EdgeInsets.symmetric(horizontal: isDesktop ? AppSpacing.marginDesktop : AppSpacing.marginMobile),
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop
+                  ? AppSpacing.marginDesktop
+                  : AppSpacing.marginMobile,
+            ),
             child: SafeArea(
               bottom: false,
               child: SizedBox(
                 height: 56,
                 child: Row(
                   children: [
-                    Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary, size: 26),
+                    Icon(
+                      Icons.account_balance_wallet,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 26,
+                    ),
                     const SizedBox(width: 10),
                     Text(
                       'Executive FX Ledger',
-                      style: AppTypography.headlineSm(context.fx.onSurface, context: context).copyWith(fontSize: 17),
+                      style: AppTypography.headlineSm(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 17),
                     ),
                     if (isDesktop) ...[
                       const SizedBox(width: 40),
@@ -75,10 +88,15 @@ class FxPremiumShell extends ConsumerWidget {
                     if (profile != null)
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor: context.fx.primary.withValues(alpha: 0.12),
+                        backgroundColor: context.fx.primary.withValues(
+                          alpha: 0.12,
+                        ),
                         child: Text(
                           initials,
-                          style: AppTypography.labelCaps(context.fx.primary, context: context).copyWith(fontSize: 10),
+                          style: AppTypography.labelCaps(
+                            context.fx.primary,
+                            context: context,
+                          ).copyWith(fontSize: 10),
                         ),
                       ),
                   ],
@@ -94,7 +112,9 @@ class FxPremiumShell extends ConsumerWidget {
           : Container(
               decoration: BoxDecoration(
                 color: context.fx.surface,
-                border: Border(top: BorderSide(color: context.fx.outlineVariant)),
+                border: Border(
+                  top: BorderSide(color: context.fx.outlineVariant),
+                ),
               ),
               child: SafeArea(
                 top: false,
@@ -112,24 +132,41 @@ class FxPremiumShell extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: active ? context.fx.primary.withValues(alpha: 0.12) : Colors.transparent,
+                                  color: active
+                                      ? context.fx.primary.withValues(
+                                          alpha: 0.12,
+                                        )
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Icon(
                                   active ? tab.$2 : tab.$1,
                                   size: 22,
-                                  color: active ? context.fx.primary : context.fx.onSurfaceVariant,
+                                  color: active
+                                      ? context.fx.primary
+                                      : context.fx.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 tab.$3,
-                                style: AppTypography.bodyMd(
-                                  active ? context.fx.primary : context.fx.onSurfaceVariant,
-                                  context: context,
-                                ).copyWith(fontSize: 10, fontWeight: active ? FontWeight.w600 : FontWeight.w500),
+                                style:
+                                    AppTypography.bodyMd(
+                                      active
+                                          ? context.fx.primary
+                                          : context.fx.onSurfaceVariant,
+                                      context: context,
+                                    ).copyWith(
+                                      fontSize: 10,
+                                      fontWeight: active
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    ),
                               ),
                             ],
                           ),
@@ -152,10 +189,14 @@ class FxPremiumShell extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: AppTypography.bodyMd(
-              active ? context.fx.primary : context.fx.onSurfaceVariant,
-              context: context,
-            ).copyWith(fontWeight: active ? FontWeight.w600 : FontWeight.w500, fontSize: 13),
+            style:
+                AppTypography.bodyMd(
+                  active ? context.fx.primary : context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 13,
+                ),
           ),
           const SizedBox(height: 4),
           Container(
@@ -174,7 +215,9 @@ class FxPremiumShell extends ConsumerWidget {
   String _initials(String? name) {
     if (name == null || name.isEmpty) return '?';
     final parts = name.split(RegExp(r'\s+'));
-    if (parts.length >= 2) return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+    }
     return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
   }
 }
@@ -189,13 +232,16 @@ class FxPremiumPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.sizeOf(context).width;
-    final horizontal = w >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile;
+    final horizontal = w >= 900
+        ? AppSpacing.marginDesktop
+        : AppSpacing.marginMobile;
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppSpacing.containerMax),
         child: Padding(
-          padding: padding ?? EdgeInsets.fromLTRB(horizontal, 16, horizontal, 16),
+          padding:
+              padding ?? EdgeInsets.fromLTRB(horizontal, 16, horizontal, 16),
           child: child,
         ),
       ),

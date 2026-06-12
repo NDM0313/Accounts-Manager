@@ -29,20 +29,29 @@ void main() {
   });
 
   test('customer receipt redacts commission detail', () {
-    final text = formatRemittanceReceipt(sample, receiptType: RemittanceReceiptType.customer);
+    final text = formatRemittanceReceipt(
+      sample,
+      receiptType: RemittanceReceiptType.customer,
+    );
     expect(text, contains('Hassan'));
     expect(text, isNot(contains('90500')));
     expect(text, contains('Service charge included'));
   });
 
   test('internal receipt includes commission', () {
-    final text = formatRemittanceReceipt(sample, receiptType: RemittanceReceiptType.internal);
+    final text = formatRemittanceReceipt(
+      sample,
+      receiptType: RemittanceReceiptType.internal,
+    );
     expect(text, contains('Commission'));
     expect(text, contains('90,500.00'));
   });
 
   test('agent slip includes payout code', () {
-    final text = formatRemittanceReceipt(sample, receiptType: RemittanceReceiptType.agentSlip);
+    final text = formatRemittanceReceipt(
+      sample,
+      receiptType: RemittanceReceiptType.agentSlip,
+    );
     expect(text, contains('123456'));
     expect(text, contains('Kabul Agent'));
   });

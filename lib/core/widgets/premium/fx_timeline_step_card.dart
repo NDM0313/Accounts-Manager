@@ -41,21 +41,30 @@ class FxTimelineStepCard extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.headlineSm(context.fx.onSurface, context: context).copyWith(fontSize: 15),
+                  style: AppTypography.headlineSm(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontSize: 15),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    FxStatusBadge(label: statusLabel, tone: FxStatusBadge.fromString(statusLabel)),
+                    FxStatusBadge(
+                      label: statusLabel,
+                      tone: FxStatusBadge.fromString(statusLabel),
+                    ),
                     if (proofCount > 0) FxProofBadge(count: proofCount),
                   ],
                 ),

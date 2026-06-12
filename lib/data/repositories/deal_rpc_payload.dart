@@ -56,13 +56,19 @@ abstract final class DealRpcPayload {
       'receive_amount': receiveAmount,
       'pay_amount': payAmount,
     };
-    if (counterpartyPartyId != null) payload['counterparty_party_id'] = counterpartyPartyId;
+    if (counterpartyPartyId != null) {
+      payload['counterparty_party_id'] = counterpartyPartyId;
+    }
     if (receiveCurrency != null) {
       payload['receive_currency'] = normalizeFxCurrencyCode(receiveCurrency);
     }
-    if (payCurrency != null) payload['pay_currency'] = normalizeFxCurrencyCode(payCurrency);
+    if (payCurrency != null) {
+      payload['pay_currency'] = normalizeFxCurrencyCode(payCurrency);
+    }
     if (rateUsed != null) payload['rate_used'] = rateUsed;
-    if (deliveryTarget != null) payload['delivery_target'] = deliveryTarget.dbValue;
+    if (deliveryTarget != null) {
+      payload['delivery_target'] = deliveryTarget.dbValue;
+    }
     if (parentLegId != null) payload['parent_leg_id'] = parentLegId;
     if (notes != null && notes.isNotEmpty) payload['notes'] = notes;
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
@@ -84,15 +90,21 @@ abstract final class DealRpcPayload {
     RateReferenceSnapshot? rateSnapshot,
   }) {
     final payload = <String, dynamic>{'leg_id': legId};
-    if (counterpartyPartyId != null) payload['counterparty_party_id'] = counterpartyPartyId;
+    if (counterpartyPartyId != null) {
+      payload['counterparty_party_id'] = counterpartyPartyId;
+    }
     if (receiveCurrency != null) {
       payload['receive_currency'] = normalizeFxCurrencyCode(receiveCurrency);
     }
     if (receiveAmount != null) payload['receive_amount'] = receiveAmount;
-    if (payCurrency != null) payload['pay_currency'] = normalizeFxCurrencyCode(payCurrency);
+    if (payCurrency != null) {
+      payload['pay_currency'] = normalizeFxCurrencyCode(payCurrency);
+    }
     if (payAmount != null) payload['pay_amount'] = payAmount;
     if (rateUsed != null) payload['rate_used'] = rateUsed;
-    if (deliveryTarget != null) payload['delivery_target'] = deliveryTarget.dbValue;
+    if (deliveryTarget != null) {
+      payload['delivery_target'] = deliveryTarget.dbValue;
+    }
     if (notes != null) payload['notes'] = notes;
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
       payload.addAll(snapshotFields(rateSnapshot));
@@ -111,7 +123,8 @@ abstract final class DealRpcPayload {
       'deal_rate_spread': s.dealRateSpread,
       'deal_rate_spread_percent': s.dealRateSpreadPercent,
       'reference_rate_id': s.referenceRateId,
-      if (s.rateLockedAt != null) 'rate_locked_at': s.rateLockedAt!.toUtc().toIso8601String(),
+      if (s.rateLockedAt != null)
+        'rate_locked_at': s.rateLockedAt!.toUtc().toIso8601String(),
       'rate_locked_by': s.rateLockedBy,
     };
   }

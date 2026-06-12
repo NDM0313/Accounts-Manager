@@ -22,15 +22,15 @@ enum FxRemittanceEventType {
   }
 
   String get label => switch (this) {
-        created => 'Created',
-        customerPayment => 'Customer Payment',
-        sentToAgent => 'Sent to Agent',
-        payoutConfirmed => 'Payout Confirmed',
-        agentSettlement => 'Agent Settlement',
-        refund => 'Refund',
-        note => 'Note',
-        statusChange => 'Status Change',
-      };
+    created => 'Created',
+    customerPayment => 'Customer Payment',
+    sentToAgent => 'Sent to Agent',
+    payoutConfirmed => 'Payout Confirmed',
+    agentSettlement => 'Agent Settlement',
+    refund => 'Refund',
+    note => 'Note',
+    statusChange => 'Status Change',
+  };
 }
 
 class FxRemittanceEvent {
@@ -70,14 +70,18 @@ class FxRemittanceEvent {
     return FxRemittanceEvent(
       id: json['event_id'] as String? ?? json['id'] as String,
       eventNo: json['event_no'] as int,
-      eventType: FxRemittanceEventType.fromDb(json['event_type'] as String?) ?? FxRemittanceEventType.note,
+      eventType:
+          FxRemittanceEventType.fromDb(json['event_type'] as String?) ??
+          FxRemittanceEventType.note,
       statusAfter: FxRemittanceStatus.fromDb(json['status_after'] as String?),
       amount: (json['amount'] as num?)?.toDouble(),
       currencyCode: json['currency_code'] as String?,
       linkedTransactionId: json['linked_transaction_id'] as String?,
       proofReference: json['proof_reference'] as String?,
       notes: json['notes'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
       createdByName: json['created_by_name'] as String?,
       branchName: json['branch_name'] as String?,
       actorRole: json['actor_role'] as String?,

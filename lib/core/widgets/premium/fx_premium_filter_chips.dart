@@ -44,7 +44,12 @@ class FxPremiumFilterChips extends StatelessWidget {
           _chip(context, 'All', FxLedgerFilter.all),
           if (showLast30Days && onLast30DaysChanged != null) ...[
             const SizedBox(width: 6),
-            _toggleChip(context, 'Last 30 days', selected: last30DaysOnly, onSelected: onLast30DaysChanged!),
+            _toggleChip(
+              context,
+              'Last 30 days',
+              selected: last30DaysOnly,
+              onSelected: onLast30DaysChanged!,
+            ),
           ],
           if (showCurrencyAndMore && onCurrencyTap != null) ...[
             const SizedBox(width: 6),
@@ -66,10 +71,21 @@ class FxPremiumFilterChips extends StatelessWidget {
                 side: BorderSide(color: context.fx.outlineVariant),
               ),
               itemBuilder: (context) => [
-                PopupMenuItem(value: FxLedgerSortOrder.newest, child: const Text('Newest first')),
-                PopupMenuItem(value: FxLedgerSortOrder.oldest, child: const Text('Oldest first')),
+                PopupMenuItem(
+                  value: FxLedgerSortOrder.newest,
+                  child: const Text('Newest first'),
+                ),
+                PopupMenuItem(
+                  value: FxLedgerSortOrder.oldest,
+                  child: const Text('Oldest first'),
+                ),
               ],
-              child: _chipShell(context, label: 'Sort', selected: false, icon: Icons.tune),
+              child: _chipShell(
+                context,
+                label: 'Sort',
+                selected: false,
+                icon: Icons.tune,
+              ),
             ),
           ],
         ],
@@ -79,7 +95,12 @@ class FxPremiumFilterChips extends StatelessWidget {
 
   Widget _chip(BuildContext context, String label, FxLedgerFilter value) {
     final selected = this.selected == value;
-    return _chipShell(context, label: label, selected: selected, onTap: () => onChanged(value));
+    return _chipShell(
+      context,
+      label: label,
+      selected: selected,
+      onTap: () => onChanged(value),
+    );
   }
 
   Widget _toggleChip(
@@ -89,7 +110,13 @@ class FxPremiumFilterChips extends StatelessWidget {
     required ValueChanged<bool> onSelected,
     IconData? icon,
   }) {
-    return _chipShell(context, label: label, selected: selected, icon: icon, onTap: () => onSelected(!selected));
+    return _chipShell(
+      context,
+      label: label,
+      selected: selected,
+      icon: icon,
+      onTap: () => onSelected(!selected),
+    );
   }
 
   Widget _chipShell(
@@ -99,7 +126,9 @@ class FxPremiumFilterChips extends StatelessWidget {
     IconData? icon,
     VoidCallback? onTap,
   }) {
-    final bg = selected ? context.fx.primary.withValues(alpha: 0.12) : context.fx.surface;
+    final bg = selected
+        ? context.fx.primary.withValues(alpha: 0.12)
+        : context.fx.surface;
     final border = selected ? context.fx.primary : context.fx.outlineVariant;
     final fg = selected ? context.fx.primary : context.fx.onSurfaceVariant;
 
@@ -124,7 +153,10 @@ class FxPremiumFilterChips extends StatelessWidget {
               ],
               Text(
                 label,
-                style: AppTypography.labelCaps(fg, context: context).copyWith(fontSize: 10, letterSpacing: 0.04),
+                style: AppTypography.labelCaps(
+                  fg,
+                  context: context,
+                ).copyWith(fontSize: 10, letterSpacing: 0.04),
               ),
             ],
           ),

@@ -27,10 +27,12 @@ class RemittanceAttachmentsSection extends ConsumerStatefulWidget {
   final String? attachmentType;
 
   @override
-  ConsumerState<RemittanceAttachmentsSection> createState() => _RemittanceAttachmentsSectionState();
+  ConsumerState<RemittanceAttachmentsSection> createState() =>
+      _RemittanceAttachmentsSectionState();
 }
 
-class _RemittanceAttachmentsSectionState extends ConsumerState<RemittanceAttachmentsSection> {
+class _RemittanceAttachmentsSectionState
+    extends ConsumerState<RemittanceAttachmentsSection> {
   bool _uploading = false;
   List<FxAttachment>? _attachments;
 
@@ -55,7 +57,9 @@ class _RemittanceAttachmentsSectionState extends ConsumerState<RemittanceAttachm
     if (file.bytes == null) return;
     setState(() => _uploading = true);
     try {
-      await ref.read(attachmentRepositoryProvider).upload(
+      await ref
+          .read(attachmentRepositoryProvider)
+          .upload(
             branchId: widget.branchId,
             fileName: file.name,
             bytes: file.bytes!,
@@ -81,24 +85,48 @@ class _RemittanceAttachmentsSectionState extends ConsumerState<RemittanceAttachm
             if (widget.enabled)
               TextButton.icon(
                 onPressed: _uploading ? null : _upload,
-                icon: _uploading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.attach_file, size: 18),
+                icon: _uploading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.attach_file, size: 18),
                 label: const Text('Add'),
               ),
           ],
         ),
         if (list.isEmpty)
-          Text('No attachments', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context))
+          Text(
+            'No attachments',
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
+          )
         else
-          ...list.map((a) => ListTile(
-                dense: true,
-                title: Text(a.fileName, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                subtitle: a.attachmentType != null ? Text(a.attachmentType!) : null,
-                trailing: const Icon(Icons.open_in_new, size: 18),
-                onTap: () async {
-                  final url = await ref.read(attachmentRepositoryProvider).signedUrl(a.storagePath);
-                  await launchUrl(Uri.parse(url));
-                },
-              )),
+          ...list.map(
+            (a) => ListTile(
+              dense: true,
+              title: Text(
+                a.fileName,
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ),
+              ),
+              subtitle: a.attachmentType != null
+                  ? Text(a.attachmentType!)
+                  : null,
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () async {
+                final url = await ref
+                    .read(attachmentRepositoryProvider)
+                    .signedUrl(a.storagePath);
+                await launchUrl(Uri.parse(url));
+              },
+            ),
+          ),
       ],
     );
   }

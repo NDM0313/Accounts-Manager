@@ -38,15 +38,24 @@ class FxPartyStatementRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       dateFmt.format(line.transactionDate),
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Text(
                     line.transactionNo ?? line.transactionId.substring(0, 8),
-                    style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+                    style: AppTypography.labelMono(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 11),
                   ),
                   const SizedBox(width: 8),
-                  FxStatusBadge(label: line.status, tone: FxStatusBadge.fromString(line.status)),
+                  FxStatusBadge(
+                    label: line.status,
+                    tone: FxStatusBadge.fromString(line.status),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -59,7 +68,10 @@ class FxPartyStatementRow extends StatelessWidget {
                       _detailLine(fmt, line),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.dataMd(context.fx.onSurface, context: context),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
                     ),
                   ),
                   if (line.hasAttachment) FxProofBadge(count: 1),
@@ -71,20 +83,29 @@ class FxPartyStatementRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Dr ${fmt.format(line.debitPkr)}',
-                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Cr ${fmt.format(line.creditPkr)}',
-                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Bal ${fmt.format(line.runningBalancePkr)}',
                       textAlign: TextAlign.end,
-                      style: AppTypography.dataMd(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                 ],
@@ -95,7 +116,10 @@ class FxPartyStatementRow extends StatelessWidget {
                   line.description!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ).copyWith(fontSize: 10),
                 ),
               ],
             ],
@@ -114,7 +138,11 @@ class FxPartyStatementRow extends StatelessWidget {
 }
 
 class FxPartySummaryCard extends StatelessWidget {
-  const FxPartySummaryCard({super.key, required this.label, required this.value});
+  const FxPartySummaryCard({
+    super.key,
+    required this.label,
+    required this.value,
+  });
 
   final String label;
   final String value;
@@ -132,9 +160,21 @@ class FxPartySummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 9)),
+          Text(
+            label,
+            style: AppTypography.labelCaps(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 9),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+          Text(
+            value,
+            style: AppTypography.bodyMd(
+              context.fx.onSurface,
+              context: context,
+            ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
         ],
       ),
     );

@@ -5,7 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ReportingCurrencyConverter', () {
     test('PKR display passes through unchanged', () {
-      const c = ReportingCurrencyConverter(baseCurrencyCode: 'PKR', displayCurrencyCode: 'PKR');
+      const c = ReportingCurrencyConverter(
+        baseCurrencyCode: 'PKR',
+        displayCurrencyCode: 'PKR',
+      );
       final r = c.convertFromPkr(1000000);
       expect(r.displayAmount, 1000000);
       expect(r.displayCurrencyCode, 'PKR');

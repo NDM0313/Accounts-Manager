@@ -44,7 +44,10 @@ class DealsListScreen extends ConsumerWidget {
               child: Text(
                 'No FX deals yet.\nBook a customer order first, source later.',
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
             );
           }
@@ -81,7 +84,10 @@ class _DealCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       deal.dealNo ?? deal.id.substring(0, 8),
-                      style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16),
+                      style: AppTypography.headlineMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 16),
                     ),
                   ),
                   _StatusChip(status: deal.status),
@@ -90,11 +96,17 @@ class _DealCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '${deal.customerName ?? 'Customer'} · ${fmt.format(deal.sellAmount)} ${deal.sellCurrencyCode} @ ${fmt.format(deal.saleRatePkr)}',
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 12),
               ),
               Text(
                 'PKR ${fmt.format(deal.customerPayablePkr)} · Recv ${fmt.format(deal.customerReceivablePkr)}',
-                style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontSize: 12),
               ),
             ],
           ),
@@ -113,7 +125,8 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (status) {
       FxDealStatus.completed => context.fx.tertiary,
-      FxDealStatus.sourcingRequired || FxDealStatus.sourcingInProgress => context.fx.warning,
+      FxDealStatus.sourcingRequired ||
+      FxDealStatus.sourcingInProgress => context.fx.warning,
       FxDealStatus.cancelled || FxDealStatus.voided => context.fx.error,
       _ => context.fx.primary,
     };
@@ -125,7 +138,10 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         status.label,
-        style: AppTypography.labelCaps(color, context: context).copyWith(fontSize: 9),
+        style: AppTypography.labelCaps(
+          color,
+          context: context,
+        ).copyWith(fontSize: 9),
       ),
     );
   }

@@ -46,7 +46,10 @@ class FxStatusBadge extends StatelessWidget {
         label.toUpperCase(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AppTypography.labelCaps(color, context: context).copyWith(fontSize: 9),
+        style: AppTypography.labelCaps(
+          color,
+          context: context,
+        ).copyWith(fontSize: 9),
       ),
     );
   }

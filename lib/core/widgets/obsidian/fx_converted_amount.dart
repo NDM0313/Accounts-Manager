@@ -25,7 +25,8 @@ class FxConvertedAmount extends StatelessWidget {
   Widget build(BuildContext context) {
     final fmt = NumberFormat('#,##0.00');
     final converted = converter.convertFromPkr(pkrAmount);
-    final primary = '${converted.displayCurrencyCode} ${fmt.format(converted.displayAmount)}';
+    final primary =
+        '${converted.displayCurrencyCode} ${fmt.format(converted.displayAmount)}';
 
     if (compact || converter.isDisplayBase) {
       return Text(primary, style: style);
@@ -39,14 +40,22 @@ class FxConvertedAmount extends StatelessWidget {
         if (converted.usedFallback && converted.fallbackMessage != null)
           Text(
             converted.fallbackMessage!,
-            style: subtitleStyle ??
-                AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+            style:
+                subtitleStyle ??
+                AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 11),
           )
         else if (!converter.isDisplayBase)
           Text(
             '≈ ${converter.baseCurrencyCode} ${fmt.format(converted.baseAmountPkr)}',
-            style: subtitleStyle ??
-                AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+            style:
+                subtitleStyle ??
+                AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 11),
           ),
       ],
     );
@@ -72,10 +81,19 @@ class FxReportCurrencyToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return SegmentedButton<ReportCurrencyView>(
       segments: [
-        ButtonSegment(value: ReportCurrencyView.base, label: Text(baseCurrencyCode)),
+        ButtonSegment(
+          value: ReportCurrencyView.base,
+          label: Text(baseCurrencyCode),
+        ),
         if (displayCurrencyCode != baseCurrencyCode)
-          ButtonSegment(value: ReportCurrencyView.display, label: Text(displayCurrencyCode)),
-        ButtonSegment(value: ReportCurrencyView.both, label: const Text('Both')),
+          ButtonSegment(
+            value: ReportCurrencyView.display,
+            label: Text(displayCurrencyCode),
+          ),
+        ButtonSegment(
+          value: ReportCurrencyView.both,
+          label: const Text('Both'),
+        ),
       ],
       selected: {view},
       onSelectionChanged: (s) => onChanged(s.first),
@@ -93,8 +111,10 @@ String formatReportAmount({
   final f = fmt ?? NumberFormat('#,##0.00');
   final c = converter.convertFromPkr(pkrAmount);
   return switch (view) {
-    ReportCurrencyView.base => '${converter.baseCurrencyCode} ${f.format(pkrAmount)}',
-    ReportCurrencyView.display => '${c.displayCurrencyCode} ${f.format(c.displayAmount)}',
+    ReportCurrencyView.base =>
+      '${converter.baseCurrencyCode} ${f.format(pkrAmount)}',
+    ReportCurrencyView.display =>
+      '${c.displayCurrencyCode} ${f.format(c.displayAmount)}',
     ReportCurrencyView.both =>
       '${converter.baseCurrencyCode} ${f.format(pkrAmount)} / ${c.displayCurrencyCode} ${f.format(c.displayAmount)}',
   };

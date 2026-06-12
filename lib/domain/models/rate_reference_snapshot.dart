@@ -32,13 +32,17 @@ class RateReferenceSnapshot {
     return {
       if (referenceRate != null) 'reference_rate': referenceRate,
       if (referenceRatePair != null) 'reference_rate_pair': referenceRatePair,
-      if (referenceRateSource != null) 'reference_rate_source': referenceRateSource,
-      if (referenceRateAt != null) 'reference_rate_at': referenceRateAt!.toUtc().toIso8601String(),
+      if (referenceRateSource != null)
+        'reference_rate_source': referenceRateSource,
+      if (referenceRateAt != null)
+        'reference_rate_at': referenceRateAt!.toUtc().toIso8601String(),
       'reference_rate_is_stale': referenceRateIsStale,
       if (dealRateSpread != null) 'deal_rate_spread': dealRateSpread,
-      if (dealRateSpreadPercent != null) 'deal_rate_spread_percent': dealRateSpreadPercent,
+      if (dealRateSpreadPercent != null)
+        'deal_rate_spread_percent': dealRateSpreadPercent,
       if (referenceRateId != null) 'reference_rate_id': referenceRateId,
-      if (rateLockedAt != null) 'rate_locked_at': rateLockedAt!.toUtc().toIso8601String(),
+      if (rateLockedAt != null)
+        'rate_locked_at': rateLockedAt!.toUtc().toIso8601String(),
       if (rateLockedBy != null) 'rate_locked_by': rateLockedBy,
     };
   }
@@ -77,7 +81,13 @@ class RateReferenceSnapshot {
     String? lockedBy,
   }) {
     final quote = asOfDate != null
-        ? svc.resolvePairAsOf(rates, fromCurrency, toCurrency, asOfDate, side: side)
+        ? svc.resolvePairAsOf(
+            rates,
+            fromCurrency,
+            toCurrency,
+            asOfDate,
+            side: side,
+          )
         : svc.resolvePair(rates, fromCurrency, toCurrency, side: side);
     return fromQuoteAndDealRate(quote, dealRate, lockedBy: lockedBy);
   }

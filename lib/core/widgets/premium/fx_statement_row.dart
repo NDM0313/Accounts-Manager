@@ -48,17 +48,26 @@ class FxStatementRow extends StatelessWidget {
                       dateLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Text(
                     referenceLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+                    style: AppTypography.labelMono(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 11),
                   ),
                   const SizedBox(width: 8),
-                  FxStatusBadge(label: statusLabel, tone: FxStatusBadge.fromString(statusLabel)),
+                  FxStatusBadge(
+                    label: statusLabel,
+                    tone: FxStatusBadge.fromString(statusLabel),
+                  ),
                   if (proofCount > 0) ...[
                     const SizedBox(width: 6),
                     FxProofBadge(count: proofCount),
@@ -70,7 +79,10 @@ class FxStatementRow extends StatelessWidget {
                 detailLine,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.dataMd(context.fx.onSurface, context: context),
+                style: AppTypography.dataMd(
+                  context.fx.onSurface,
+                  context: context,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -80,7 +92,10 @@ class FxStatementRow extends StatelessWidget {
                       debitLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
@@ -88,7 +103,10 @@ class FxStatementRow extends StatelessWidget {
                       creditLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.dataMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                   Expanded(
@@ -97,7 +115,10 @@ class FxStatementRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
-                      style: AppTypography.dataMd(context.fx.onSurface, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.dataMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                   ),
                 ],

@@ -12,10 +12,13 @@ class RemittanceReportsScreen extends ConsumerStatefulWidget {
   const RemittanceReportsScreen({super.key});
 
   @override
-  ConsumerState<RemittanceReportsScreen> createState() => _RemittanceReportsScreenState();
+  ConsumerState<RemittanceReportsScreen> createState() =>
+      _RemittanceReportsScreenState();
 }
 
-class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScreen> with SingleTickerProviderStateMixin {
+class _RemittanceReportsScreenState
+    extends ConsumerState<RemittanceReportsScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabs;
   final _fmt = NumberFormat('#,##0.00');
   Map<String, dynamic>? _cashFlow;
@@ -44,7 +47,9 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
     if (profile == null) return;
     setState(() => _loading = true);
     try {
-      _cashFlow = await ref.read(remittanceRepositoryProvider).fetchCashFlowSummary(profile.branchId, DateTime.now());
+      _cashFlow = await ref
+          .read(remittanceRepositoryProvider)
+          .fetchCashFlowSummary(profile.branchId, DateTime.now());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -57,7 +62,9 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
     try {
       final now = DateTime.now();
       final from = DateTime(now.year, now.month, 1);
-      _branchStmt = await ref.read(remittanceRepositoryProvider).fetchBranchStatement(profile.branchId, from, now);
+      _branchStmt = await ref
+          .read(remittanceRepositoryProvider)
+          .fetchBranchStatement(profile.branchId, from, now);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -69,7 +76,9 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
     try {
       final now = DateTime.now();
       final from = DateTime(now.year, now.month, 1);
-      _agentStmt = await ref.read(remittanceRepositoryProvider).fetchAgentStatement(_agentId!, from, now);
+      _agentStmt = await ref
+          .read(remittanceRepositoryProvider)
+          .fetchAgentStatement(_agentId!, from, now);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -81,7 +90,9 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
     try {
       final now = DateTime.now();
       final from = DateTime(now.year, now.month, 1);
-      _customerStmt = await ref.read(remittanceRepositoryProvider).fetchCustomerStatement(_customerId!, from, now);
+      _customerStmt = await ref
+          .read(remittanceRepositoryProvider)
+          .fetchCustomerStatement(_customerId!, from, now);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -127,8 +138,18 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
                       data: (parties) => Padding(
                         padding: const EdgeInsets.all(16),
                         child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Agent'),
-                          items: parties.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Agent',
+                          ),
+                          items: parties
+                              .map(
+                                (p) => DropdownMenuItem(
+                                  value: p.id,
+                                  child: Text(p.name),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (v) {
                             setState(() => _agentId = v);
                             _loadAgent();
@@ -147,8 +168,18 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
                       data: (parties) => Padding(
                         padding: const EdgeInsets.all(16),
                         child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Customer / sender'),
-                          items: parties.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Customer / sender',
+                          ),
+                          items: parties
+                              .map(
+                                (p) => DropdownMenuItem(
+                                  value: p.id,
+                                  child: Text(p.name),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (v) {
                             setState(() => _customerId = v);
                             _loadCustomer();
@@ -169,11 +200,31 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _stat(context, 'Today customer received', _fmt.format((d['today_customer_received'] as num?) ?? 0)),
-        _stat(context, 'Today agent payouts', _fmt.format((d['today_agent_payouts'] as num?) ?? 0)),
-        _stat(context, 'Today commission', _fmt.format((d['today_commission'] as num?) ?? 0)),
-        _stat(context, 'Pending payout liability', _fmt.format((d['pending_payout_liability'] as num?) ?? 0)),
-        _stat(context, 'Pending agent settlement', _fmt.format((d['pending_agent_settlement'] as num?) ?? 0)),
+        _stat(
+          context,
+          'Today customer received',
+          _fmt.format((d['today_customer_received'] as num?) ?? 0),
+        ),
+        _stat(
+          context,
+          'Today agent payouts',
+          _fmt.format((d['today_agent_payouts'] as num?) ?? 0),
+        ),
+        _stat(
+          context,
+          'Today commission',
+          _fmt.format((d['today_commission'] as num?) ?? 0),
+        ),
+        _stat(
+          context,
+          'Pending payout liability',
+          _fmt.format((d['pending_payout_liability'] as num?) ?? 0),
+        ),
+        _stat(
+          context,
+          'Pending agent settlement',
+          _fmt.format((d['pending_agent_settlement'] as num?) ?? 0),
+        ),
         _stat(context, 'Open remittances', '${d['open_count'] ?? 0}'),
       ],
     );
@@ -181,12 +232,24 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
 
   Widget _kvPanel(BuildContext context, Map<String, dynamic>? data) {
     if (data == null) {
-      return Center(child: Text('Select filters to load report', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)));
+      return Center(
+        child: Text(
+          'Select filters to load report',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ),
+        ),
+      );
     }
-    final entries = data.entries.where((e) => e.value is! List && e.value is! Map).toList();
+    final entries = data.entries
+        .where((e) => e.value is! List && e.value is! Map)
+        .toList();
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: entries.map((e) => _stat(context, e.key, '${e.value}')).toList(),
+      children: entries
+          .map((e) => _stat(context, e.key, '${e.value}'))
+          .toList(),
     );
   }
 
@@ -198,8 +261,22 @@ class _RemittanceReportsScreenState extends ConsumerState<RemittanceReportsScree
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: Text(label, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context))),
-            Text(value, style: AppTypography.headlineSm(context.fx.onSurface, context: context).copyWith(fontSize: 14)),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: AppTypography.headlineSm(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 14),
+            ),
           ],
         ),
       ),

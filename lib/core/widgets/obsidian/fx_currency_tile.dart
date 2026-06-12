@@ -37,23 +37,35 @@ class FxCurrencyTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(currencyFlagEmoji(currencyCode), style: const TextStyle(fontSize: 28)),
+                  Text(
+                    currencyFlagEmoji(currencyCode),
+                    style: const TextStyle(fontSize: 28),
+                  ),
                   if (rateLabel != null)
                     Text(
                       rateLabel!,
-                      style: AppTypography.labelCaps(theme.colorScheme.onSurfaceVariant, context: context).copyWith(letterSpacing: 0.08),
+                      style: AppTypography.labelCaps(
+                        theme.colorScheme.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(letterSpacing: 0.08),
                     ),
                 ],
               ),
               const SizedBox(height: 16),
               Text(
                 currencyDisplayName(currencyCode).toUpperCase(),
-                style: AppTypography.labelCaps(theme.colorScheme.onSurfaceVariant, context: context),
+                style: AppTypography.labelCaps(
+                  theme.colorScheme.onSurfaceVariant,
+                  context: context,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 '${currencySymbol(currencyCode)}$amountLabel',
-                style: AppTypography.headlineMd(theme.colorScheme.onSurface, context: context),
+                style: AppTypography.headlineMd(
+                  theme.colorScheme.onSurface,
+                  context: context,
+                ),
               ),
             ],
           ),

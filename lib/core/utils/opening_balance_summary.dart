@@ -14,17 +14,25 @@ String formatOpeningBalanceSummary({
   final dateFmt = DateFormat('d MMM yyyy');
   String accountName(String? id) {
     if (id == null) return '—';
-    return accounts.where((a) => a.id == id).map((a) => '${a.code} ${a.name}').firstOrNull ?? id;
+    return accounts
+            .where((a) => a.id == id)
+            .map((a) => '${a.code} ${a.name}')
+            .firstOrNull ??
+        id;
   }
+
   String partyName(String? id) {
     if (id == null) return '—';
-    return parties.where((p) => p.id == id).map((p) => p.name).firstOrNull ?? id;
+    return parties.where((p) => p.id == id).map((p) => p.name).firstOrNull ??
+        id;
   }
 
   final buf = StringBuffer()
     ..writeln('FX Cash Ledger — Opening Balance Summary')
     ..writeln('─────────────────────────────────────────')
-    ..writeln('Batch: ${batch.batchNo ?? batch.id.substring(0, 8).toUpperCase()}')
+    ..writeln(
+      'Batch: ${batch.batchNo ?? batch.id.substring(0, 8).toUpperCase()}',
+    )
     ..writeln('Opening date: ${dateFmt.format(batch.openingDate)}')
     ..writeln('Base currency: ${batch.baseCurrencyCode}');
   if (batch.description != null && batch.description!.isNotEmpty) {
@@ -37,9 +45,15 @@ String formatOpeningBalanceSummary({
 
   for (final line in lines) {
     buf.writeln('${line.lineNo}. ${line.lineKind.label}');
-    if (line.accountId != null) buf.writeln('   Account: ${accountName(line.accountId)}');
-    if (line.partyId != null) buf.writeln('   Party: ${partyName(line.partyId)}');
-    buf.writeln('   ${line.currencyCode} ${fmt.format(line.foreignAmount)} @ ${fmt.format(line.rateUsed)}');
+    if (line.accountId != null) {
+      buf.writeln('   Account: ${accountName(line.accountId)}');
+    }
+    if (line.partyId != null) {
+      buf.writeln('   Party: ${partyName(line.partyId)}');
+    }
+    buf.writeln(
+      '   ${line.currencyCode} ${fmt.format(line.foreignAmount)} @ ${fmt.format(line.rateUsed)}',
+    );
     buf.writeln('   PKR equivalent: ${fmt.format(line.pkrAmount)}');
     if (line.locationLabel != null && line.locationLabel!.isNotEmpty) {
       buf.writeln('   Location: ${line.locationLabel}');
@@ -63,13 +77,15 @@ Future<void> shareOpeningBalanceSummary({
   List<FxAccount> accounts = const [],
   List<FxParty> parties = const [],
 }) {
-  return SharePlus.instance.share(ShareParams(
-    text: formatOpeningBalanceSummary(
-      batch: batch,
-      lines: lines,
-      accounts: accounts,
-      parties: parties,
+  return SharePlus.instance.share(
+    ShareParams(
+      text: formatOpeningBalanceSummary(
+        batch: batch,
+        lines: lines,
+        accounts: accounts,
+        parties: parties,
+      ),
+      subject: 'Opening Balance ${batch.batchNo ?? batch.id.substring(0, 8)}',
     ),
-    subject: 'Opening Balance ${batch.batchNo ?? batch.id.substring(0, 8)}',
-  ));
+  );
 }

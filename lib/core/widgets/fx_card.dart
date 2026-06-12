@@ -30,7 +30,10 @@ class FxSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Text(label.toUpperCase(), style: Theme.of(context).textTheme.labelSmall),
+          Text(
+            label.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
           if (trailing != null) ...[const Spacer(), trailing!],
         ],
       ),
@@ -113,7 +116,10 @@ class FxStatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: theme.textTheme.labelSmall?.copyWith(color: color, letterSpacing: 0.04),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          letterSpacing: 0.04,
+        ),
       ),
     );
   }

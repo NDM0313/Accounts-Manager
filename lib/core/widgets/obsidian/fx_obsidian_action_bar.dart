@@ -53,8 +53,18 @@ class FxObsidianActionBar extends StatelessWidget {
               elevation: 4,
             ),
             child: busy
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(saveLabel, style: AppTypography.labelCaps(context.fx.onPrimary, context: context).copyWith(fontSize: 12)),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    saveLabel,
+                    style: AppTypography.labelCaps(
+                      context.fx.onPrimary,
+                      context: context,
+                    ).copyWith(fontSize: 12),
+                  ),
           ),
         ],
       ),

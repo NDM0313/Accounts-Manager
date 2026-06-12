@@ -35,12 +35,28 @@ abstract final class AppTheme {
         foregroundColor: AppColors.lightOnSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: AppTypography.headlineMd(AppColors.lightOnSurface, brightness: Brightness.light),
+        titleTextStyle: AppTypography.headlineMd(
+          AppColors.lightOnSurface,
+          brightness: Brightness.light,
+        ),
       ),
-      cardTheme: _cardTheme(AppColors.lightSurface, AppColors.lightOutlineVariant),
-      filledButtonTheme: _filledButtonTheme(AppColors.lightPrimary, AppColors.lightOnPrimary),
-      outlinedButtonTheme: _outlinedButtonTheme(AppColors.lightPrimary, AppColors.lightOutlineVariant),
-      inputDecorationTheme: _inputTheme(AppColors.lightSurface, AppColors.lightOutlineVariant, AppColors.lightSecondary),
+      cardTheme: _cardTheme(
+        AppColors.lightSurface,
+        AppColors.lightOutlineVariant,
+      ),
+      filledButtonTheme: _filledButtonTheme(
+        AppColors.lightPrimary,
+        AppColors.lightOnPrimary,
+      ),
+      outlinedButtonTheme: _outlinedButtonTheme(
+        AppColors.lightPrimary,
+        AppColors.lightOutlineVariant,
+      ),
+      inputDecorationTheme: _inputTheme(
+        AppColors.lightSurface,
+        AppColors.lightOutlineVariant,
+        AppColors.lightSecondary,
+      ),
       navigationBarTheme: _navigationBarTheme(
         bg: AppColors.lightSurface,
         indicator: AppColors.lightSurfaceContainer,
@@ -49,9 +65,14 @@ abstract final class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.lightPrimary,
-        contentTextStyle: AppTypography.bodyMd(Colors.white, brightness: Brightness.light),
+        contentTextStyle: AppTypography.bodyMd(
+          Colors.white,
+          brightness: Brightness.light,
+        ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.lightSurface,
@@ -63,7 +84,10 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.lightSurfaceContainerLow,
         side: BorderSide(color: AppColors.lightOutlineVariant),
-        labelStyle: AppTypography.labelCaps(AppColors.lightOnSurfaceVariant, brightness: Brightness.light),
+        labelStyle: AppTypography.labelCaps(
+          AppColors.lightOnSurfaceVariant,
+          brightness: Brightness.light,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
       dividerTheme: const DividerThemeData(thickness: 1, space: 1),
@@ -104,11 +128,23 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: AppTypography.headlineMd(AppColors.darkOnSurface, brightness: Brightness.dark),
+        titleTextStyle: AppTypography.headlineMd(
+          AppColors.darkOnSurface,
+          brightness: Brightness.dark,
+        ),
       ),
-      cardTheme: _cardTheme(AppColors.darkSurfaceContainer, AppColors.darkOutlineVariant),
-      filledButtonTheme: _filledButtonTheme(AppColors.darkPrimary, AppColors.darkOnPrimary),
-      outlinedButtonTheme: _outlinedButtonTheme(AppColors.darkOnSurface, AppColors.darkOutlineVariant),
+      cardTheme: _cardTheme(
+        AppColors.darkSurfaceContainer,
+        AppColors.darkOutlineVariant,
+      ),
+      filledButtonTheme: _filledButtonTheme(
+        AppColors.darkPrimary,
+        AppColors.darkOnPrimary,
+      ),
+      outlinedButtonTheme: _outlinedButtonTheme(
+        AppColors.darkOnSurface,
+        AppColors.darkOutlineVariant,
+      ),
       inputDecorationTheme: _inputTheme(
         AppColors.darkSurfaceContainerLow,
         AppColors.darkOutlineVariant,
@@ -122,9 +158,14 @@ abstract final class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.darkSurfaceContainerHigh,
-        contentTextStyle: AppTypography.bodyMd(AppColors.darkOnSurface, brightness: Brightness.dark),
+        contentTextStyle: AppTypography.bodyMd(
+          AppColors.darkOnSurface,
+          brightness: Brightness.dark,
+        ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.darkSurfaceContainer,
@@ -136,7 +177,10 @@ abstract final class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkSurfaceContainer,
         side: BorderSide(color: AppColors.darkOutlineVariant),
-        labelStyle: AppTypography.labelCaps(AppColors.darkOnSurfaceVariant, brightness: Brightness.dark),
+        labelStyle: AppTypography.labelCaps(
+          AppColors.darkOnSurfaceVariant,
+          brightness: Brightness.dark,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
       dividerTheme: const DividerThemeData(thickness: 1, space: 1),
@@ -148,73 +192,84 @@ abstract final class AppTheme {
     required Color indicator,
     required Color labelColor,
     required Brightness brightness,
-  }) =>
-      NavigationBarThemeData(
-        backgroundColor: bg,
-        indicatorColor: indicator,
-        height: 56,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final active = states.contains(WidgetState.selected);
-          return AppTypography.labelCaps(
-            active ? AppColors.premiumPrimary : labelColor,
-            brightness: brightness,
-          ).copyWith(fontSize: 11);
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          final active = states.contains(WidgetState.selected);
-          return IconThemeData(
-            size: 22,
-            color: active
-                ? (brightness == Brightness.light ? AppColors.lightPrimary : AppColors.darkPrimary)
-                : labelColor,
-          );
-        }),
+  }) => NavigationBarThemeData(
+    backgroundColor: bg,
+    indicatorColor: indicator,
+    height: 56,
+    labelTextStyle: WidgetStateProperty.resolveWith((states) {
+      final active = states.contains(WidgetState.selected);
+      return AppTypography.labelCaps(
+        active ? AppColors.premiumPrimary : labelColor,
+        brightness: brightness,
+      ).copyWith(fontSize: 11);
+    }),
+    iconTheme: WidgetStateProperty.resolveWith((states) {
+      final active = states.contains(WidgetState.selected);
+      return IconThemeData(
+        size: 22,
+        color: active
+            ? (brightness == Brightness.light
+                  ? AppColors.lightPrimary
+                  : AppColors.darkPrimary)
+            : labelColor,
       );
+    }),
+  );
 
   static CardThemeData _cardTheme(Color fill, Color border) => CardThemeData(
-        color: fill,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          side: BorderSide(color: border),
-        ),
-      );
+    color: fill,
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      side: BorderSide(color: border),
+    ),
+  );
 
-  static FilledButtonThemeData _filledButtonTheme(Color bg, Color fg) => FilledButtonThemeData(
+  static FilledButtonThemeData _filledButtonTheme(Color bg, Color fg) =>
+      FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: bg,
           foregroundColor: fg,
           minimumSize: const Size(0, AppSpacing.buttonHeight),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
         ),
       );
 
-  static OutlinedButtonThemeData _outlinedButtonTheme(Color fg, Color border) => OutlinedButtonThemeData(
+  static OutlinedButtonThemeData _outlinedButtonTheme(Color fg, Color border) =>
+      OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: fg,
           side: BorderSide(color: border),
           minimumSize: const Size(0, AppSpacing.buttonHeight),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
         ),
       );
 
-  static InputDecorationTheme _inputTheme(Color fill, Color border, Color focus) => InputDecorationTheme(
-        filled: true,
-        fillColor: fill,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: BorderSide(color: border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: BorderSide(color: border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: BorderSide(color: focus, width: 2),
-        ),
-      );
+  static InputDecorationTheme _inputTheme(
+    Color fill,
+    Color border,
+    Color focus,
+  ) => InputDecorationTheme(
+    filled: true,
+    fillColor: fill,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: BorderSide(color: border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: BorderSide(color: border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: BorderSide(color: focus, width: 2),
+    ),
+  );
 }

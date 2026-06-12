@@ -22,17 +22,17 @@ enum FxRemittanceStatus {
   }
 
   String get label => switch (this) {
-        draft => 'Draft',
-        booked => 'Awaiting Payment',
-        customerPaid => 'Customer Paid',
-        sentToAgent => 'Sent to Agent',
-        readyForPayout => 'Ready for Payout',
-        paidOut => 'Payout Confirmed',
-        cancelled => 'Cancelled',
-        refunded => 'Refunded',
-        disputed => 'Disputed',
-        completed => 'Settled',
-      };
+    draft => 'Draft',
+    booked => 'Awaiting Payment',
+    customerPaid => 'Customer Paid',
+    sentToAgent => 'Sent to Agent',
+    readyForPayout => 'Ready for Payout',
+    paidOut => 'Payout Confirmed',
+    cancelled => 'Cancelled',
+    refunded => 'Refunded',
+    disputed => 'Disputed',
+    completed => 'Settled',
+  };
 
   bool get isOpen => this != completed && this != cancelled && this != refunded;
 }
@@ -48,9 +48,9 @@ enum FxRemittanceCommissionMode {
       value == 'internal' ? internal : customerPaid;
 
   String get label => switch (this) {
-        customerPaid => 'Included in customer payment',
-        internal => 'Internal (not in customer total)',
-      };
+    customerPaid => 'Included in customer payment',
+    internal => 'Internal (not in customer total)',
+  };
 }
 
 enum FxRemittanceSettlementStatus {
@@ -70,10 +70,10 @@ enum FxRemittanceSettlementStatus {
   }
 
   String get label => switch (this) {
-        pending => 'Pending',
-        partial => 'Partial',
-        settled => 'Settled',
-      };
+    pending => 'Pending',
+    partial => 'Partial',
+    settled => 'Settled',
+  };
 }
 
 class FxRemittance {
@@ -176,23 +176,42 @@ class FxRemittance {
       payoutAmount: (json['payout_amount'] as num).toDouble(),
       exchangeRate: (json['exchange_rate'] as num).toDouble(),
       commissionAmount: (json['commission_amount'] as num?)?.toDouble() ?? 0,
-      commissionMode: FxRemittanceCommissionMode.fromDb(json['commission_mode'] as String?),
+      commissionMode: FxRemittanceCommissionMode.fromDb(
+        json['commission_mode'] as String?,
+      ),
       totalPayable: total,
       paidAmount: paid,
-      balanceDue: (json['balance_due'] as num?)?.toDouble() ?? (total - paid).clamp(0, double.infinity),
-      status: FxRemittanceStatus.fromDb(json['status'] as String?) ?? FxRemittanceStatus.draft,
+      balanceDue:
+          (json['balance_due'] as num?)?.toDouble() ??
+          (total - paid).clamp(0, double.infinity),
+      status:
+          FxRemittanceStatus.fromDb(json['status'] as String?) ??
+          FxRemittanceStatus.draft,
       payoutStatus: json['payout_status'] as String? ?? 'pending',
       settlementStatus:
-          FxRemittanceSettlementStatus.fromDb(json['settlement_status'] as String?) ?? FxRemittanceSettlementStatus.pending,
+          FxRemittanceSettlementStatus.fromDb(
+            json['settlement_status'] as String?,
+          ) ??
+          FxRemittanceSettlementStatus.pending,
       payoutCode: json['payout_code'] as String?,
       payoutMethod: json['payout_method'] as String?,
-      payoutConfirmedAt: json['payout_confirmed_at'] != null ? DateTime.parse(json['payout_confirmed_at'] as String) : null,
+      payoutConfirmedAt: json['payout_confirmed_at'] != null
+          ? DateTime.parse(json['payout_confirmed_at'] as String)
+          : null,
       notes: json['notes'] as String?,
-      bookedAt: json['booked_at'] != null ? DateTime.parse(json['booked_at'] as String) : null,
-      completedAt: json['completed_at'] != null ? DateTime.parse(json['completed_at'] as String) : null,
+      bookedAt: json['booked_at'] != null
+          ? DateTime.parse(json['booked_at'] as String)
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'] as String)
+          : null,
       createdByName: json['created_by_name'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
     );
   }
 }

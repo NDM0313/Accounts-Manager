@@ -34,16 +34,28 @@ class CurrencySettingsScreen extends ConsumerWidget {
                   title: const Text('Base currency'),
                   subtitle: Text(
                     '${ctx.baseCurrencyCode} — used for journals, trial balance, and posting.',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
                   ),
-                  trailing: Text(ctx.baseCurrencyCode, style: AppTypography.headlineMd(context.fx.primary, context: context)),
+                  trailing: Text(
+                    ctx.baseCurrencyCode,
+                    style: AppTypography.headlineMd(
+                      context.fx.primary,
+                      context: context,
+                    ),
+                  ),
                 ),
                 if (ctx.hasPostedTransactions)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
                       'Base currency affects accounting and cannot be changed after postings without migration/revaluation.',
-                      style: AppTypography.bodyMd(context.fx.error, context: context).copyWith(fontSize: 12),
+                      style: AppTypography.bodyMd(
+                        context.fx.error,
+                        context: context,
+                      ).copyWith(fontSize: 12),
                     ),
                   ),
               ],
@@ -54,7 +66,10 @@ class CurrencySettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Dashboard and reports can show converted values. Accounting stays in base currency.',
-            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const SizedBox(height: 12),
           currenciesAsync.when(
@@ -63,13 +78,26 @@ class CurrencySettingsScreen extends ConsumerWidget {
             data: (currencies) {
               final active = currencies.where((c) => c.isActive).toList();
               return DropdownButtonFormField<String>(
-                initialValue: active.any((c) => c.code == displayCode) ? displayCode : active.firstOrNull?.code,
-                decoration: const InputDecoration(labelText: 'Display currency'),
+                initialValue: active.any((c) => c.code == displayCode)
+                    ? displayCode
+                    : active.firstOrNull?.code,
+                decoration: const InputDecoration(
+                  labelText: 'Display currency',
+                ),
                 items: active
-                    .map((c) => DropdownMenuItem(value: c.code, child: Text('${c.code} — ${c.name}')))
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c.code,
+                        child: Text('${c.code} — ${c.name}'),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) {
-                  if (v != null) ref.read(displayCurrencyCodeProvider.notifier).setCurrency(v);
+                  if (v != null) {
+                    ref
+                        .read(displayCurrencyCodeProvider.notifier)
+                        .setCurrency(v);
+                  }
                 },
               );
             },

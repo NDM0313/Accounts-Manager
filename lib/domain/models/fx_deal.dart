@@ -26,21 +26,21 @@ enum FxDealStatus {
   }
 
   String get label => switch (this) {
-        draft => 'Draft',
-        quoted => 'Quoted',
-        booked => 'Booked',
-        customerPartiallyPaid => 'Customer Partially Paid',
-        customerPaid => 'Customer Paid',
-        sourcingRequired => 'Sourcing Required',
-        sourcingInProgress => 'Sourcing In Progress',
-        agentPartiallyPaid => 'Agent Partially Paid',
-        agentPaid => 'Agent Paid',
-        currencyReceived => 'Currency Received',
-        delivered => 'Delivered',
-        completed => 'Completed',
-        cancelled => 'Cancelled',
-        voided => 'Voided',
-      };
+    draft => 'Draft',
+    quoted => 'Quoted',
+    booked => 'Booked',
+    customerPartiallyPaid => 'Customer Partially Paid',
+    customerPaid => 'Customer Paid',
+    sourcingRequired => 'Sourcing Required',
+    sourcingInProgress => 'Sourcing In Progress',
+    agentPartiallyPaid => 'Agent Partially Paid',
+    agentPaid => 'Agent Paid',
+    currencyReceived => 'Currency Received',
+    delivered => 'Delivered',
+    completed => 'Completed',
+    cancelled => 'Cancelled',
+    voided => 'Voided',
+  };
 
   bool get isOpen => this != completed && this != cancelled && this != voided;
 }
@@ -63,11 +63,11 @@ enum FxDeliveryMethod {
   }
 
   String get label => switch (this) {
-        ownBalance => 'Own Balance',
-        agent => 'Agent',
-        tt => 'TT',
-        later => 'Later',
-      };
+    ownBalance => 'Own Balance',
+    agent => 'Agent',
+    tt => 'TT',
+    later => 'Later',
+  };
 }
 
 class FxDeal {
@@ -120,23 +120,34 @@ class FxDeal {
       id: json['id'] as String,
       dealNo: json['deal_no'] as String?,
       customerPartyId: json['customer_party_id'] as String,
-      customerName: (json['fx_parties'] as Map<String, dynamic>?)?['name'] as String?,
+      customerName:
+          (json['fx_parties'] as Map<String, dynamic>?)?['name'] as String?,
       sellCurrencyCode: json['sell_currency_code'] as String,
       sellAmount: (json['sell_amount'] as num).toDouble(),
       saleRatePkr: (json['sale_rate_pkr'] as num).toDouble(),
       customerPayablePkr: (json['customer_payable_pkr'] as num).toDouble(),
       customerPaidPkr: (json['customer_paid_pkr'] as num).toDouble(),
-      customerReceivablePkr: (json['customer_receivable_pkr'] as num).toDouble(),
-      deliveryMethod: FxDeliveryMethod.fromDb(json['delivery_method'] as String?) ?? FxDeliveryMethod.later,
-      status: FxDealStatus.fromDb(json['status'] as String?) ?? FxDealStatus.draft,
+      customerReceivablePkr: (json['customer_receivable_pkr'] as num)
+          .toDouble(),
+      deliveryMethod:
+          FxDeliveryMethod.fromDb(json['delivery_method'] as String?) ??
+          FxDeliveryMethod.later,
+      status:
+          FxDealStatus.fromDb(json['status'] as String?) ?? FxDealStatus.draft,
       estimatedProfitPkr: (json['estimated_profit_pkr'] as num?)?.toDouble(),
       actualProfitPkr: (json['actual_profit_pkr'] as num?)?.toDouble(),
       costBasisPkr: (json['cost_basis_pkr'] as num?)?.toDouble(),
       allowShortPosition: json['allow_short_position'] as bool? ?? false,
       notes: json['notes'] as String?,
-      bookedAt: json['booked_at'] != null ? DateTime.parse(json['booked_at'] as String) : null,
-      completedAt: json['completed_at'] != null ? DateTime.parse(json['completed_at'] as String) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      bookedAt: json['booked_at'] != null
+          ? DateTime.parse(json['booked_at'] as String)
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'] as String)
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
     );
   }
 }

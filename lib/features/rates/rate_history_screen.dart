@@ -36,7 +36,9 @@ class _RateHistoryScreenState extends ConsumerState<RateHistoryScreen> {
       _error = null;
     });
     try {
-      final rows = await ref.read(rateRepositoryProvider).fetchRateHistory(widget.currencyCode);
+      final rows = await ref
+          .read(rateRepositoryProvider)
+          .fetchRateHistory(widget.currencyCode);
       if (mounted) setState(() => _history = rows);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -53,10 +55,11 @@ class _RateHistoryScreenState extends ConsumerState<RateHistoryScreen> {
 
     return FxPageScaffold(
       fallbackRoute: '/rates',
-      title: Text('$code/PKR history', style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-      actions: [
-        IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-      ],
+      title: Text(
+        '$code/PKR history',
+        style: AppTypography.headlineMd(context.fx.onSurface, context: context),
+      ),
+      actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/rates/new?currency=$code'),
         backgroundColor: context.fx.tertiary,
@@ -66,96 +69,135 @@ class _RateHistoryScreenState extends ConsumerState<RateHistoryScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : (_history == null || _history!.isEmpty)
-                  ? const FxObsidianReportPanel(child: Text('No rate history for this currency.'))
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _history!.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, i) {
-                        final h = _history![i];
-                        final isLatest = i == 0;
-                        return FxObsidianReportPanel(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    '$code/PKR',
-                                    style: AppTypography.labelCaps(context.fx.onSurface, context: context),
-                                  ),
-                                  const Spacer(),
-                                  if (isLatest)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: context.fx.tertiary.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Latest',
-                                        style: AppTypography.bodyMd(context.fx.tertiary, context: context).copyWith(fontSize: 10),
-                                      ),
-                                    ),
-                                  if (!h.isActive)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 6),
-                                      child: Text(
-                                        'Inactive',
-                                        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Ref ${fmt.format(h.referenceRate)} · Buy ${fmt.format(h.buyRate)} · Sell ${fmt.format(h.sellRate)}',
-                                style: AppTypography.bodyMd(context.fx.onSurface, context: context),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Effective from ${dtFmt.format(h.effectiveAt.toLocal())}',
-                                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                              ),
-                              if (h.effectiveTo != null)
-                                Text(
-                                  'Effective to ${dtFmt.format(h.effectiveTo!.toLocal())}',
-                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                                )
-                              else if (isLatest)
-                                Text(
-                                  'Effective to — (current)',
-                                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                                ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Source: ${h.source} · Used count: —',
-                                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                              ),
-                              if (h.notes != null && h.notes!.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(h.notes!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
-                              ],
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  TextButton(
-                                    onPressed: () => context.push('/rates/edit/${h.id}'),
-                                    child: const Text('Edit (new version)'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => context.push('/rates/new?from=${h.id}'),
-                                    child: const Text('Duplicate'),
-                                  ),
-                                ],
-                              ),
-                            ],
+          ? Center(child: Text('Error: $_error'))
+          : (_history == null || _history!.isEmpty)
+          ? const FxObsidianReportPanel(
+              child: Text('No rate history for this currency.'),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: _history!.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, i) {
+                final h = _history![i];
+                final isLatest = i == 0;
+                return FxObsidianReportPanel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '$code/PKR',
+                            style: AppTypography.labelCaps(
+                              context.fx.onSurface,
+                              context: context,
+                            ),
                           ),
-                        );
-                      },
-                    ),
+                          const Spacer(),
+                          if (isLatest)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.fx.tertiary.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Latest',
+                                style: AppTypography.bodyMd(
+                                  context.fx.tertiary,
+                                  context: context,
+                                ).copyWith(fontSize: 10),
+                              ),
+                            ),
+                          if (!h.isActive)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Text(
+                                'Inactive',
+                                style: AppTypography.bodyMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ).copyWith(fontSize: 10),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ref ${fmt.format(h.referenceRate)} · Buy ${fmt.format(h.buyRate)} · Sell ${fmt.format(h.sellRate)}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Effective from ${dtFmt.format(h.effectiveAt.toLocal())}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 11),
+                      ),
+                      if (h.effectiveTo != null)
+                        Text(
+                          'Effective to ${dtFmt.format(h.effectiveTo!.toLocal())}',
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 11),
+                        )
+                      else if (isLatest)
+                        Text(
+                          'Effective to — (current)',
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 11),
+                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Source: ${h.source} · Used count: —',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 11),
+                      ),
+                      if (h.notes != null && h.notes!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          h.notes!,
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ).copyWith(fontSize: 11),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () =>
+                                context.push('/rates/edit/${h.id}'),
+                            child: const Text('Edit (new version)'),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                context.push('/rates/new?from=${h.id}'),
+                            child: const Text('Duplicate'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }

@@ -189,11 +189,13 @@ class FxColors extends ThemeExtension<FxColors> {
     return FxColors(
       background: background ?? this.background,
       surface: surface ?? this.surface,
-      surfaceContainerLowest: surfaceContainerLowest ?? this.surfaceContainerLowest,
+      surfaceContainerLowest:
+          surfaceContainerLowest ?? this.surfaceContainerLowest,
       surfaceContainerLow: surfaceContainerLow ?? this.surfaceContainerLow,
       surfaceContainer: surfaceContainer ?? this.surfaceContainer,
       surfaceContainerHigh: surfaceContainerHigh ?? this.surfaceContainerHigh,
-      surfaceContainerHighest: surfaceContainerHighest ?? this.surfaceContainerHighest,
+      surfaceContainerHighest:
+          surfaceContainerHighest ?? this.surfaceContainerHighest,
       outline: outline ?? this.outline,
       outlineVariant: outlineVariant ?? this.outlineVariant,
       primary: primary ?? this.primary,
@@ -219,11 +221,17 @@ class FxColors extends ThemeExtension<FxColors> {
     return FxColors(
       background: l(background, other.background),
       surface: l(surface, other.surface),
-      surfaceContainerLowest: l(surfaceContainerLowest, other.surfaceContainerLowest),
+      surfaceContainerLowest: l(
+        surfaceContainerLowest,
+        other.surfaceContainerLowest,
+      ),
       surfaceContainerLow: l(surfaceContainerLow, other.surfaceContainerLow),
       surfaceContainer: l(surfaceContainer, other.surfaceContainer),
       surfaceContainerHigh: l(surfaceContainerHigh, other.surfaceContainerHigh),
-      surfaceContainerHighest: l(surfaceContainerHighest, other.surfaceContainerHighest),
+      surfaceContainerHighest: l(
+        surfaceContainerHighest,
+        other.surfaceContainerHighest,
+      ),
       outline: l(outline, other.outline),
       outlineVariant: l(outlineVariant, other.outlineVariant),
       primary: l(primary, other.primary),

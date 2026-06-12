@@ -81,58 +81,67 @@ void main() {
     expect(help.statusMeaning, contains('sourcing'));
     expect(help.whatToDoNext, isNotEmpty);
     expect(help.statementsAffected, isNotEmpty);
-    expect(help.statementsAffected.any((s) => s.contains('Customer statement')), isTrue);
+    expect(
+      help.statementsAffected.any((s) => s.contains('Customer statement')),
+      isTrue,
+    );
   });
 
-  test('DealLegTimelineActions suggests confirm received for currency receipt leg', () {
-    final receiptLeg = FxDealLeg(
-      id: 'leg-4',
-      dealId: 'deal-1',
-      legNo: 4,
-      legType: FxDealLegType.currencyReceipt,
-      status: FxDealLegStatus.pending,
-      receiveAmount: 1000,
-      receiveCurrency: 'USD',
-      payAmount: 0,
-      paidAmount: 0,
-      remainingAmount: 1000,
-    );
+  test(
+    'DealLegTimelineActions suggests confirm received for currency receipt leg',
+    () {
+      final receiptLeg = FxDealLeg(
+        id: 'leg-4',
+        dealId: 'deal-1',
+        legNo: 4,
+        legType: FxDealLegType.currencyReceipt,
+        status: FxDealLegStatus.pending,
+        receiveAmount: 1000,
+        receiveCurrency: 'USD',
+        payAmount: 0,
+        paidAmount: 0,
+        remainingAmount: 1000,
+      );
 
-    final action = DealLegTimelineActions.forLeg(
-      leg: receiptLeg,
-      deal: deal,
-      customerPartyId: deal.customerPartyId,
-    );
+      final action = DealLegTimelineActions.forLeg(
+        leg: receiptLeg,
+        deal: deal,
+        customerPartyId: deal.customerPartyId,
+      );
 
-    expect(action?.label, 'Confirm received');
-    expect(action?.route, contains('currency-receipt'));
-  });
+      expect(action?.label, 'Confirm received');
+      expect(action?.route, contains('currency-receipt'));
+    },
+  );
 
-  test('DealLegTimelineActions routes pending agent source to currency receipt', () {
-    final agentLeg = FxDealLeg(
-      id: 'leg-agent',
-      dealId: 'deal-1',
-      legNo: 3,
-      legType: FxDealLegType.agentSource,
-      status: FxDealLegStatus.pending,
-      counterpartyName: 'WALI TT',
-      receiveAmount: 3000,
-      receiveCurrency: 'USD',
-      payAmount: 8160,
-      payCurrency: 'AED',
-      paidAmount: 0,
-      remainingAmount: 8160,
-      attachmentCount: 1,
-    );
+  test(
+    'DealLegTimelineActions routes pending agent source to currency receipt',
+    () {
+      final agentLeg = FxDealLeg(
+        id: 'leg-agent',
+        dealId: 'deal-1',
+        legNo: 3,
+        legType: FxDealLegType.agentSource,
+        status: FxDealLegStatus.pending,
+        counterpartyName: 'WALI TT',
+        receiveAmount: 3000,
+        receiveCurrency: 'USD',
+        payAmount: 8160,
+        payCurrency: 'AED',
+        paidAmount: 0,
+        remainingAmount: 8160,
+        attachmentCount: 1,
+      );
 
-    final action = DealLegTimelineActions.forLeg(
-      leg: agentLeg,
-      deal: deal,
-      customerPartyId: deal.customerPartyId,
-    );
+      final action = DealLegTimelineActions.forLeg(
+        leg: agentLeg,
+        deal: deal,
+        customerPartyId: deal.customerPartyId,
+      );
 
-    expect(action?.label, 'Confirm received');
-    expect(action?.route, contains('currency-receipt'));
-    expect(action?.onTapKind, isNull);
-  });
+      expect(action?.label, 'Confirm received');
+      expect(action?.route, contains('currency-receipt'));
+      expect(action?.onTapKind, isNull);
+    },
+  );
 }

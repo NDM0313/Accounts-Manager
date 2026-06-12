@@ -135,11 +135,17 @@ void main() {
 
     test('party account codes by type', () {
       expect(
-        OpeningBalanceLineMapper.partyAccountCode(FxPartyType.customer, FxOpeningBalanceLineKind.partyReceivable),
+        OpeningBalanceLineMapper.partyAccountCode(
+          FxPartyType.customer,
+          FxOpeningBalanceLineKind.partyReceivable,
+        ),
         '1190',
       );
       expect(
-        OpeningBalanceLineMapper.partyAccountCode(FxPartyType.agent, FxOpeningBalanceLineKind.partyPayable),
+        OpeningBalanceLineMapper.partyAccountCode(
+          FxPartyType.agent,
+          FxOpeningBalanceLineKind.partyPayable,
+        ),
         '2100',
       );
     });
@@ -159,13 +165,13 @@ void _expectBalanced(List<FxTransactionLineInput> lines) {
 
 List<FxAccount> _mockAccounts() {
   return [
-    ('1110', 'a1'),
-    ('1120', 'a2'),
-    ('1180', 'a5'),
-    ('1190', 'a6'),
-    ('2100', 'a8'),
-    ('3100', 'a7'),
-  ]
+        ('1110', 'a1'),
+        ('1120', 'a2'),
+        ('1180', 'a5'),
+        ('1190', 'a6'),
+        ('2100', 'a8'),
+        ('3100', 'a7'),
+      ]
       .map(
         (e) => FxAccount(
           id: e.$2,

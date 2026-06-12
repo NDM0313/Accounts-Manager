@@ -46,12 +46,18 @@ class FxTransactionMenuSheet extends StatelessWidget {
                     children: [
                       Text(
                         'Select transaction type',
-                        style: AppTypography.headlineSm(context.fx.onSurface, context: context),
+                        style: AppTypography.headlineSm(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Choose an action to record in the ledger',
-                        style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 13),
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 13),
                       ),
                     ],
                   ),
@@ -81,7 +87,10 @@ class FxTransactionMenuSheet extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
             child: Text(
               _displayGroupTitle(group.title).toUpperCase(),
-              style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 10),
+              style: AppTypography.labelCaps(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 10),
             ),
           ),
           if (isWide && group.title == 'FX Deals')
@@ -138,7 +147,11 @@ class _MenuEntry extends StatelessWidget {
                     color: context.fx.secondary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
-                  child: Icon(entry.icon, size: 20, color: context.fx.secondary),
+                  child: Icon(
+                    entry.icon,
+                    size: 20,
+                    color: context.fx.secondary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -146,7 +159,10 @@ class _MenuEntry extends StatelessWidget {
                     entry.label,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w500),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontWeight: FontWeight.w500),
                   ),
                 ),
                 Icon(Icons.chevron_right, size: 18, color: context.fx.outline),

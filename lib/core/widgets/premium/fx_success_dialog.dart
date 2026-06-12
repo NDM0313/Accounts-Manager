@@ -37,8 +37,17 @@ class FxSuccessDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       icon: Icon(Icons.check_circle, color: context.fx.tertiary, size: 48),
-      title: Text(title, style: AppTypography.headlineSm(context.fx.onSurface, context: context)),
-      content: Text(message, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+      title: Text(
+        title,
+        style: AppTypography.headlineSm(context.fx.onSurface, context: context),
+      ),
+      content: Text(
+        message,
+        style: AppTypography.bodyMd(
+          context.fx.onSurfaceVariant,
+          context: context,
+        ),
+      ),
       actions: [
         FilledButton(
           onPressed: onAction ?? () => Navigator.of(context).pop(),

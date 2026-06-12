@@ -49,7 +49,8 @@ abstract final class PartyStatementBuilder {
       }
 
       final pkrEq = tx.totalBaseAmountPkr;
-      balancesByCurrency[tx.currencyCode] = (balancesByCurrency[tx.currencyCode] ?? 0) + tx.totalForeignAmount;
+      balancesByCurrency[tx.currencyCode] =
+          (balancesByCurrency[tx.currencyCode] ?? 0) + tx.totalForeignAmount;
 
       lines.add(
         PartyStatementLine(
@@ -71,7 +72,9 @@ abstract final class PartyStatementBuilder {
       );
     }
 
-    final netBalance = lines.isEmpty ? openingBalancePkr : lines.last.runningBalancePkr;
+    final netBalance = lines.isEmpty
+        ? openingBalancePkr
+        : lines.last.runningBalancePkr;
 
     return PartyStatementView(
       party: party,
@@ -92,12 +95,15 @@ abstract final class PartyStatementBuilder {
   }
 
   static bool _isDebitNormal(FxPartyType type) => switch (type) {
-        FxPartyType.customer => true,
-        FxPartyType.agent => false,
-        FxPartyType.settlement => false,
-      };
+    FxPartyType.customer => true,
+    FxPartyType.agent => false,
+    FxPartyType.settlement => false,
+  };
 
-  static (double debit, double credit) _debitCreditForTransaction(FxParty party, FxTransaction tx) {
+  static (double debit, double credit) _debitCreditForTransaction(
+    FxParty party,
+    FxTransaction tx,
+  ) {
     for (final line in tx.lines) {
       final code = line.accountCode;
       if (code != null && _partyAccountCodes.contains(code)) {
@@ -107,11 +113,17 @@ abstract final class PartyStatementBuilder {
     return _fallbackDebitCredit(party, tx);
   }
 
-  static (double debit, double credit) _fallbackDebitCredit(FxParty party, FxTransaction tx) {
+  static (double debit, double credit) _fallbackDebitCredit(
+    FxParty party,
+    FxTransaction tx,
+  ) {
     final pkr = tx.totalBaseAmountPkr;
     return switch (tx.transactionType) {
-      FxTransactionType.currencyBuy when party.partyType == FxPartyType.agent => (0.0, pkr),
-      FxTransactionType.currencySell when party.partyType == FxPartyType.customer => (pkr, 0.0),
+      FxTransactionType.currencyBuy when party.partyType == FxPartyType.agent =>
+        (0.0, pkr),
+      FxTransactionType.currencySell
+          when party.partyType == FxPartyType.customer =>
+        (pkr, 0.0),
       FxTransactionType.settlementSend => (pkr, 0.0),
       FxTransactionType.settlementReceive => (0.0, pkr),
       _ => (0.0, 0.0),
@@ -132,28 +144,45 @@ abstract final class PartyStatementBuilder {
     return view.summary.netBalancePkr;
   }
 
-  static String formatShareText(PartyStatementView view, {required bool internal}) {
+  static String formatShareText(
+    PartyStatementView view, {
+    required bool internal,
+  }) {
     final buf = StringBuffer();
     buf.writeln('FX Cash Ledger — Party Statement');
     buf.writeln('${view.party.name} (${view.party.partyType.label})');
-    buf.writeln('Period: ${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}');
-    buf.writeln('Closing balance (PKR): ${view.summary.netBalancePkr.toStringAsFixed(2)}');
+    buf.writeln(
+      'Period: ${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}',
+    );
+    buf.writeln(
+      'Closing balance (PKR): ${view.summary.netBalancePkr.toStringAsFixed(2)}',
+    );
     buf.writeln('');
-    buf.writeln('Date       Ref          Type              Dr PKR    Cr PKR    Balance');
+    buf.writeln(
+      'Date       Ref          Type              Dr PKR    Cr PKR    Balance',
+    );
     for (final line in view.lines) {
       buf.write('${line.transactionDate.toIso8601String().split('T').first} ');
-      buf.write('${(line.transactionNo ?? line.transactionId.substring(0, 8)).padRight(12)} ');
+      buf.write(
+        '${(line.transactionNo ?? line.transactionId.substring(0, 8)).padRight(12)} ',
+      );
       buf.write('${line.transactionType.label.padRight(18)} ');
       buf.write('${line.debitPkr.toStringAsFixed(0).padLeft(8)} ');
       buf.write('${line.creditPkr.toStringAsFixed(0).padLeft(8)} ');
       buf.writeln(line.runningBalancePkr.toStringAsFixed(0).padLeft(10));
       if (internal) {
-        buf.writeln('  ${line.foreignAmount.toStringAsFixed(2)} ${line.currencyCode} @ ${line.rateUsed}');
+        buf.writeln(
+          '  ${line.foreignAmount.toStringAsFixed(2)} ${line.currencyCode} @ ${line.rateUsed}',
+        );
       }
     }
     buf.writeln('');
-    buf.writeln('Total debit PKR: ${view.summary.totalDebitPkr.toStringAsFixed(2)}');
-    buf.writeln('Total credit PKR: ${view.summary.totalCreditPkr.toStringAsFixed(2)}');
+    buf.writeln(
+      'Total debit PKR: ${view.summary.totalDebitPkr.toStringAsFixed(2)}',
+    );
+    buf.writeln(
+      'Total credit PKR: ${view.summary.totalCreditPkr.toStringAsFixed(2)}',
+    );
     if (!internal) {
       buf.writeln('\n— Customer copy: internal rates and notes omitted —');
     } else {
@@ -164,7 +193,9 @@ abstract final class PartyStatementBuilder {
 
   static String formatShareCsv(PartyStatementView view) {
     final buf = StringBuffer();
-    buf.writeln('Date,TxnNo,Type,Status,Currency,ForeignAmount,Rate,DebitPKR,CreditPKR,RunningBalancePKR,PKREquivalent');
+    buf.writeln(
+      'Date,TxnNo,Type,Status,Currency,ForeignAmount,Rate,DebitPKR,CreditPKR,RunningBalancePKR,PKREquivalent',
+    );
     for (final line in view.lines) {
       buf.writeln(
         '${line.transactionDate.toIso8601String().split('T').first},'

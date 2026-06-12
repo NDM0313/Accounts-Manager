@@ -1,4 +1,3 @@
-
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/pending_proof_upload.dart';
@@ -34,16 +33,28 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
   @override
   Widget build(BuildContext context) {
     final view = DealWorkflowGuide.build(deal: widget.deal, legs: widget.legs);
-    final help = DealWorkflowNarrative.buildHelp(deal: widget.deal, legs: widget.legs);
+    final help = DealWorkflowNarrative.buildHelp(
+      deal: widget.deal,
+      legs: widget.legs,
+    );
     final fx = context.fx;
 
     return FxObsidianReportPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('WORKFLOW', style: AppTypography.labelCaps(fx.primary, context: context)),
+          Text(
+            'WORKFLOW',
+            style: AppTypography.labelCaps(fx.primary, context: context),
+          ),
           const SizedBox(height: 8),
-          Text(view.statusLabel, style: AppTypography.headlineMd(fx.onSurface, context: context).copyWith(fontSize: 18)),
+          Text(
+            view.statusLabel,
+            style: AppTypography.headlineMd(
+              fx.onSurface,
+              context: context,
+            ).copyWith(fontSize: 18),
+          ),
           if (view.warningText != null) ...[
             const SizedBox(height: 8),
             Row(
@@ -54,14 +65,20 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
                 Expanded(
                   child: Text(
                     view.warningText!,
-                    style: AppTypography.bodyMd(fx.warning, context: context).copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(
+                      fx.warning,
+                      context: context,
+                    ).copyWith(fontSize: 12),
                   ),
                 ),
               ],
             ),
           ],
           const SizedBox(height: 12),
-          Text('Next: ${view.nextActionTitle}', style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context)),
+          Text(
+            'Next: ${view.nextActionTitle}',
+            style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context),
+          ),
           const SizedBox(height: 12),
           if (!view.isCompleted)
             FilledButton(
@@ -85,9 +102,21 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
             _helpBlock(context, 'What this status means', help.statusMeaning),
             _helpBlock(context, 'What to do next', help.whatToDoNext),
             _helpBlock(context, 'What happens after', help.afterNextAction),
-            Text('Statements affected', style: AppTypography.bodyMd(fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 12)),
+            Text(
+              'Statements affected',
+              style: AppTypography.bodyMd(
+                fx.onSurface,
+                context: context,
+              ).copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+            ),
             ...help.statementsAffected.map(
-              (s) => Text('• $s', style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+              (s) => Text(
+                '• $s',
+                style: AppTypography.bodyMd(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 11),
+              ),
             ),
           ],
           TextButton.icon(
@@ -97,7 +126,9 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
           ),
           if (_expanded) ...[
             const Divider(height: 16),
-            ...view.steps.where((s) => s.status != DealWorkflowStepStatus.skipped).map((s) => _StepRow(step: s)),
+            ...view.steps
+                .where((s) => s.status != DealWorkflowStepStatus.skipped)
+                .map((s) => _StepRow(step: s)),
           ],
         ],
       ),
@@ -110,8 +141,20 @@ class _DealWorkflowPanelState extends State<DealWorkflowPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 12)),
-          Text(body, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+          Text(
+            title,
+            style: AppTypography.bodyMd(
+              context.fx.onSurface,
+              context: context,
+            ).copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+          ),
+          Text(
+            body,
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ).copyWith(fontSize: 11),
+          ),
         ],
       ),
     );
@@ -127,13 +170,26 @@ class _StepRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final fx = context.fx;
     final icon = switch (step.status) {
-      DealWorkflowStepStatus.completed => Icon(Icons.check_circle, color: fx.primary, size: 18),
-      DealWorkflowStepStatus.partial => Icon(Icons.timelapse, color: fx.warning, size: 18),
-      DealWorkflowStepStatus.pending => Icon(Icons.radio_button_unchecked, color: fx.outline, size: 18),
+      DealWorkflowStepStatus.completed => Icon(
+        Icons.check_circle,
+        color: fx.primary,
+        size: 18,
+      ),
+      DealWorkflowStepStatus.partial => Icon(
+        Icons.timelapse,
+        color: fx.warning,
+        size: 18,
+      ),
+      DealWorkflowStepStatus.pending => Icon(
+        Icons.radio_button_unchecked,
+        color: fx.outline,
+        size: 18,
+      ),
       DealWorkflowStepStatus.skipped => const SizedBox.shrink(),
     };
 
-    final canGo = step.route != null && step.status != DealWorkflowStepStatus.completed;
+    final canGo =
+        step.route != null && step.status != DealWorkflowStepStatus.completed;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -146,13 +202,37 @@ class _StepRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(step.label, style: AppTypography.bodyMd(fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(
+                  step.label,
+                  style: AppTypography.bodyMd(
+                    fx.onSurface,
+                    context: context,
+                  ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
                 if (step.amountLabel != null)
-                  Text(step.amountLabel!, style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+                  Text(
+                    step.amountLabel!,
+                    style: AppTypography.bodyMd(
+                      fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 11),
+                  ),
                 if (step.partyName != null)
-                  Text(step.partyName!, style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+                  Text(
+                    step.partyName!,
+                    style: AppTypography.bodyMd(
+                      fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 11),
+                  ),
                 if (step.attachmentCount > 0)
-                  Text('${step.attachmentCount} proof(s)', style: AppTypography.bodyMd(fx.tertiary, context: context).copyWith(fontSize: 11)),
+                  Text(
+                    '${step.attachmentCount} proof(s)',
+                    style: AppTypography.bodyMd(
+                      fx.tertiary,
+                      context: context,
+                    ).copyWith(fontSize: 11),
+                  ),
               ],
             ),
           ),
@@ -191,18 +271,24 @@ class FxPendingProofPickerState extends State<FxPendingProofPicker> {
     if (result == null) return;
     for (final f in result.files) {
       if (f.bytes == null) continue;
-      files.add(PendingProofFile(fileName: f.name, bytes: f.bytes!, mimeType: _mime(f.extension)));
+      files.add(
+        PendingProofFile(
+          fileName: f.name,
+          bytes: f.bytes!,
+          mimeType: _mime(f.extension),
+        ),
+      );
     }
     setState(() {});
   }
 
   String? _mime(String? ext) => switch (ext?.toLowerCase()) {
-        'jpg' || 'jpeg' => 'image/jpeg',
-        'png' => 'image/png',
-        'webp' => 'image/webp',
-        'pdf' => 'application/pdf',
-        _ => null,
-      };
+    'jpg' || 'jpeg' => 'image/jpeg',
+    'png' => 'image/png',
+    'webp' => 'image/webp',
+    'pdf' => 'application/pdf',
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +302,15 @@ class FxPendingProofPickerState extends State<FxPendingProofPicker> {
           label: const Text('Attach proof (optional)'),
         ),
         if (files.isNotEmpty)
-          ...files.map((f) => Text('• ${f.fileName}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12))),
+          ...files.map(
+            (f) => Text(
+              '• ${f.fileName}',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
+          ),
       ],
     );
   }

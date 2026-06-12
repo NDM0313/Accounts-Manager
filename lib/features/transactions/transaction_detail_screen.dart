@@ -25,8 +25,11 @@ class TransactionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final txAsync = ref.watch(transactionDetailProvider(transactionId));
-    final journalAsync = ref.watch(journalForTransactionProvider(transactionId));
-    final txDate = txAsync.whenOrNull(data: (tx) => tx.transactionDate) ?? DateTime.now();
+    final journalAsync = ref.watch(
+      journalForTransactionProvider(transactionId),
+    );
+    final txDate =
+        txAsync.whenOrNull(data: (tx) => tx.transactionDate) ?? DateTime.now();
     final closedAsync = ref.watch(isDayClosedForDateProvider(txDate));
     final fmt = NumberFormat('#,##0.00');
     final dtFmt = DateFormat('d MMM yyyy • HH:mm');
@@ -42,7 +45,9 @@ class TransactionDetailScreen extends ConsumerWidget {
           final fromLine = tx.lines.where((l) => l.debitPkr > 0).firstOrNull;
           final toLine = tx.lines.where((l) => l.creditPkr > 0).firstOrNull;
           final ts = tx.postedAt ?? tx.createdAt ?? tx.transactionDate;
-          final txnLabel = tx.transactionNo != null ? '#${tx.transactionNo}' : '#${tx.id.substring(0, 8).toUpperCase()}';
+          final txnLabel = tx.transactionNo != null
+              ? '#${tx.transactionNo}'
+              : '#${tx.id.substring(0, 8).toUpperCase()}';
           final isClosed = closedAsync.whenOrNull(data: (v) => v) ?? false;
 
           return Column(
@@ -64,11 +69,20 @@ class TransactionDetailScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               FxSectionLabel(label: 'Transaction ID'),
-                              Text(txnLabel, style: AppTypography.headlineLg(context.fx.onSurface, context: context)),
+                              Text(
+                                txnLabel,
+                                style: AppTypography.headlineLg(
+                                  context.fx.onSurface,
+                                  context: context,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                 dtFmt.format(ts.toLocal()),
-                                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                                style: AppTypography.bodyMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ),
                               ),
                             ],
                           ),
@@ -95,7 +109,9 @@ class TransactionDetailScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: context.fx.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusXl,
+                        ),
                         border: Border.all(color: context.fx.outlineVariant),
                       ),
                       child: Column(
@@ -108,12 +124,18 @@ class TransactionDetailScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 fmt.format(tx.totalForeignAmount),
-                                style: AppTypography.currencyDisplay(color: context.fx.onSurface, context: context),
+                                style: AppTypography.currencyDisplay(
+                                  color: context.fx.onSurface,
+                                  context: context,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 tx.currencyCode,
-                                style: AppTypography.headlineMd(context.fx.onSurfaceVariant, context: context),
+                                style: AppTypography.headlineMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ),
                               ),
                             ],
                           ),
@@ -122,7 +144,10 @@ class TransactionDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 8),
                           Text(
                             'PKR ${fmt.format(tx.totalBaseAmountPkr)} @ ${fmt.format(tx.rateUsed)}',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
                           ),
                         ],
                       ),
@@ -130,15 +155,31 @@ class TransactionDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     _DetailGrid(
                       items: [
-                        _DetailItem('Date', DateFormat('d MMM yyyy').format(tx.transactionDate)),
+                        _DetailItem(
+                          'Date',
+                          DateFormat('d MMM yyyy').format(tx.transactionDate),
+                        ),
                         if (tx.partyId != null)
                           _DetailItem(
                             'Party',
                             _partyLabel(tx),
-                            onTap: () => context.push('/parties/${tx.partyId}/ledger'),
+                            onTap: () =>
+                                context.push('/parties/${tx.partyId}/ledger'),
                           ),
-                        _DetailItem('From', fromLine != null ? '${fromLine.accountCode ?? ''}\n${fromLine.accountName ?? ''}'.trim() : '—'),
-                        _DetailItem('To', toLine != null ? '${toLine.accountCode ?? ''}\n${toLine.accountName ?? ''}'.trim() : '—'),
+                        _DetailItem(
+                          'From',
+                          fromLine != null
+                              ? '${fromLine.accountCode ?? ''}\n${fromLine.accountName ?? ''}'
+                                    .trim()
+                              : '—',
+                        ),
+                        _DetailItem(
+                          'To',
+                          toLine != null
+                              ? '${toLine.accountCode ?? ''}\n${toLine.accountName ?? ''}'
+                                    .trim()
+                              : '—',
+                        ),
                         _DetailItem('Currency', tx.currencyCode),
                         _DetailItem('Rate', fmt.format(tx.rateUsed)),
                       ],
@@ -148,7 +189,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                         transactionId: transactionId,
                         groupId: tx.exchangeGroupId!,
                       ),
-                    if (tx.description != null && tx.description!.isNotEmpty) ...[
+                    if (tx.description != null &&
+                        tx.description!.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       FxSectionLabel(label: 'Notes'),
                       const SizedBox(height: 8),
@@ -157,10 +199,18 @@ class TransactionDetailScreen extends ConsumerWidget {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: context.fx.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
                           border: Border.all(color: context.fx.outlineVariant),
                         ),
-                        child: Text(tx.description!, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                        child: Text(
+                          tx.description!,
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ),
+                        ),
                       ),
                     ],
                     if (isClosed && !tx.isVoided)
@@ -177,7 +227,9 @@ class TransactionDetailScreen extends ConsumerWidget {
                     if (!tx.isVoided && !tx.isDraft)
                       Consumer(
                         builder: (context, ref, _) {
-                          final profile = ref.watch(currentProfileProvider).value;
+                          final profile = ref
+                              .watch(currentProfileProvider)
+                              .value;
                           if (profile == null) return const SizedBox.shrink();
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
@@ -204,7 +256,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                         return Padding(
                           padding: const EdgeInsets.only(top: 16),
                           child: OutlinedButton(
-                            onPressed: () => context.push('/journal/${journal.id}'),
+                            onPressed: () =>
+                                context.push('/journal/${journal.id}'),
                             child: Text('View journal ${journal.entryNo}'),
                           ),
                         );
@@ -222,13 +275,16 @@ class TransactionDetailScreen extends ConsumerWidget {
                     child: const Text('Restore transaction'),
                   ),
                 ),
-              if (!tx.isVoided) _ActionRow(
-                tx: tx,
-                dayClosed: isClosed,
-                onEdit: () => context.push('/transactions/$transactionId/edit'),
-                onDelete: () => _voidTransaction(context, ref, tx),
-                onAudit: () => context.push('/transactions/$transactionId/audit'),
-              ),
+              if (!tx.isVoided)
+                _ActionRow(
+                  tx: tx,
+                  dayClosed: isClosed,
+                  onEdit: () =>
+                      context.push('/transactions/$transactionId/edit'),
+                  onDelete: () => _voidTransaction(context, ref, tx),
+                  onAudit: () =>
+                      context.push('/transactions/$transactionId/audit'),
+                ),
             ],
           );
         },
@@ -261,47 +317,68 @@ class TransactionDetailScreen extends ConsumerWidget {
             maxLines: 2,
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('Restore')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              child: const Text('Restore'),
+            ),
           ],
         );
       },
     );
     if (reason == null || reason.isEmpty) return;
     try {
-      await ref.read(transactionRepositoryProvider).restoreTransaction(
-            transactionId: transactionId,
-            reason: reason,
-          );
+      await ref
+          .read(transactionRepositoryProvider)
+          .restoreTransaction(transactionId: transactionId, reason: reason);
       _invalidateAll(ref);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction restored.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Transaction restored.')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
       }
     }
   }
 
-  Future<void> _voidTransaction(BuildContext context, WidgetRef ref, FxTransaction tx) async {
-    final reason = await showFxDeleteTransactionDialog(context, isDraft: tx.isDraft);
+  Future<void> _voidTransaction(
+    BuildContext context,
+    WidgetRef ref,
+    FxTransaction tx,
+  ) async {
+    final reason = await showFxDeleteTransactionDialog(
+      context,
+      isDraft: tx.isDraft,
+    );
     if (reason == null || reason.isEmpty) return;
     try {
-      await ref.read(transactionRepositoryProvider).deleteTransaction(
-            transactionId: transactionId,
-            reason: reason,
-          );
+      await ref
+          .read(transactionRepositoryProvider)
+          .deleteTransaction(transactionId: transactionId, reason: reason);
       _invalidateAll(ref);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tx.isDraft ? 'Draft deleted.' : 'Transaction voided.')),
+          SnackBar(
+            content: Text(
+              tx.isDraft ? 'Draft deleted.' : 'Transaction voided.',
+            ),
+          ),
         );
         context.pop();
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
       }
     }
   }
@@ -321,21 +398,28 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   Future<void> _post(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(transactionRepositoryProvider).postTransaction(transactionId);
+      await ref
+          .read(transactionRepositoryProvider)
+          .postTransaction(transactionId);
       _invalidateAll(ref);
       if (context.mounted) {
         context.pushReplacement('/transactions/$transactionId/complete');
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Post failed: $e')));
       }
     }
   }
 }
 
 class _LinkedExchangeBanner extends ConsumerWidget {
-  const _LinkedExchangeBanner({required this.transactionId, required this.groupId});
+  const _LinkedExchangeBanner({
+    required this.transactionId,
+    required this.groupId,
+  });
 
   final String transactionId;
   final String groupId;
@@ -350,7 +434,9 @@ class _LinkedExchangeBanner extends ConsumerWidget {
       data: (linked) {
         if (linked.length < 2) return const SizedBox.shrink();
         final index = linked.indexWhere((t) => t.id == transactionId);
-        final label = index >= 0 ? 'Linked exchange · Part ${index + 1} of ${linked.length}' : 'Linked exchange';
+        final label = index >= 0
+            ? 'Linked exchange · Part ${index + 1} of ${linked.length}'
+            : 'Linked exchange';
 
         return Padding(
           padding: const EdgeInsets.only(top: 16),
@@ -368,7 +454,13 @@ class _LinkedExchangeBanner extends ConsumerWidget {
                   children: [
                     Icon(Icons.link, size: 18, color: context.fx.primary),
                     const SizedBox(width: 8),
-                    Text(label, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      label,
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ).copyWith(fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -380,7 +472,10 @@ class _LinkedExchangeBanner extends ConsumerWidget {
                         onTap: () => context.push('/transactions/${t.id}'),
                         child: Text(
                           '→ ${t.transactionType.label}: ${t.transactionNo ?? t.id.substring(0, 8)}',
-                          style: AppTypography.bodyMd(context.fx.primary, context: context).copyWith(fontSize: 12),
+                          style: AppTypography.bodyMd(
+                            context.fx.primary,
+                            context: context,
+                          ).copyWith(fontSize: 12),
                         ),
                       ),
                     ),
@@ -468,8 +563,8 @@ class _CompletedPill extends StatelessWidget {
     final (label, fg) = isPosted
         ? ('Completed', context.fx.tertiary)
         : isDraft
-            ? ('Pending', context.fx.onSurfaceVariant)
-            : (status, context.fx.error);
+        ? ('Pending', context.fx.onSurfaceVariant)
+        : (status, context.fx.error);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -483,7 +578,13 @@ class _CompletedPill extends StatelessWidget {
         children: [
           if (isPosted) Icon(Icons.check_circle, size: 16, color: fg),
           if (isPosted) const SizedBox(width: 6),
-          Text(label, style: AppTypography.labelCaps(fg, context: context).copyWith(fontSize: 10)),
+          Text(
+            label,
+            style: AppTypography.labelCaps(
+              fg,
+              context: context,
+            ).copyWith(fontSize: 10),
+          ),
         ],
       ),
     );
@@ -534,7 +635,9 @@ class _DetailGrid extends StatelessWidget {
                   Text(
                     item.value,
                     style: AppTypography.bodyMd(
-                      item.onTap != null ? context.fx.primary : context.fx.onSurface,
+                      item.onTap != null
+                          ? context.fx.primary
+                          : context.fx.onSurface,
                       context: context,
                     ),
                     maxLines: 2,

@@ -44,7 +44,9 @@ class FxMessage {
       id: json['id'] as String,
       conversationId: json['conversation_id'] as String,
       senderId: json['sender_id'] as String,
-      messageType: FxMessageType.fromDb(json['message_type'] as String?) ?? FxMessageType.text,
+      messageType:
+          FxMessageType.fromDb(json['message_type'] as String?) ??
+          FxMessageType.text,
       body: json['body'] as String? ?? '',
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
       createdAt: DateTime.parse(json['created_at'] as String),

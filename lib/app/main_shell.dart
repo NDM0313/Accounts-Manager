@@ -14,9 +14,8 @@ class AuthGate extends ConsumerWidget {
     final profileAsync = ref.watch(currentProfileProvider);
 
     return profileAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => ProfileNotConfiguredScreen(),
       data: (profile) {
         if (profile == null) return const ProfileNotConfiguredScreen();

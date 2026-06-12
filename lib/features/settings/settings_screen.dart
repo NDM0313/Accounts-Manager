@@ -24,9 +24,13 @@ class SettingsScreen extends ConsumerWidget {
 
     return FxObsidianPage(
       padding: EdgeInsets.fromLTRB(
-        MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+        MediaQuery.sizeOf(context).width >= 900
+            ? AppSpacing.marginDesktop
+            : AppSpacing.marginMobile,
         16,
-        MediaQuery.sizeOf(context).width >= 900 ? AppSpacing.marginDesktop : AppSpacing.marginMobile,
+        MediaQuery.sizeOf(context).width >= 900
+            ? AppSpacing.marginDesktop
+            : AppSpacing.marginMobile,
         88,
       ),
       child: ListView(
@@ -38,48 +42,74 @@ class SettingsScreen extends ConsumerWidget {
               final name = profile?.fullName ?? 'User';
               final email = profile?.email ?? '';
               final branchLabel = branchAsync.whenOrNull(
-                data: (ctx) => ctx != null ? '${ctx.companyName} · ${ctx.branchName}' : null,
+                data: (ctx) => ctx != null
+                    ? '${ctx.companyName} · ${ctx.branchName}'
+                    : null,
               );
               final initials = name.isNotEmpty
-                  ? name.split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase()
+                  ? name
+                        .split(' ')
+                        .map((p) => p.isNotEmpty ? p[0] : '')
+                        .take(2)
+                        .join()
+                        .toUpperCase()
                   : '?';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: FxPremiumCard(
                   padding: const EdgeInsets.all(20),
                   child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: context.fx.primary,
-                      child: Text(
-                        initials,
-                        style: AppTypography.headlineMd(context.fx.onPrimary, context: context),
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: context.fx.primary,
+                        child: Text(
+                          initials,
+                          style: AppTypography.headlineMd(
+                            context.fx.onPrimary,
+                            context: context,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(name, style: AppTypography.headlineMd(Theme.of(context).colorScheme.onSurface, context: context)),
-                          if (email.isNotEmpty)
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              email,
-                              style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+                              name,
+                              style: AppTypography.headlineMd(
+                                Theme.of(context).colorScheme.onSurface,
+                                context: context,
+                              ),
                             ),
-                          if (branchLabel != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              branchLabel,
-                              style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context).copyWith(fontSize: 12),
-                            ),
+                            if (email.isNotEmpty)
+                              Text(
+                                email,
+                                style: AppTypography.bodyMd(
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  context: context,
+                                ),
+                              ),
+                            if (branchLabel != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                branchLabel,
+                                style: AppTypography.bodyMd(
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  context: context,
+                                ).copyWith(fontSize: 12),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -139,7 +169,8 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: _themeLabel(themeMode),
                 trailing: Switch(
                   value: themeMode == ThemeMode.dark,
-                  onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
+                  onChanged: (_) =>
+                      ref.read(themeModeProvider.notifier).toggle(),
                 ),
                 onTap: () => ref.read(themeModeProvider.notifier).toggle(),
               ),
@@ -180,7 +211,11 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Security',
                 subtitle: 'Session & permissions info',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Security settings managed via Supabase auth and RLS.')),
+                  const SnackBar(
+                    content: Text(
+                      'Security settings managed via Supabase auth and RLS.',
+                    ),
+                  ),
                 ),
               ),
               FxSettingsRow(
@@ -198,10 +233,10 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _themeLabel(ThemeMode mode) => switch (mode) {
-        ThemeMode.dark => 'Dark (Executive FX)',
-        ThemeMode.light => 'Light (Executive FX)',
-        ThemeMode.system => 'System',
-      };
+    ThemeMode.dark => 'Dark (Executive FX)',
+    ThemeMode.light => 'Light (Executive FX)',
+    ThemeMode.system => 'System',
+  };
 
   Future<void> _exportTrialBalance(BuildContext context, WidgetRef ref) async {
     try {
@@ -213,13 +248,17 @@ class SettingsScreen extends ConsumerWidget {
         );
         return;
       }
-      await SharePlus.instance.share(ShareParams(
-        text: formatTrialBalanceCsv(rows),
-        subject: 'FX Ledger Trial Balance',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          text: formatTrialBalanceCsv(rows),
+          subject: 'FX Ledger Trial Balance',
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
   }

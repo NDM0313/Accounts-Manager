@@ -37,25 +37,47 @@ class JournalEntryDetailScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Icon(
-                      entry.isBalanced ? Icons.check_circle : Icons.warning_amber,
-                      color: entry.isBalanced ? context.fx.tertiary : context.fx.error,
+                      entry.isBalanced
+                          ? Icons.check_circle
+                          : Icons.warning_amber,
+                      color: entry.isBalanced
+                          ? context.fx.tertiary
+                          : context.fx.error,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(entry.entryNo, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
+                          Text(
+                            entry.entryNo,
+                            style: AppTypography.headlineMd(
+                              context.fx.onSurface,
+                              context: context,
+                            ),
+                          ),
                           Text(
                             entry.isBalanced ? 'Balanced' : 'Out of balance',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
                           ),
                           Text(
                             'Date: ${entry.entryDate.toIso8601String().split('T').first}',
-                            style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 12),
                           ),
                           if (entry.description != null)
-                            Text(entry.description!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                            Text(
+                              entry.description!,
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -67,7 +89,10 @@ class JournalEntryDetailScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 'Dr ${fmt.format(entry.totalDebit)} · Cr ${fmt.format(entry.totalCredit)}',
-                style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ).copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
               FxSectionLabel(label: 'Lines'),
@@ -89,11 +114,17 @@ class JournalEntryDetailScreen extends ConsumerWidget {
                           children: [
                             Text(
                               '${line.accountCode} · ${line.accountName ?? ''}',
-                              style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurface,
+                                context: context,
+                              ).copyWith(fontWeight: FontWeight.w600),
                             ),
                             Text(
                               '${line.currencyCode} ${fmt.format(line.foreignAmount)}',
-                              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ).copyWith(fontSize: 12),
                             ),
                           ],
                         ),
@@ -101,8 +132,20 @@ class JournalEntryDetailScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Dr ${fmt.format(line.debitPkr)}', style: AppTypography.labelMono(context.fx.onSurfaceVariant, context: context)),
-                          Text('Cr ${fmt.format(line.creditPkr)}', style: AppTypography.labelMono(context.fx.onSurfaceVariant, context: context)),
+                          Text(
+                            'Dr ${fmt.format(line.debitPkr)}',
+                            style: AppTypography.labelMono(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
+                          ),
+                          Text(
+                            'Cr ${fmt.format(line.creditPkr)}',
+                            style: AppTypography.labelMono(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ),
+                          ),
                         ],
                       ),
                     ],

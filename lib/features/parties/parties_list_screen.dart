@@ -30,11 +30,15 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
 
-    final fallback = widget.initialFilter == FxPartyType.agent ? '/accounts-hub' : '/parties';
+    final fallback = widget.initialFilter == FxPartyType.agent
+        ? '/accounts-hub'
+        : '/parties';
 
     return FxPageScaffold(
       fallbackRoute: fallback,
-      title: Text(widget.initialFilter == FxPartyType.agent ? 'Agent Ledger' : 'Parties'),
+      title: Text(
+        widget.initialFilter == FxPartyType.agent ? 'Agent Ledger' : 'Parties',
+      ),
       floatingActionButton: widget.initialFilter == FxPartyType.agent
           ? null
           : FloatingActionButton(
@@ -64,7 +68,10 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
             const SizedBox(height: 8),
             Text(
               'Tap a party to view settlement history. Link parties when creating Settlement Send/Receive.',
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -76,7 +83,10 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                     return Center(
                       child: Text(
                         'No parties found.',
-                        style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+                        style: AppTypography.bodyMd(
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                          context: context,
+                        ),
                       ),
                     );
                   }
@@ -87,9 +97,13 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                       final p = parties[i];
                       return Material(
                         color: context.fx.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
+                        ),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusLg,
+                          ),
                           onTap: () => context.push('/parties/${p.id}/ledger'),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -97,15 +111,31 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(p.name, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontWeight: FontWeight.w600)),
+                                      Text(
+                                        p.name,
+                                        style: AppTypography.bodyMd(
+                                          context.fx.onSurface,
+                                          context: context,
+                                        ).copyWith(fontWeight: FontWeight.w600),
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text('${p.code} · ${p.partyType.label}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
+                                      Text(
+                                        '${p.code} · ${p.partyType.label}',
+                                        style: AppTypography.bodyMd(
+                                          context.fx.onSurfaceVariant,
+                                          context: context,
+                                        ).copyWith(fontSize: 12),
+                                      ),
                                     ],
                                   ),
                                 ),
-                                Icon(Icons.chevron_right, color: context.fx.outline),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: context.fx.outline,
+                                ),
                               ],
                             ),
                           ),

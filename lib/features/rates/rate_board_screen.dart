@@ -45,27 +45,48 @@ class RateBoardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Rate Board', style: AppTypography.headlineLg(Theme.of(context).colorScheme.onSurface, context: context)),
+          Text(
+            'Rate Board',
+            style: AppTypography.headlineLg(
+              Theme.of(context).colorScheme.onSurface,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Latest PKR reference rates for your branch. Cross pairs are derived automatically.',
-            style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              Theme.of(context).colorScheme.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const SizedBox(height: 16),
           pairsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => const FxObsidianReportPanel(
-              child: Text('Unable to load rates. Ensure your profile is configured.'),
+              child: Text(
+                'Unable to load rates. Ensure your profile is configured.',
+              ),
             ),
             data: (pairs) {
-              if (pairs.isEmpty) return const FxObsidianReportPanel(child: Text('No rates available yet.'));
+              if (pairs.isEmpty) {
+                return const FxObsidianReportPanel(
+                  child: Text('No rates available yet.'),
+                );
+              }
               final derived = pairs.where((p) => p.isDerived).toList();
               final pkrPairs = pairs.where((p) => !p.isDerived).toList();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (pkrPairs.isNotEmpty) ...[
-                    Text('PKR pairs', style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context)),
+                    Text(
+                      'PKR pairs',
+                      style: AppTypography.labelCaps(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     LayoutBuilder(
                       builder: (context, c) {
@@ -81,8 +102,14 @@ class RateBoardScreen extends ConsumerWidget {
                                 pairLabel: p.pairLabel,
                                 rateLabel: fmt.format(p.referenceRate),
                                 isStale: p.isStale,
-                                onEdit: p.rateId != null ? () => context.push('/rates/edit/${p.rateId}') : null,
-                                onHistory: () => context.push('/rates/history/${p.fromCurrency}'),
+                                onEdit: p.rateId != null
+                                    ? () => context.push(
+                                        '/rates/edit/${p.rateId}',
+                                      )
+                                    : null,
+                                onHistory: () => context.push(
+                                  '/rates/history/${p.fromCurrency}',
+                                ),
                               ),
                             );
                           }).toList(),
@@ -92,11 +119,20 @@ class RateBoardScreen extends ConsumerWidget {
                   ],
                   if (derived.isNotEmpty) ...[
                     const SizedBox(height: 20),
-                    Text('Derived cross rates', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+                    Text(
+                      'Derived cross rates',
+                      style: AppTypography.labelCaps(
+                        context.fx.outline,
+                        context: context,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       'Calculated from PKR rates — reference only',
-                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -119,17 +155,27 @@ class RateBoardScreen extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 24),
-          Text('Currency rates', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+          Text(
+            'Currency rates',
+            style: AppTypography.labelCaps(
+              context.fx.outline,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 8),
           ratesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => FxObsidianReportPanel(child: Text('Error: $e')),
             data: (rates) {
               if (rates.isEmpty) {
-                return const FxObsidianReportPanel(child: Text('No rates available yet.'));
+                return const FxObsidianReportPanel(
+                  child: Text('No rates available yet.'),
+                );
               }
               return Column(
-                children: rates.map((r) => _CurrencyRateTile(rate: r, fmt: fmt)).toList(),
+                children: rates
+                    .map((r) => _CurrencyRateTile(rate: r, fmt: fmt))
+                    .toList(),
               );
             },
           ),
@@ -158,7 +204,9 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
     if (_history != null || _loadingHistory) return;
     setState(() => _loadingHistory = true);
     try {
-      final rows = await ref.read(rateRepositoryProvider).fetchRateHistory(widget.rate.currencyCode);
+      final rows = await ref
+          .read(rateRepositoryProvider)
+          .fetchRateHistory(widget.rate.currencyCode);
       if (mounted) setState(() => _history = rows);
     } finally {
       if (mounted) setState(() => _loadingHistory = false);
@@ -166,7 +214,8 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
   }
 
   bool get _isStale {
-    return DateTime.now().difference(widget.rate.effectiveAt.toLocal()) > RateSuggestionService.staleThreshold;
+    return DateTime.now().difference(widget.rate.effectiveAt.toLocal()) >
+        RateSuggestionService.staleThreshold;
   }
 
   @override
@@ -179,40 +228,75 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
       decoration: BoxDecoration(
         color: context.fx.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: _isStale ? context.fx.warning.withValues(alpha: 0.4) : context.fx.outlineVariant),
+        border: Border.all(
+          color: _isStale
+              ? context.fx.warning.withValues(alpha: 0.4)
+              : context.fx.outlineVariant,
+        ),
       ),
       child: Column(
         children: [
           ListTile(
-            title: Text(r.currencyCode, style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 18)),
+            title: Text(
+              r.currencyCode,
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 18),
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Ref ${fmt.format(r.referenceRate)} · Buy ${fmt.format(r.buyRate)} · Sell ${fmt.format(r.sellRate)}'),
+                Text(
+                  'Ref ${fmt.format(r.referenceRate)} · Buy ${fmt.format(r.buyRate)} · Sell ${fmt.format(r.sellRate)}',
+                ),
                 Text(
                   '${RateSourceLabels.label(r.source)} · ${DateFormat.yMMMd().add_jm().format(r.effectiveAt.toLocal())}',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ).copyWith(fontSize: 11),
                 ),
                 if (_isStale)
-                  Text('Rate may be outdated', style: AppTypography.bodyMd(context.fx.warning, context: context).copyWith(fontSize: 11)),
+                  Text(
+                    'Rate may be outdated',
+                    style: AppTypography.bodyMd(
+                      context.fx.warning,
+                      context: context,
+                    ).copyWith(fontSize: 11),
+                  ),
               ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: context.fx.onSurfaceVariant),
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: context.fx.onSurfaceVariant,
+                  ),
                   itemBuilder: (ctx) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit rate')),
-                    const PopupMenuItem(value: 'history', child: Text('View history')),
-                    const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit rate'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'history',
+                      child: Text('View history'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'duplicate',
+                      child: Text('Duplicate'),
+                    ),
                     const PopupMenuItem(value: 'buy', child: Text('New buy')),
                     const PopupMenuItem(value: 'sell', child: Text('New sell')),
                     PopupMenuItem(
                       enabled: FeatureFlags.rateDeactivateEnabled,
                       value: 'deactivate',
                       child: Tooltip(
-                        message: FeatureFlags.rateDeactivateEnabled ? '' : 'Rate deactivate unavailable',
+                        message: FeatureFlags.rateDeactivateEnabled
+                            ? ''
+                            : 'Rate deactivate unavailable',
                         child: const Text('Deactivate'),
                       ),
                     ),
@@ -229,9 +313,13 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
                         break;
                       case 'buy':
                       case 'sell':
-                        final type = action == 'buy' ? 'currency_buy' : 'currency_sell';
+                        final type = action == 'buy'
+                            ? 'currency_buy'
+                            : 'currency_sell';
                         final rate = action == 'buy' ? r.buyRate : r.sellRate;
-                        context.push('/transactions/new?type=$type&currency=${r.currencyCode}&rate=$rate');
+                        context.push(
+                          '/transactions/new?type=$type&currency=${r.currencyCode}&rate=$rate',
+                        );
                     }
                   },
                 ),
@@ -250,29 +338,54 @@ class _CurrencyRateTileState extends ConsumerState<_CurrencyRateTile> {
             Padding(
               padding: const EdgeInsets.all(12),
               child: _loadingHistory
-                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : (_history == null || _history!.isEmpty)
-                      ? Text('No history', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context))
-                      : Column(
-                          children: _history!.map((h) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      DateFormat.yMMMd().add_jm().format(h.effectiveAt.toLocal()),
-                                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
-                                    ),
+                  ? Text(
+                      'No history',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ),
+                    )
+                  : Column(
+                      children: _history!.map((h) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  DateFormat.yMMMd().add_jm().format(
+                                    h.effectiveAt.toLocal(),
                                   ),
-                                  Text('B ${fmt.format(h.buyRate)}', style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 11)),
-                                  const SizedBox(width: 8),
-                                  Text('S ${fmt.format(h.sellRate)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
-                                ],
+                                  style: AppTypography.bodyMd(
+                                    context.fx.onSurfaceVariant,
+                                    context: context,
+                                  ).copyWith(fontSize: 11),
+                                ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                              Text(
+                                'B ${fmt.format(h.buyRate)}',
+                                style: AppTypography.labelMono(
+                                  context.fx.tertiary,
+                                  context: context,
+                                ).copyWith(fontSize: 11),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'S ${fmt.format(h.sellRate)}',
+                                style: AppTypography.bodyMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ).copyWith(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
             ),
           ],
         ],

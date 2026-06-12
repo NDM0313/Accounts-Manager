@@ -19,7 +19,8 @@ class ManualJournalScreen extends ConsumerStatefulWidget {
   const ManualJournalScreen({super.key});
 
   @override
-  ConsumerState<ManualJournalScreen> createState() => _ManualJournalScreenState();
+  ConsumerState<ManualJournalScreen> createState() =>
+      _ManualJournalScreenState();
 }
 
 class _ManualJournalLine {
@@ -39,7 +40,10 @@ class _ManualJournalLine {
 class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionCtrl = TextEditingController();
-  final _lines = [_ManualJournalLine(accountCode: '1110'), _ManualJournalLine(accountCode: '5800')];
+  final _lines = [
+    _ManualJournalLine(accountCode: '1110'),
+    _ManualJournalLine(accountCode: '5800'),
+  ];
   DateTime _entryDate = DateTime.now();
   bool _busy = false;
 
@@ -53,12 +57,18 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
   }
 
   bool _lineHasBothSides(_ManualJournalLine l) => manualJournalLineHasBothSides(
-        ManualJournalLineAmounts(debitText: l.debitCtrl.text, creditText: l.creditCtrl.text),
-      );
+    ManualJournalLineAmounts(
+      debitText: l.debitCtrl.text,
+      creditText: l.creditCtrl.text,
+    ),
+  );
 
   Iterable<ManualJournalLineAmounts> get _lineAmounts => _lines.map(
-        (l) => ManualJournalLineAmounts(debitText: l.debitCtrl.text, creditText: l.creditCtrl.text),
-      );
+    (l) => ManualJournalLineAmounts(
+      debitText: l.debitCtrl.text,
+      creditText: l.creditCtrl.text,
+    ),
+  );
 
   double get _totalDebit => manualJournalTotalDebit(_lineAmounts);
 
@@ -82,7 +92,9 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Profile error: $e')),
         data: (profile) {
-          if (profile == null) return const Center(child: Text('Profile not configured.'));
+          if (profile == null) {
+            return const Center(child: Text('Profile not configured.'));
+          }
           return accountsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Accounts error: $e')),
@@ -93,7 +105,11 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
     );
   }
 
-  Widget _buildForm(BuildContext context, FxUserProfile profile, List<FxAccount> accounts) {
+  Widget _buildForm(
+    BuildContext context,
+    FxUserProfile profile,
+    List<FxAccount> accounts,
+  ) {
     final dateLabel = DateFormat('d MMM yyyy').format(_entryDate);
 
     return Form(
@@ -108,8 +124,13 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                   onTap: _busy
                       ? null
                       : () async {
-                          final picked = await FxObsidianPickers.showDate(context, initialDate: _entryDate);
-                          if (picked != null) setState(() => _entryDate = picked);
+                          final picked = await FxObsidianPickers.showDate(
+                            context,
+                            initialDate: _entryDate,
+                          );
+                          if (picked != null) {
+                            setState(() => _entryDate = picked);
+                          }
                         },
                   child: Row(
                     children: [
@@ -118,11 +139,20 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FxSectionLabel(label: 'Entry date'),
-                            Text(dateLabel, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                            Text(
+                              dateLabel,
+                              style: AppTypography.bodyMd(
+                                context.fx.onSurface,
+                                context: context,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Icon(Icons.calendar_today_outlined, color: context.fx.onSurfaceVariant),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        color: context.fx.onSurfaceVariant,
+                      ),
                     ],
                   ),
                 ),
@@ -138,7 +168,10 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Enter amount in Debit or Credit per line, not both.',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ).copyWith(fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 for (var i = 0; i < _lines.length; i++) ...[
@@ -146,7 +179,13 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                   const SizedBox(height: 12),
                 ],
                 OutlinedButton.icon(
-                  onPressed: _busy ? null : () => setState(() => _lines.add(_ManualJournalLine(accountCode: '1110'))),
+                  onPressed: _busy
+                      ? null
+                      : () => setState(
+                          () => _lines.add(
+                            _ManualJournalLine(accountCode: '1110'),
+                          ),
+                        ),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Add line'),
                 ),
@@ -157,26 +196,42 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                     color: _hasInvalidLines
                         ? context.fx.errorContainer.withValues(alpha: 0.3)
                         : _isBalanced
-                            ? context.fx.tertiaryContainer
-                            : context.fx.errorContainer.withValues(alpha: 0.3),
+                        ? context.fx.tertiaryContainer
+                        : context.fx.errorContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     border: Border.all(
-                      color: _hasInvalidLines ? context.fx.error : context.fx.outlineVariant,
+                      color: _hasInvalidLines
+                          ? context.fx.error
+                          : context.fx.outlineVariant,
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Debit: ${_totalDebit.toStringAsFixed(2)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
-                      Text('Credit: ${_totalCredit.toStringAsFixed(2)}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                      Text(
+                        'Debit: ${_totalDebit.toStringAsFixed(2)}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      Text(
+                        'Credit: ${_totalCredit.toStringAsFixed(2)}',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurface,
+                          context: context,
+                        ),
+                      ),
                       Text(
                         _hasInvalidLines
                             ? 'Invalid line'
                             : _isBalanced
-                                ? 'Balanced'
-                                : 'Out of balance',
+                            ? 'Balanced'
+                            : 'Out of balance',
                         style: AppTypography.labelCaps(
-                          _hasInvalidLines || !_isBalanced ? context.fx.error : context.fx.tertiary,
+                          _hasInvalidLines || !_isBalanced
+                              ? context.fx.error
+                              : context.fx.tertiary,
                           context: context,
                         ),
                       ),
@@ -205,7 +260,9 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
       decoration: BoxDecoration(
         color: context.fx.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: invalid ? context.fx.error : context.fx.outlineVariant),
+        border: Border.all(
+          color: invalid ? context.fx.error : context.fx.outlineVariant,
+        ),
       ),
       child: Column(
         children: [
@@ -214,22 +271,37 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   initialValue: line.accountCode,
-                  decoration: const InputDecoration(labelText: 'Account', isDense: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Account',
+                    isDense: true,
+                  ),
                   items: accounts
-                      .map((a) => DropdownMenuItem(value: a.code, child: Text('${a.code} · ${a.name}')))
+                      .map(
+                        (a) => DropdownMenuItem(
+                          value: a.code,
+                          child: Text('${a.code} · ${a.name}'),
+                        ),
+                      )
                       .toList(),
-                  onChanged: _busy ? null : (v) => setState(() => line.accountCode = v ?? line.accountCode),
+                  onChanged: _busy
+                      ? null
+                      : (v) => setState(
+                          () => line.accountCode = v ?? line.accountCode,
+                        ),
                 ),
               ),
               if (_lines.length > 2)
                 IconButton(
-                  icon: Icon(Icons.remove_circle_outline, color: context.fx.error),
+                  icon: Icon(
+                    Icons.remove_circle_outline,
+                    color: context.fx.error,
+                  ),
                   onPressed: _busy
                       ? null
                       : () => setState(() {
-                            _lines[index].dispose();
-                            _lines.removeAt(index);
-                          }),
+                          _lines[index].dispose();
+                          _lines.removeAt(index);
+                        }),
                 ),
             ],
           ),
@@ -240,10 +312,13 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                 child: FxObsidianFormField(
                   label: 'Debit PKR',
                   controller: line.debitCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   enabled: !_busy,
                   onChanged: (v) {
-                    if ((double.tryParse(v) ?? 0) > 0 && line.creditCtrl.text.isNotEmpty) {
+                    if ((double.tryParse(v) ?? 0) > 0 &&
+                        line.creditCtrl.text.isNotEmpty) {
                       line.creditCtrl.clear();
                     }
                     setState(() {});
@@ -255,10 +330,13 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
                 child: FxObsidianFormField(
                   label: 'Credit PKR',
                   controller: line.creditCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   enabled: !_busy,
                   onChanged: (v) {
-                    if ((double.tryParse(v) ?? 0) > 0 && line.debitCtrl.text.isNotEmpty) {
+                    if ((double.tryParse(v) ?? 0) > 0 &&
+                        line.debitCtrl.text.isNotEmpty) {
                       line.debitCtrl.clear();
                     }
                     setState(() {});
@@ -275,12 +353,16 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
   Future<void> _post(FxUserProfile profile, List<FxAccount> accounts) async {
     if (_hasInvalidLines) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Each line must be debit OR credit, not both.')),
+        const SnackBar(
+          content: Text('Each line must be debit OR credit, not both.'),
+        ),
       );
       return;
     }
     if (!_isBalanced) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Journal must balance.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Journal must balance.')));
       return;
     }
 
@@ -301,7 +383,9 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
         final credit = c > 0 && d == 0 ? c : 0.0;
         if (debit == 0 && credit == 0) continue;
         final accountId = accountIdFor(line.accountCode);
-        if (accountId == null) throw StateError('Unknown account ${line.accountCode}');
+        if (accountId == null) {
+          throw StateError('Unknown account ${line.accountCode}');
+        }
         inputs.add(
           ManualJournalLineInput(
             accountId: accountId,
@@ -314,23 +398,31 @@ class _ManualJournalScreenState extends ConsumerState<ManualJournalScreen> {
         );
       }
 
-      final entryId = await ref.read(journalRepositoryProvider).postManualJournal(
+      final entryId = await ref
+          .read(journalRepositoryProvider)
+          .postManualJournal(
             companyId: profile.companyId,
             branchId: profile.branchId,
             entryDate: _entryDate,
             lines: inputs,
-            description: _descriptionCtrl.text.isEmpty ? null : _descriptionCtrl.text,
+            description: _descriptionCtrl.text.isEmpty
+                ? null
+                : _descriptionCtrl.text,
           );
 
       ref.invalidate(trialBalanceProvider);
       ref.invalidate(trialBalanceTotalsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Journal posted.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Journal posted.')));
         context.pushReplacement('/journal/$entryId');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Post failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

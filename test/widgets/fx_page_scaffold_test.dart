@@ -17,7 +17,8 @@ void main() {
                     fallbackRoute: '/fallback',
                     title: const Text('Child'),
                     body: ElevatedButton(
-                      onPressed: () => fxSafePop(context, fallbackRoute: '/fallback'),
+                      onPressed: () =>
+                          fxSafePop(context, fallbackRoute: '/fallback'),
                       child: const Text('Back'),
                     ),
                   ),
@@ -57,7 +58,10 @@ void main() {
   testWidgets('FxPageScaffold back uses go when cannot pop', (tester) async {
     final router = GoRouter(
       routes: [
-        GoRoute(path: '/', builder: (_, _) => const SizedBox(key: Key('home'))),
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const SizedBox(key: Key('home')),
+        ),
         GoRoute(
           path: '/detail',
           builder: (_, _) => FxPageScaffold(

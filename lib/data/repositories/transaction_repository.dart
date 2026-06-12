@@ -15,7 +15,8 @@ class TransactionRepository {
       'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
       'fx_parties(code, name)';
 
-  static String _localDateIso([DateTime? date]) => localTransactionDateIso(date ?? DateTime.now());
+  static String _localDateIso([DateTime? date]) =>
+      localTransactionDateIso(date ?? DateTime.now());
 
   List<FxTransactionLineInput> _buildLines({
     required FxTransactionType type,
@@ -98,20 +99,20 @@ class TransactionRepository {
     _assertBalanced(lines);
 
     final txInsert = <String, dynamic>{
-          'company_id': companyId,
-          'branch_id': branchId,
-          'transaction_type': type.dbValue,
-          'status': 'draft',
-          'transaction_date': _localDateIso(transactionDate),
-          'currency_code': currencyCode,
-          'party_id': partyId,
-          'exchange_group_id': ?exchangeGroupId,
-          'total_foreign_amount': foreignAmount,
-          'rate_used': rateUsed,
-          'total_base_amount_pkr': baseAmountPkr,
-          'description': description,
-          'created_by': supabase.auth.currentUser?.id,
-        };
+      'company_id': companyId,
+      'branch_id': branchId,
+      'transaction_type': type.dbValue,
+      'status': 'draft',
+      'transaction_date': _localDateIso(transactionDate),
+      'currency_code': currencyCode,
+      'party_id': partyId,
+      'exchange_group_id': ?exchangeGroupId,
+      'total_foreign_amount': foreignAmount,
+      'rate_used': rateUsed,
+      'total_base_amount_pkr': baseAmountPkr,
+      'description': description,
+      'created_by': supabase.auth.currentUser?.id,
+    };
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
       txInsert.addAll(rateSnapshot.toJson());
     }
@@ -123,9 +124,9 @@ class TransactionRepository {
         .single();
 
     final txId = txRow['id'] as String;
-    await supabase.from('fx_transaction_lines').insert(
-          lines.map((l) => l.toJson(txId)).toList(),
-        );
+    await supabase
+        .from('fx_transaction_lines')
+        .insert(lines.map((l) => l.toJson(txId)).toList());
 
     return FxTransaction.fromJson(txRow);
   }
@@ -174,16 +175,17 @@ class TransactionRepository {
     _assertBalanced(lines);
 
     final txUpdate = <String, dynamic>{
-          'currency_code': currencyCode,
-          'party_id': partyId,
-          'exchange_group_id': ?exchangeGroupId,
-          if (transactionDate != null) 'transaction_date': _localDateIso(transactionDate),
-          'total_foreign_amount': foreignAmount,
-          'rate_used': rateUsed,
-          'total_base_amount_pkr': baseAmountPkr,
-          'description': description,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        };
+      'currency_code': currencyCode,
+      'party_id': partyId,
+      'exchange_group_id': ?exchangeGroupId,
+      if (transactionDate != null)
+        'transaction_date': _localDateIso(transactionDate),
+      'total_foreign_amount': foreignAmount,
+      'rate_used': rateUsed,
+      'total_base_amount_pkr': baseAmountPkr,
+      'description': description,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
       txUpdate.addAll(rateSnapshot.toJson());
     }
@@ -196,10 +198,13 @@ class TransactionRepository {
         .select(_txSelect)
         .single();
 
-    await supabase.from('fx_transaction_lines').delete().eq('transaction_id', transactionId);
-    await supabase.from('fx_transaction_lines').insert(
-          lines.map((l) => l.toJson(transactionId)).toList(),
-        );
+    await supabase
+        .from('fx_transaction_lines')
+        .delete()
+        .eq('transaction_id', transactionId);
+    await supabase
+        .from('fx_transaction_lines')
+        .insert(lines.map((l) => l.toJson(transactionId)).toList());
 
     return FxTransaction.fromJson(txRow);
   }
@@ -241,10 +246,7 @@ class TransactionRepository {
   }) async {
     await supabase.rpc(
       'fx_delete_transaction',
-      params: {
-        'p_transaction_id': transactionId,
-        'p_reason': reason,
-      },
+      params: {'p_transaction_id': transactionId, 'p_reason': reason},
     );
   }
 
@@ -254,10 +256,7 @@ class TransactionRepository {
   }) async {
     await supabase.rpc(
       'fx_restore_deleted_transaction',
-      params: {
-        'p_transaction_id': transactionId,
-        'p_reason': reason,
-      },
+      params: {'p_transaction_id': transactionId, 'p_reason': reason},
     );
   }
 
@@ -317,7 +316,10 @@ class TransactionRepository {
     return FxTransaction.fromJson(row as Map<String, dynamic>);
   }
 
-  Future<List<FxTransaction>> fetchByExchangeGroup(String branchId, String groupId) async {
+  Future<List<FxTransaction>> fetchByExchangeGroup(
+    String branchId,
+    String groupId,
+  ) async {
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
@@ -326,10 +328,17 @@ class TransactionRepository {
         .eq('is_deleted', false)
         .order('created_at');
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
-  Future<List<FxTransaction>> fetchByParty(String branchId, String partyId, {int limit = 100}) async {
+  Future<List<FxTransaction>> fetchByParty(
+    String branchId,
+    String partyId, {
+    int limit = 100,
+  }) async {
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
@@ -339,7 +348,10 @@ class TransactionRepository {
         .order('transaction_date', ascending: false)
         .limit(limit);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
   static String get _txSelectWithLines =>
@@ -387,8 +399,13 @@ class TransactionRepository {
       query = query.eq('currency_code', currencyCode);
     }
 
-    final rows = await query.order('transaction_date', ascending: true).limit(limit);
-    var txs = (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    final rows = await query
+        .order('transaction_date', ascending: true)
+        .limit(limit);
+    var txs = (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
 
     if (search.trim().isNotEmpty) {
       final q = search.trim().toLowerCase();
@@ -431,8 +448,13 @@ class TransactionRepository {
         break;
     }
 
-    final rows = await query.order('transaction_date', ascending: true).limit(limit);
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    final rows = await query
+        .order('transaction_date', ascending: true)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
   Future<int> countPendingSettlements(String branchId) async {
@@ -446,27 +468,44 @@ class TransactionRepository {
     return (rows as List).length;
   }
 
-  Future<List<AuditLogRow>> fetchRecentAuditLogs(String branchId, {int limit = 30}) async {
+  Future<List<AuditLogRow>> fetchRecentAuditLogs(
+    String branchId, {
+    int limit = 30,
+  }) async {
     final rows = await supabase
         .from('fx_audit_logs')
-        .select('id, entity_type, entity_id, action, reason, old_value, new_value, created_at')
+        .select(
+          'id, entity_type, entity_id, action, reason, old_value, new_value, created_at',
+        )
         .eq('branch_id', branchId)
         .order('created_at', ascending: false)
         .limit(limit);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(AuditLogRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(AuditLogRow.fromJson)
+        .toList();
   }
 
-  Future<List<AuditLogRow>> fetchAuditLogsForEntity(String branchId, String entityId, {int limit = 50}) async {
+  Future<List<AuditLogRow>> fetchAuditLogsForEntity(
+    String branchId,
+    String entityId, {
+    int limit = 50,
+  }) async {
     final rows = await supabase
         .from('fx_audit_logs')
-        .select('id, entity_type, entity_id, action, reason, old_value, new_value, created_at')
+        .select(
+          'id, entity_type, entity_id, action, reason, old_value, new_value, created_at',
+        )
         .eq('branch_id', branchId)
         .eq('entity_id', entityId)
         .order('created_at', ascending: false)
         .limit(limit);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(AuditLogRow.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(AuditLogRow.fromJson)
+        .toList();
   }
 
   Future<List<FxTransaction>> fetchDrafts(String branchId) async {
@@ -478,10 +517,16 @@ class TransactionRepository {
         .eq('is_deleted', false)
         .order('created_at', ascending: false);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
-  Future<List<FxTransaction>> fetchRecentPosted(String branchId, {int limit = 50}) async {
+  Future<List<FxTransaction>> fetchRecentPosted(
+    String branchId, {
+    int limit = 50,
+  }) async {
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
@@ -491,10 +536,16 @@ class TransactionRepository {
         .order('posted_at', ascending: false)
         .limit(limit);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
-  Future<List<FxTransaction>> fetchVoided(String branchId, {int limit = 50}) async {
+  Future<List<FxTransaction>> fetchVoided(
+    String branchId, {
+    int limit = 50,
+  }) async {
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
@@ -503,7 +554,10 @@ class TransactionRepository {
         .order('posted_at', ascending: false)
         .limit(limit);
 
-    return (rows as List).cast<Map<String, dynamic>>().map(FxTransaction.fromJson).toList();
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxTransaction.fromJson)
+        .toList();
   }
 
   Future<List<FxTransaction>> fetchTodayPosted(String branchId) async {
@@ -523,7 +577,9 @@ class TransactionRepository {
     return FxTransaction.fromJson(row);
   }
 
-  Future<FxJournalEntry?> fetchJournalForTransaction(String transactionId) async {
+  Future<FxJournalEntry?> fetchJournalForTransaction(
+    String transactionId,
+  ) async {
     final rows = await supabase
         .from('fx_journal_entries')
         .select(
@@ -541,7 +597,10 @@ class TransactionRepository {
     return FxJournalEntry.fromJson(list.first as Map<String, dynamic>);
   }
 
-  Future<String?> fetchTransactionIdByNo(String branchId, String transactionNo) async {
+  Future<String?> fetchTransactionIdByNo(
+    String branchId,
+    String transactionNo,
+  ) async {
     final row = await supabase
         .from('fx_transactions')
         .select('id')
@@ -607,7 +666,9 @@ class TransactionRepository {
     final debit = lines.fold<double>(0, (s, l) => s + l.debitPkr);
     final credit = lines.fold<double>(0, (s, l) => s + l.creditPkr);
     if (debit != credit || debit == 0) {
-      throw StateError('Draft lines must balance (debit=$debit credit=$credit)');
+      throw StateError(
+        'Draft lines must balance (debit=$debit credit=$credit)',
+      );
     }
   }
 }

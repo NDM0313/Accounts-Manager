@@ -1,4 +1,3 @@
-
 class FxCurrency {
   const FxCurrency({
     required this.id,

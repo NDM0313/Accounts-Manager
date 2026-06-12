@@ -17,15 +17,27 @@ class FxTypeBadge extends StatelessWidget {
     final (label, color) = switch (type) {
       FxTransactionType.currencyBuy => ('BUY', theme.colorScheme.tertiary),
       FxTransactionType.currencySell => ('SELL', theme.colorScheme.error),
-      FxTransactionType.openingBalance => ('OPEN', theme.colorScheme.onSurfaceVariant),
+      FxTransactionType.openingBalance => (
+        'OPEN',
+        theme.colorScheme.onSurfaceVariant,
+      ),
       FxTransactionType.accountTransfer => ('XFER', theme.colorScheme.primary),
       FxTransactionType.expense => ('EXP', theme.colorScheme.error),
       FxTransactionType.crossCurrency => ('X-CCY', theme.colorScheme.tertiary),
       FxTransactionType.settlementSend => ('S-SND', theme.colorScheme.primary),
-      FxTransactionType.settlementReceive => ('S-RCV', theme.colorScheme.tertiary),
-      FxTransactionType.revaluation => ('REVAL', theme.colorScheme.onSurfaceVariant),
+      FxTransactionType.settlementReceive => (
+        'S-RCV',
+        theme.colorScheme.tertiary,
+      ),
+      FxTransactionType.revaluation => (
+        'REVAL',
+        theme.colorScheme.onSurfaceVariant,
+      ),
       FxTransactionType.manualJournal => ('JNL', theme.colorScheme.primary),
-      FxTransactionType.dailyClosingAdjustment => ('CLOSE', theme.colorScheme.error),
+      FxTransactionType.dailyClosingAdjustment => (
+        'CLOSE',
+        theme.colorScheme.error,
+      ),
     };
     return Text(
       label,
@@ -47,10 +59,26 @@ class FxStatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (label, fg, bg) = switch (status) {
-      'posted' => ('Completed', theme.colorScheme.tertiary, context.fx.tertiaryContainer),
-      'draft' => ('Pending', theme.colorScheme.onSurfaceVariant, AppColors.darkSecondaryContainer),
-      'voided' => ('Voided', theme.colorScheme.error, context.fx.errorContainer),
-      _ => (status, theme.colorScheme.onSurfaceVariant, AppColors.darkSecondaryContainer),
+      'posted' => (
+        'Completed',
+        theme.colorScheme.tertiary,
+        context.fx.tertiaryContainer,
+      ),
+      'draft' => (
+        'Pending',
+        theme.colorScheme.onSurfaceVariant,
+        AppColors.darkSecondaryContainer,
+      ),
+      'voided' => (
+        'Voided',
+        theme.colorScheme.error,
+        context.fx.errorContainer,
+      ),
+      _ => (
+        status,
+        theme.colorScheme.onSurfaceVariant,
+        AppColors.darkSecondaryContainer,
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -61,7 +89,10 @@ class FxStatusPill extends StatelessWidget {
       ),
       child: Text(
         label.toUpperCase(),
-        style: AppTypography.labelCaps(fg, context: context).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
+        style: AppTypography.labelCaps(
+          fg,
+          context: context,
+        ).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -108,7 +139,13 @@ class FxLedgerTable extends StatelessWidget {
     if (rows.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(24),
-        child: Text('No transactions yet.', style: AppTypography.bodyMd(theme.colorScheme.onSurfaceVariant, context: context)),
+        child: Text(
+          'No transactions yet.',
+          style: AppTypography.bodyMd(
+            theme.colorScheme.onSurfaceVariant,
+            context: context,
+          ),
+        ),
       );
     }
 
@@ -122,7 +159,11 @@ class FxLedgerTable extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: context.fx.outlineVariant.withValues(alpha: 0.3))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.fx.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
               ),
               child: Row(
                 children: [
@@ -131,8 +172,13 @@ class FxLedgerTable extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          r.timestamp != null ? timeFmt.format(r.timestamp!) : '—',
-                          style: AppTypography.bodyMd(theme.colorScheme.onSurface, context: context),
+                          r.timestamp != null
+                              ? timeFmt.format(r.timestamp!)
+                              : '—',
+                          style: AppTypography.bodyMd(
+                            theme.colorScheme.onSurface,
+                            context: context,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -141,7 +187,13 @@ class FxLedgerTable extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(currencyFlagEmoji(r.currencyCode)),
                             const SizedBox(width: 4),
-                            Text(r.currencyCode, style: AppTypography.bodyMd(theme.colorScheme.onSurface, context: context)),
+                            Text(
+                              r.currencyCode,
+                              style: AppTypography.bodyMd(
+                                theme.colorScheme.onSurface,
+                                context: context,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -150,7 +202,13 @@ class FxLedgerTable extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(fmt.format(r.amount), style: AppTypography.bodyMd(theme.colorScheme.onSurface, context: context).copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        fmt.format(r.amount),
+                        style: AppTypography.bodyMd(
+                          theme.colorScheme.onSurface,
+                          context: context,
+                        ).copyWith(fontWeight: FontWeight.w700),
+                      ),
                       FxStatusPill(status: r.status),
                     ],
                   ),
@@ -165,9 +223,13 @@ class FxLedgerTable extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: ConstrainedBox(
-        constraints: BoxConstraints(minWidth: MediaQuery.sizeOf(context).width - 32),
+        constraints: BoxConstraints(
+          minWidth: MediaQuery.sizeOf(context).width - 32,
+        ),
         child: DataTable(
-          headingRowColor: WidgetStatePropertyAll(context.fx.surfaceContainerLowest),
+          headingRowColor: WidgetStatePropertyAll(
+            context.fx.surfaceContainerLowest,
+          ),
           dataRowMinHeight: 56,
           columns: [
             _col(context, 'Timestamp'),
@@ -181,17 +243,31 @@ class FxLedgerTable extends StatelessWidget {
             return DataRow(
               onSelectChanged: (_) => onRowTap(r.id),
               cells: [
-                DataCell(Text(r.timestamp != null ? timeFmt.format(r.timestamp!) : '—')),
+                DataCell(
+                  Text(
+                    r.timestamp != null ? timeFmt.format(r.timestamp!) : '—',
+                  ),
+                ),
                 DataCell(FxTypeBadge(type: r.type)),
-                DataCell(Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(currencyFlagEmoji(r.currencyCode)),
-                    const SizedBox(width: 6),
-                    Text(r.currencyCode, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                )),
-                DataCell(Text(fmt.format(r.amount), style: const TextStyle(fontWeight: FontWeight.bold))),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(currencyFlagEmoji(r.currencyCode)),
+                      const SizedBox(width: 6),
+                      Text(
+                        r.currencyCode,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    fmt.format(r.amount),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 if (showAllColumns) DataCell(Text(fmt.format(r.rate))),
                 if (showAllColumns) DataCell(FxStatusPill(status: r.status)),
               ],
@@ -204,7 +280,13 @@ class FxLedgerTable extends StatelessWidget {
 
   DataColumn _col(BuildContext context, String label) {
     return DataColumn(
-      label: Text(label.toUpperCase(), style: AppTypography.labelCaps(Theme.of(context).colorScheme.onSurfaceVariant, context: context)),
+      label: Text(
+        label.toUpperCase(),
+        style: AppTypography.labelCaps(
+          Theme.of(context).colorScheme.onSurfaceVariant,
+          context: context,
+        ),
+      ),
     );
   }
 }

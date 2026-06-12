@@ -10,7 +10,10 @@ export 'receipt_redaction.dart';
 
 enum RemittanceReceiptType { customer, internal, agentSlip }
 
-String formatRemittanceReceipt(FxRemittance r, {RemittanceReceiptType receiptType = RemittanceReceiptType.customer}) {
+String formatRemittanceReceipt(
+  FxRemittance r, {
+  RemittanceReceiptType receiptType = RemittanceReceiptType.customer,
+}) {
   final fmt = NumberFormat('#,##0.00');
   final dtFmt = DateFormat('dd MMM yyyy, HH:mm');
   final now = dtFmt.format(DateTime.now());
@@ -28,7 +31,9 @@ String formatRemittanceReceipt(FxRemittance r, {RemittanceReceiptType receiptTyp
       if (r.payoutAgentName != null) buf.writeln('Agent: ${r.payoutAgentName}');
       if (r.branchName != null) buf.writeln('Branch: ${r.branchName}');
       buf.writeln('Status: ${r.status.label}');
-      if (r.payoutConfirmedAt != null) buf.writeln('Paid at: ${dtFmt.format(r.payoutConfirmedAt!.toLocal())}');
+      if (r.payoutConfirmedAt != null) {
+        buf.writeln('Paid at: ${dtFmt.format(r.payoutConfirmedAt!.toLocal())}');
+      }
       buf.writeln('Printed: $now');
       break;
     case RemittanceReceiptType.internal:
@@ -44,13 +49,19 @@ String formatRemittanceReceipt(FxRemittance r, {RemittanceReceiptType receiptTyp
       if (r.branchName != null) buf.writeln('Branch: ${r.branchName}');
       buf
         ..writeln()
-        ..writeln('Receive: ${r.receiveCurrency} ${fmt.format(r.receiveAmount)}')
+        ..writeln(
+          'Receive: ${r.receiveCurrency} ${fmt.format(r.receiveAmount)}',
+        )
         ..writeln('Payout: ${r.payoutCurrency} ${fmt.format(r.payoutAmount)}')
-        ..writeln('Commission: ${fmt.format(r.commissionAmount)} (${r.commissionMode.label})')
+        ..writeln(
+          'Commission: ${fmt.format(r.commissionAmount)} (${r.commissionMode.label})',
+        )
         ..writeln('Total payable: ${fmt.format(r.totalPayable)}')
         ..writeln('Paid: ${fmt.format(r.paidAmount)}')
         ..writeln('Balance due: ${fmt.format(r.balanceDue)}');
-      if (r.notes != null && r.notes!.isNotEmpty) buf.writeln('Notes: ${r.notes}');
+      if (r.notes != null && r.notes!.isNotEmpty) {
+        buf.writeln('Notes: ${r.notes}');
+      }
       buf.writeln('Printed: $now');
       break;
     case RemittanceReceiptType.customer:
@@ -62,11 +73,15 @@ String formatRemittanceReceipt(FxRemittance r, {RemittanceReceiptType receiptTyp
         ..writeln('Receiver: ${r.receiverName}');
       if (r.receiverPhone != null) buf.writeln('Phone: ${r.receiverPhone}');
       if (r.receiverCity != null || r.receiverCountry != null) {
-        buf.writeln('Location: ${[r.receiverCity, r.receiverCountry].whereType<String>().join(', ')}');
+        buf.writeln(
+          'Location: ${[r.receiverCity, r.receiverCountry].whereType<String>().join(', ')}',
+        );
       }
       buf
         ..writeln()
-        ..writeln('Receive: ${r.receiveCurrency} ${fmt.format(r.receiveAmount)}')
+        ..writeln(
+          'Receive: ${r.receiveCurrency} ${fmt.format(r.receiveAmount)}',
+        )
         ..writeln('Payout: ${r.payoutCurrency} ${fmt.format(r.payoutAmount)}');
       if (r.commissionMode == FxRemittanceCommissionMode.customerPaid) {
         buf.writeln('Service charge included in payment.');
@@ -80,7 +95,10 @@ String formatRemittanceReceipt(FxRemittance r, {RemittanceReceiptType receiptTyp
   return buf.toString();
 }
 
-Future<Uint8List> buildRemittanceReceiptPdf(FxRemittance r, {RemittanceReceiptType receiptType = RemittanceReceiptType.customer}) {
+Future<Uint8List> buildRemittanceReceiptPdf(
+  FxRemittance r, {
+  RemittanceReceiptType receiptType = RemittanceReceiptType.customer,
+}) {
   final title = switch (receiptType) {
     RemittanceReceiptType.agentSlip => 'Payout ${r.trackingId}',
     RemittanceReceiptType.internal => 'Remittance ${r.trackingId} (Internal)',

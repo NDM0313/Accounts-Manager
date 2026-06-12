@@ -9,8 +9,20 @@ void main() {
     final today = DateTime(2026, 6, 10, 12);
     final yesterday = DateTime(2026, 6, 9, 12);
     final rows = [
-      FxRate(id: '2', currencyCode: 'USD', buyRate: 280, sellRate: 282, effectiveAt: today),
-      FxRate(id: '1', currencyCode: 'USD', buyRate: 270, sellRate: 272, effectiveAt: yesterday),
+      FxRate(
+        id: '2',
+        currencyCode: 'USD',
+        buyRate: 280,
+        sellRate: 282,
+        effectiveAt: today,
+      ),
+      FxRate(
+        id: '1',
+        currencyCode: 'USD',
+        buyRate: 270,
+        sellRate: 272,
+        effectiveAt: yesterday,
+      ),
     ];
     final todayQuote = svc.resolvePairAsOf(rows, 'USD', 'PKR', today);
     final yesterdayQuote = svc.resolvePairAsOf(rows, 'USD', 'PKR', yesterday);
@@ -22,8 +34,20 @@ void main() {
   test('spread calculation unchanged with as-of lookup', () {
     final day = DateTime(2026, 6, 9, 12);
     final rows = [
-      FxRate(id: '1', currencyCode: 'USD', buyRate: 278, sellRate: 280, effectiveAt: day),
-      FxRate(id: '2', currencyCode: 'AED', buyRate: 75, sellRate: 76, effectiveAt: day),
+      FxRate(
+        id: '1',
+        currencyCode: 'USD',
+        buyRate: 278,
+        sellRate: 280,
+        effectiveAt: day,
+      ),
+      FxRate(
+        id: '2',
+        currencyCode: 'AED',
+        buyRate: 75,
+        sellRate: 76,
+        effectiveAt: day,
+      ),
     ];
     final quote = svc.resolvePairAsOf(rows, 'USD', 'AED', day);
     final spread = quote.spreadVsDeal(3.80)!;

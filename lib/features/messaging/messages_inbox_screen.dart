@@ -35,7 +35,10 @@ class MessagesInboxScreen extends ConsumerWidget {
             child: Text(
               'Unable to load conversations.\nApply migration 202606230003 if tables are missing.\n\n$e',
               textAlign: TextAlign.center,
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
             ),
           ),
         ),
@@ -45,7 +48,10 @@ class MessagesInboxScreen extends ConsumerWidget {
               child: Text(
                 'No conversations yet.\nOpen a deal, party, or transaction to start team chat.',
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
             );
           }

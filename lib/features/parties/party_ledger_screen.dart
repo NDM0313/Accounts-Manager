@@ -71,7 +71,9 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error: $e')),
           data: (party) {
-            if (party == null) return const Center(child: Text('Party not found.'));
+            if (party == null) {
+              return const Center(child: Text('Party not found.'));
+            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -88,10 +90,15 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                 _filtersSection(context),
                 Expanded(
                   child: statementAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(child: Text('Error: $e')),
                     data: (view) {
-                      if (view == null) return const Center(child: Text('Unable to load statement.'));
+                      if (view == null) {
+                        return const Center(
+                          child: Text('Unable to load statement.'),
+                        );
+                      }
                       if (view.lines.isEmpty) {
                         return _emptyState(context, party);
                       }
@@ -103,7 +110,9 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                           final line = view.lines[i];
                           return FxPartyStatementRow(
                             line: line,
-                            onTap: () => context.push('/transactions/${line.transactionId}'),
+                            onTap: () => context.push(
+                              '/transactions/${line.transactionId}',
+                            ),
                           );
                         },
                       );
@@ -131,67 +140,109 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
       child: FxPremiumCard(
         padding: const EdgeInsets.all(16),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: context.fx.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.fx.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    party.partyType.label.toUpperCase(),
+                    style: AppTypography.labelCaps(
+                      context.fx.primary,
+                      context: context,
+                    ).copyWith(fontSize: 9),
+                  ),
                 ),
-                child: Text(
-                  party.partyType.label.toUpperCase(),
-                  style: AppTypography.labelCaps(context.fx.primary, context: context).copyWith(fontSize: 9),
-                ),
-              ),
-              const Spacer(),
-              if (summary != null)
-                Text(
-                  'Net PKR ${fmt.format(summary.netBalancePkr)}',
-                  style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(party.name, style: AppTypography.headlineMd(context.fx.onSurface, context: context)),
-          if (party.phone != null)
-            Text(party.phone!, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
-          if (summary != null && view != null) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 72,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  FxPartySummaryCard(label: 'Opening', value: fmt.format(view.openingBalancePkr)),
-                  const SizedBox(width: 8),
-                  FxPartySummaryCard(label: 'Total Debit', value: fmt.format(summary.totalDebitPkr)),
-                  const SizedBox(width: 8),
-                  FxPartySummaryCard(label: 'Total Credit', value: fmt.format(summary.totalCreditPkr)),
-                  const SizedBox(width: 8),
-                  FxPartySummaryCard(label: 'Net Balance', value: fmt.format(summary.netBalancePkr)),
-                  const SizedBox(width: 8),
-                  FxPartySummaryCard(label: 'Pending', value: '${summary.pendingDraftCount}'),
-                  if (summary.lastTransactionDate != null) ...[
-                    const SizedBox(width: 8),
-                    FxPartySummaryCard(
-                      label: 'Last txn',
-                      value: DateFormat('d MMM yy').format(summary.lastTransactionDate!),
-                    ),
-                  ],
-                ],
+                const Spacer(),
+                if (summary != null)
+                  Text(
+                    'Net PKR ${fmt.format(summary.netBalancePkr)}',
+                    style: AppTypography.headlineMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 16),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              party.name,
+              style: AppTypography.headlineMd(
+                context.fx.onSurface,
+                context: context,
               ),
             ),
+            if (party.phone != null)
+              Text(
+                party.phone!,
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
+            if (summary != null && view != null) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 72,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    FxPartySummaryCard(
+                      label: 'Opening',
+                      value: fmt.format(view.openingBalancePkr),
+                    ),
+                    const SizedBox(width: 8),
+                    FxPartySummaryCard(
+                      label: 'Total Debit',
+                      value: fmt.format(summary.totalDebitPkr),
+                    ),
+                    const SizedBox(width: 8),
+                    FxPartySummaryCard(
+                      label: 'Total Credit',
+                      value: fmt.format(summary.totalCreditPkr),
+                    ),
+                    const SizedBox(width: 8),
+                    FxPartySummaryCard(
+                      label: 'Net Balance',
+                      value: fmt.format(summary.netBalancePkr),
+                    ),
+                    const SizedBox(width: 8),
+                    FxPartySummaryCard(
+                      label: 'Pending',
+                      value: '${summary.pendingDraftCount}',
+                    ),
+                    if (summary.lastTransactionDate != null) ...[
+                      const SizedBox(width: 8),
+                      FxPartySummaryCard(
+                        label: 'Last txn',
+                        value: DateFormat(
+                          'd MMM yy',
+                        ).format(summary.lastTransactionDate!),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
 
-  Widget _openDealsSection(BuildContext context, AsyncValue<List<PartyDealOpenItem>> openDealsAsync, NumberFormat fmt) {
+  Widget _openDealsSection(
+    BuildContext context,
+    AsyncValue<List<PartyDealOpenItem>> openDealsAsync,
+    NumberFormat fmt,
+  ) {
     return openDealsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
@@ -208,22 +259,40 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('OPEN FX DEALS', style: AppTypography.labelCaps(context.fx.outline, context: context)),
+              Text(
+                'OPEN FX DEALS',
+                style: AppTypography.labelCaps(
+                  context.fx.outline,
+                  context: context,
+                ),
+              ),
               Text(
                 'Outstanding receivable/payable from active deals (PKR).',
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 11),
               ),
               const SizedBox(height: 8),
               ...items.map((item) {
                 return ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: Text(item.dealNo ?? item.dealId.substring(0, 8), style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                  title: Text(
+                    item.dealNo ?? item.dealId.substring(0, 8),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ),
+                  ),
                   subtitle: Text(
                     '${item.role} · ${item.dealStatus.label} · outstanding PKR ${fmt.format(item.receivablePkr)}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 11),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 18),
                   onTap: () => context.push('/deals/${item.dealId}'),
@@ -249,15 +318,25 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.filter_list, size: 18, color: context.fx.onSurfaceVariant),
+                Icon(
+                  Icons.filter_list,
+                  size: 18,
+                  color: context.fx.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '$fromLabel → $toLabel · ${filters.status.name}',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ).copyWith(fontSize: 12),
                   ),
                 ),
-                Icon(_filtersExpanded ? Icons.expand_less : Icons.expand_more, color: context.fx.onSurfaceVariant),
+                Icon(
+                  _filtersExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: context.fx.onSurfaceVariant,
+                ),
               ],
             ),
           ),
@@ -269,7 +348,13 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _pickDateRange(context),
                   icon: const Icon(Icons.date_range, size: 16),
-                  label: Text('Dates', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                  label: Text(
+                    'Dates',
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 12),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -277,7 +362,13 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _pickStatus(context),
                   icon: const Icon(Icons.flag_outlined, size: 16),
-                  label: Text(filters.status.name, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                  label: Text(
+                    filters.status.name,
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 12),
+                  ),
                 ),
               ),
             ],
@@ -289,7 +380,9 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
               hintText: 'Search txn no, reference…',
               prefixIcon: const Icon(Icons.search, size: 20),
               isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              ),
             ),
             onSubmitted: (v) {
               ref.read(partyStatementFiltersProvider.notifier).setSearch(v);
@@ -315,7 +408,10 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
             Text(
               'No transactions in this period.',
               textAlign: TextAlign.center,
-              style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -340,9 +436,15 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
 
   Future<void> _pickDateRange(BuildContext context) async {
     final filters = ref.read(partyStatementFiltersProvider);
-    final from = await FxObsidianPickers.showDate(context, initialDate: filters.from);
+    final from = await FxObsidianPickers.showDate(
+      context,
+      initialDate: filters.from,
+    );
     if (from == null || !context.mounted) return;
-    final to = await FxObsidianPickers.showDate(context, initialDate: filters.to);
+    final to = await FxObsidianPickers.showDate(
+      context,
+      initialDate: filters.to,
+    );
     if (to == null) return;
     ref.read(partyStatementFiltersProvider.notifier).setDateRange(from, to);
     ref.invalidate(partyStatementProvider(widget.partyId));
@@ -433,8 +535,13 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
     );
   }
 
-  Future<void> _exportStatement(BuildContext context, {required bool customerCopy}) async {
-    final view = ref.read(partyStatementProvider(widget.partyId)).whenOrNull(data: (v) => v);
+  Future<void> _exportStatement(
+    BuildContext context, {
+    required bool customerCopy,
+  }) async {
+    final view = ref
+        .read(partyStatementProvider(widget.partyId))
+        .whenOrNull(data: (v) => v);
     if (view == null || view.lines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No statement data to share.')),
@@ -442,23 +549,29 @@ class _PartyLedgerScreenState extends ConsumerState<PartyLedgerScreen> {
       return;
     }
     final internal = !customerCopy;
-    final text = PartyStatementBuilder.formatShareText(view, internal: internal);
+    final text = PartyStatementBuilder.formatShareText(
+      view,
+      internal: internal,
+    );
     final csv = PartyStatementBuilder.formatShareCsv(view);
     final pdfRows = view.lines
-        .map((l) => [
-              l.transactionDate.toIso8601String().split('T').first,
-              l.transactionNo ?? l.transactionId.substring(0, 8),
-              l.transactionType.label,
-              l.currencyCode,
-              l.debitPkr.toStringAsFixed(2),
-              l.creditPkr.toStringAsFixed(2),
-              l.runningBalancePkr.toStringAsFixed(2),
-            ])
+        .map(
+          (l) => [
+            l.transactionDate.toIso8601String().split('T').first,
+            l.transactionNo ?? l.transactionId.substring(0, 8),
+            l.transactionType.label,
+            l.currencyCode,
+            l.debitPkr.toStringAsFixed(2),
+            l.creditPkr.toStringAsFixed(2),
+            l.runningBalancePkr.toStringAsFixed(2),
+          ],
+        )
         .toList();
     final pdf = await buildStatementPdf(
       title: 'Party Statement',
       partyName: view.party.name,
-      periodLabel: '${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}',
+      periodLabel:
+          '${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}',
       displayCurrency: 'PKR',
       lineRows: pdfRows,
       totalDebit: view.summary.totalDebitPkr.toStringAsFixed(2),

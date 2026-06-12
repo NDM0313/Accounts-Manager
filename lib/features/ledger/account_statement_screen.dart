@@ -26,7 +26,9 @@ class AccountStatementScreen extends ConsumerWidget {
     final isWide = MediaQuery.sizeOf(context).width >= 720;
     final currencyView = ref.watch(reportCurrencyViewProvider);
     final userDisplayCode = ref.watch(displayCurrencyCodeProvider);
-    final converter = ref.watch(currencyConverterAsOfProvider(range.to)).whenOrNull(data: (v) => v);
+    final converter = ref
+        .watch(currencyConverterAsOfProvider(range.to))
+        .whenOrNull(data: (v) => v);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,7 +43,10 @@ class AccountStatementScreen extends ConsumerWidget {
               dropdownColor: context.fx.surfaceContainerHigh,
               decoration: InputDecoration(
                 labelText: 'Account',
-                labelStyle: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                labelStyle: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
                 hintText: 'Select account for statement',
                 filled: true,
                 fillColor: context.fx.surfaceContainerLow,
@@ -53,16 +58,29 @@ class AccountStatementScreen extends ConsumerWidget {
               items: [
                 DropdownMenuItem<String?>(
                   value: null,
-                  child: Text('Select account…', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
+                  child: Text(
+                    'Select account…',
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
+                  ),
                 ),
                 ...accounts.map(
                   (a) => DropdownMenuItem(
                     value: a.code,
-                    child: Text('${a.code} · ${a.name}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+                    child: Text(
+                      '${a.code} · ${a.name}',
+                      style: AppTypography.bodyMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
+                    ),
                   ),
                 ),
               ],
-              onChanged: (v) => ref.read(ledgerStatementAccountProvider.notifier).set(v),
+              onChanged: (v) =>
+                  ref.read(ledgerStatementAccountProvider.notifier).set(v),
             );
           },
         ),
@@ -73,11 +91,20 @@ class AccountStatementScreen extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _pickRange(context, ref, range),
                 icon: const Icon(Icons.date_range_outlined, size: 18),
-                label: Text('$fromLabel → $toLabel', style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                label: Text(
+                  '$fromLabel → $toLabel',
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ).copyWith(fontSize: 12),
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: context.fx.onSurface,
                   side: BorderSide(color: context.fx.outlineVariant),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),
@@ -87,7 +114,9 @@ class AccountStatementScreen extends ConsumerWidget {
                 icon: const Icon(Icons.ios_share),
                 tooltip: 'Export',
                 onPressed: () async {
-                  final view = ref.read(accountStatementProvider).whenOrNull(data: (v) => v);
+                  final view = ref
+                      .read(accountStatementProvider)
+                      .whenOrNull(data: (v) => v);
                   if (view == null || !context.mounted) return;
                   await exportAccountStatementReport(
                     context,
@@ -102,12 +131,15 @@ class AccountStatementScreen extends ConsumerWidget {
         ),
         if (accountCode != null) ...[
           const SizedBox(height: 8),
-          ref.watch(companyAccountingContextProvider).maybeWhen(
+          ref
+              .watch(companyAccountingContextProvider)
+              .maybeWhen(
                 data: (ctx) => FxReportCurrencyToggle(
                   view: currencyView,
                   displayCurrencyCode: userDisplayCode,
                   baseCurrencyCode: ctx.baseCurrencyCode,
-                  onChanged: (v) => ref.read(reportCurrencyViewProvider.notifier).setView(v),
+                  onChanged: (v) =>
+                      ref.read(reportCurrencyViewProvider.notifier).setView(v),
                 ),
                 orElse: () => const SizedBox.shrink(),
               ),
@@ -118,13 +150,18 @@ class AccountStatementScreen extends ConsumerWidget {
               ? Center(
                   child: Text(
                     'Select an account to view its statement.',
-                    style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                    style: AppTypography.bodyMd(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 )
               : statementAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Unable to load statement: $e')),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) =>
+                      Center(child: Text('Unable to load statement: $e')),
                   data: (view) {
                     if (view == null) {
                       return const SizedBox.shrink();
@@ -133,7 +170,10 @@ class AccountStatementScreen extends ConsumerWidget {
                       return Center(
                         child: Text(
                           'No entries for ${view.accountCode} from $fromLabel to $toLabel.',
-                          style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                          style: AppTypography.bodyMd(
+                            context.fx.onSurfaceVariant,
+                            context: context,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -147,11 +187,17 @@ class AccountStatementScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 '${view.accountCode} · ${view.accountName}',
-                                style: AppTypography.headlineMd(context.fx.onSurface, context: context).copyWith(fontSize: 16),
+                                style: AppTypography.headlineMd(
+                                  context.fx.onSurface,
+                                  context: context,
+                                ).copyWith(fontSize: 16),
                               ),
                               Text(
                                 '$fromLabel → $toLabel',
-                                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 12),
+                                style: AppTypography.bodyMd(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ).copyWith(fontSize: 12),
                               ),
                               const SizedBox(height: 12),
                               Row(
@@ -161,7 +207,12 @@ class AccountStatementScreen extends ConsumerWidget {
                                       context,
                                       'Opening',
                                       converter != null
-                                          ? formatReportAmount(pkrAmount: view.openingBalancePkr, converter: converter, view: currencyView, fmt: fmt)
+                                          ? formatReportAmount(
+                                              pkrAmount: view.openingBalancePkr,
+                                              converter: converter,
+                                              view: currencyView,
+                                              fmt: fmt,
+                                            )
                                           : fmt.format(view.openingBalancePkr),
                                     ),
                                   ),
@@ -171,7 +222,12 @@ class AccountStatementScreen extends ConsumerWidget {
                                       context,
                                       'Closing',
                                       converter != null
-                                          ? formatReportAmount(pkrAmount: view.closingBalancePkr, converter: converter, view: currencyView, fmt: fmt)
+                                          ? formatReportAmount(
+                                              pkrAmount: view.closingBalancePkr,
+                                              converter: converter,
+                                              view: currencyView,
+                                              fmt: fmt,
+                                            )
                                           : fmt.format(view.closingBalancePkr),
                                     ),
                                   ),
@@ -198,28 +254,63 @@ class AccountStatementScreen extends ConsumerWidget {
                                     Row(
                                       children: [
                                         Text(
-                                          line.entryDate.toIso8601String().split('T').first,
-                                          style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 10),
+                                          line.entryDate
+                                              .toIso8601String()
+                                              .split('T')
+                                              .first,
+                                          style: AppTypography.labelCaps(
+                                            context.fx.outline,
+                                            context: context,
+                                          ).copyWith(fontSize: 10),
                                         ),
                                         const Spacer(),
-                                        Text(line.entryNo, style: AppTypography.labelMono(context.fx.outline, context: context).copyWith(fontSize: 10)),
+                                        Text(
+                                          line.entryNo,
+                                          style: AppTypography.labelMono(
+                                            context.fx.outline,
+                                            context: context,
+                                          ).copyWith(fontSize: 10),
+                                        ),
                                       ],
                                     ),
-                                    if (line.description != null && line.description!.isNotEmpty) ...[
+                                    if (line.description != null &&
+                                        line.description!.isNotEmpty) ...[
                                       const SizedBox(height: 4),
-                                      Text(line.description!, style: AppTypography.bodyMd(context.fx.onSurface, context: context).copyWith(fontSize: 12)),
+                                      Text(
+                                        line.description!,
+                                        style: AppTypography.bodyMd(
+                                          context.fx.onSurface,
+                                          context: context,
+                                        ).copyWith(fontSize: 12),
+                                      ),
                                     ],
                                     const SizedBox(height: 8),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text('Dr ${fmt.format(line.debitPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
-                                        Text('Cr ${fmt.format(line.creditPkr)}', style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 11)),
+                                        Text(
+                                          'Dr ${fmt.format(line.debitPkr)}',
+                                          style: AppTypography.bodyMd(
+                                            context.fx.onSurfaceVariant,
+                                            context: context,
+                                          ).copyWith(fontSize: 11),
+                                        ),
+                                        Text(
+                                          'Cr ${fmt.format(line.creditPkr)}',
+                                          style: AppTypography.bodyMd(
+                                            context.fx.onSurfaceVariant,
+                                            context: context,
+                                          ).copyWith(fontSize: 11),
+                                        ),
                                         Text(
                                           converter != null
                                               ? 'Bal ${formatReportAmount(pkrAmount: line.runningBalancePkr, converter: converter, view: currencyView, fmt: fmt)}'
                                               : 'Bal ${fmt.format(line.runningBalancePkr)}',
-                                          style: AppTypography.labelMono(context.fx.tertiary, context: context).copyWith(fontSize: 11),
+                                          style: AppTypography.labelMono(
+                                            context.fx.tertiary,
+                                            context: context,
+                                          ).copyWith(fontSize: 11),
                                         ),
                                       ],
                                     ),
@@ -229,7 +320,10 @@ class AccountStatementScreen extends ConsumerWidget {
                             ),
                           ),
                         if (isWide && view.lines.isEmpty)
-                          FxAccountStatementTable(lines: const [], openingBalancePkr: view.openingBalancePkr),
+                          FxAccountStatementTable(
+                            lines: const [],
+                            openingBalancePkr: view.openingBalancePkr,
+                          ),
                       ],
                     );
                   },
@@ -243,13 +337,29 @@ class AccountStatementScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: AppTypography.labelCaps(context.fx.outline, context: context).copyWith(fontSize: 10)),
-        Text(value, style: AppTypography.labelMono(context.fx.onSurface, context: context).copyWith(fontSize: 14)),
+        Text(
+          label.toUpperCase(),
+          style: AppTypography.labelCaps(
+            context.fx.outline,
+            context: context,
+          ).copyWith(fontSize: 10),
+        ),
+        Text(
+          value,
+          style: AppTypography.labelMono(
+            context.fx.onSurface,
+            context: context,
+          ).copyWith(fontSize: 14),
+        ),
       ],
     );
   }
 
-  Future<void> _pickRange(BuildContext context, WidgetRef ref, ReportDateRange current) async {
+  Future<void> _pickRange(
+    BuildContext context,
+    WidgetRef ref,
+    ReportDateRange current,
+  ) async {
     final from = await FxObsidianPickers.showDate(
       context,
       initialDate: current.from,

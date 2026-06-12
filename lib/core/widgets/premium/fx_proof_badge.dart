@@ -23,7 +23,10 @@ class FxProofBadge extends StatelessWidget {
           const SizedBox(width: 2),
           Text(
             '$count',
-            style: AppTypography.labelCaps(context.fx.secondary, context: context).copyWith(fontSize: 8),
+            style: AppTypography.labelCaps(
+              context.fx.secondary,
+              context: context,
+            ).copyWith(fontSize: 8),
           ),
         ],
       ),

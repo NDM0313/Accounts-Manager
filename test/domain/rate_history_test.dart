@@ -58,7 +58,10 @@ void main() {
         ),
         _rate('USD', DateTime(2026, 6, 9), 278, 280),
       ];
-      final result = RateHistoryUtils.latestPerCurrencyAsOf(rows, DateTime(2026, 6, 10, 23, 59));
+      final result = RateHistoryUtils.latestPerCurrencyAsOf(
+        rows,
+        DateTime(2026, 6, 10, 23, 59),
+      );
       expect(result.single.buyRate, 278);
     });
   });

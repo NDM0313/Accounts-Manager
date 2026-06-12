@@ -23,20 +23,23 @@ void main() {
     expect(tx.partyCode, 'AGT01');
   });
 
-  test('FxTransaction.fromJson without party join leaves party fields null', () {
-    final tx = FxTransaction.fromJson({
-      'id': 'tx-2',
-      'transaction_type': 'currency_buy',
-      'status': 'posted',
-      'transaction_date': '2026-06-10',
-      'currency_code': 'USD',
-      'party_id': null,
-      'total_foreign_amount': 500,
-      'rate_used': 280,
-      'total_base_amount_pkr': 140000,
-    });
+  test(
+    'FxTransaction.fromJson without party join leaves party fields null',
+    () {
+      final tx = FxTransaction.fromJson({
+        'id': 'tx-2',
+        'transaction_type': 'currency_buy',
+        'status': 'posted',
+        'transaction_date': '2026-06-10',
+        'currency_code': 'USD',
+        'party_id': null,
+        'total_foreign_amount': 500,
+        'rate_used': 280,
+        'total_base_amount_pkr': 140000,
+      });
 
-    expect(tx.partyName, isNull);
-    expect(tx.partyCode, isNull);
-  });
+      expect(tx.partyName, isNull);
+      expect(tx.partyCode, isNull);
+    },
+  );
 }

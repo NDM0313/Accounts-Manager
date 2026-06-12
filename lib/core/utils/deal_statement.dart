@@ -15,7 +15,9 @@ String buildDealStatementText({
     ..writeln('Deal: ${deal.dealNo ?? deal.id}')
     ..writeln('Status: ${deal.status.label}')
     ..writeln('Customer: ${deal.customerName ?? '—'}')
-    ..writeln('Sale: ${fmt.format(deal.sellAmount)} ${deal.sellCurrencyCode} @ ${fmt.format(deal.saleRatePkr)} PKR')
+    ..writeln(
+      'Sale: ${fmt.format(deal.sellAmount)} ${deal.sellCurrencyCode} @ ${fmt.format(deal.saleRatePkr)} PKR',
+    )
     ..writeln('Payable: PKR ${fmt.format(deal.customerPayablePkr)}')
     ..writeln('Paid: PKR ${fmt.format(deal.customerPaidPkr)}')
     ..writeln('Receivable: PKR ${fmt.format(deal.customerReceivablePkr)}')

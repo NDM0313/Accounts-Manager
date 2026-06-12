@@ -18,7 +18,11 @@ void main() {
       source: 'manual',
       effectiveAt: DateTime(2026, 6, 10),
     );
-    final snap = RateReferenceSnapshot.fromQuoteAndDealRate(quote, 280, lockedBy: 'user-1');
+    final snap = RateReferenceSnapshot.fromQuoteAndDealRate(
+      quote,
+      280,
+      lockedBy: 'user-1',
+    );
     expect(snap, isNotNull);
     expect(snap!.referenceRate, 279);
     expect(snap.dealRateSpread, closeTo(1, 0.001));

@@ -31,7 +31,8 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
         TransactionMenuEntry(
           label: TransactionDraftMode.customerReceipt.menuLabel,
           icon: Icons.call_received_outlined,
-          route: '/transactions/new?type=settlement_receive&mode=customer_receipt',
+          route:
+              '/transactions/new?type=settlement_receive&mode=customer_receipt',
         ),
         TransactionMenuEntry(
           label: TransactionDraftMode.agentPayment.menuLabel,

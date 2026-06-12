@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final messagingRepositoryProvider = Provider((ref) => MessagingRepository());
 
-final messagingRefreshProvider = NotifierProvider<MessagingRefreshNotifier, int>(MessagingRefreshNotifier.new);
+final messagingRefreshProvider =
+    NotifierProvider<MessagingRefreshNotifier, int>(
+      MessagingRefreshNotifier.new,
+    );
 
 class MessagingRefreshNotifier extends Notifier<int> {
   @override
@@ -15,14 +18,21 @@ class MessagingRefreshNotifier extends Notifier<int> {
   void refresh() => state++;
 }
 
-final conversationsListProvider = FutureProvider<List<FxConversation>>((ref) async {
+final conversationsListProvider = FutureProvider<List<FxConversation>>((
+  ref,
+) async {
   ref.watch(messagingRefreshProvider);
   final profile = ref.watch(currentProfileProvider).value;
   if (profile == null) return [];
-  return ref.read(messagingRepositoryProvider).listConversations(profile.branchId);
+  return ref
+      .read(messagingRepositoryProvider)
+      .listConversations(profile.branchId);
 });
 
-final messagesListProvider = FutureProvider.family<List<FxMessage>, String>((ref, conversationId) async {
+final messagesListProvider = FutureProvider.family<List<FxMessage>, String>((
+  ref,
+  conversationId,
+) async {
   ref.watch(messagingRefreshProvider);
   return ref.read(messagingRepositoryProvider).listMessages(conversationId);
 });

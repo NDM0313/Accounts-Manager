@@ -30,17 +30,38 @@ class AgentRemittanceDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               if (_isBlocked(r)) _warning(context, _blockMessage(r)),
-              Text('RM ${r.remittanceNo ?? r.trackingId}', style: AppTypography.headlineSm(context.fx.onSurface, context: context)),
+              Text(
+                'RM ${r.remittanceNo ?? r.trackingId}',
+                style: AppTypography.headlineSm(
+                  context.fx.onSurface,
+                  context: context,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text('Receiver: ${r.receiverName}', style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+              Text(
+                'Receiver: ${r.receiverName}',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurface,
+                  context: context,
+                ),
+              ),
               if (r.receiverPhone != null) Text('Phone: ${r.receiverPhone}'),
               Text('Payout: ${r.payoutCurrency} ${fmt.format(r.payoutAmount)}'),
               Text('Status: ${r.status.label}'),
-              if (r.payoutCode != null) Text('Payout code: ${r.payoutCode}', style: AppTypography.bodyMd(context.fx.primary, context: context)),
+              if (r.payoutCode != null)
+                Text(
+                  'Payout code: ${r.payoutCode}',
+                  style: AppTypography.bodyMd(
+                    context.fx.primary,
+                    context: context,
+                  ),
+                ),
               const SizedBox(height: 16),
-              if (r.status == FxRemittanceStatus.sentToAgent || r.status == FxRemittanceStatus.readyForPayout)
+              if (r.status == FxRemittanceStatus.sentToAgent ||
+                  r.status == FxRemittanceStatus.readyForPayout)
                 FilledButton(
-                  onPressed: () => context.push('/remittance/agent/$remittanceId/confirm'),
+                  onPressed: () =>
+                      context.push('/remittance/agent/$remittanceId/confirm'),
                   child: const Text('Confirm Payout'),
                 ),
             ],
@@ -51,15 +72,18 @@ class AgentRemittanceDetailScreen extends ConsumerWidget {
   }
 
   bool _isBlocked(FxRemittance r) =>
-      r.status == FxRemittanceStatus.cancelled || r.status == FxRemittanceStatus.refunded || r.status == FxRemittanceStatus.paidOut || r.status == FxRemittanceStatus.completed;
+      r.status == FxRemittanceStatus.cancelled ||
+      r.status == FxRemittanceStatus.refunded ||
+      r.status == FxRemittanceStatus.paidOut ||
+      r.status == FxRemittanceStatus.completed;
 
   String _blockMessage(FxRemittance r) => switch (r.status) {
-        FxRemittanceStatus.cancelled => 'This remittance was cancelled.',
-        FxRemittanceStatus.refunded => 'This remittance was refunded.',
-        FxRemittanceStatus.paidOut => 'Payout already confirmed.',
-        FxRemittanceStatus.completed => 'This remittance is already settled.',
-        _ => 'This remittance cannot be paid out.',
-      };
+    FxRemittanceStatus.cancelled => 'This remittance was cancelled.',
+    FxRemittanceStatus.refunded => 'This remittance was refunded.',
+    FxRemittanceStatus.paidOut => 'Payout already confirmed.',
+    FxRemittanceStatus.completed => 'This remittance is already settled.',
+    _ => 'This remittance cannot be paid out.',
+  };
 
   Widget _warning(BuildContext context, String message) {
     return Container(
@@ -73,7 +97,15 @@ class AgentRemittanceDetailScreen extends ConsumerWidget {
         children: [
           Icon(Icons.warning_amber, color: context.fx.error),
           const SizedBox(width: 8),
-          Expanded(child: Text(message, style: AppTypography.bodyMd(context.fx.onSurface, context: context))),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTypography.bodyMd(
+                context.fx.onSurface,
+                context: context,
+              ),
+            ),
+          ),
         ],
       ),
     );

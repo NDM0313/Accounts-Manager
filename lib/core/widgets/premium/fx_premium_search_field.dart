@@ -24,8 +24,15 @@ class FxPremiumSearchField extends StatelessWidget {
         style: AppTypography.bodyMd(context.fx.onSurface, context: context),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context).copyWith(fontSize: 13),
-          prefixIcon: Icon(Icons.search, size: 20, color: context.fx.onSurfaceVariant),
+          hintStyle: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ).copyWith(fontSize: 13),
+          prefixIcon: Icon(
+            Icons.search,
+            size: 20,
+            color: context.fx.onSurfaceVariant,
+          ),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 10),
           filled: true,

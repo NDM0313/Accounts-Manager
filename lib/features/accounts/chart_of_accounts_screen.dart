@@ -15,15 +15,20 @@ class ChartOfAccountsScreen extends ConsumerWidget {
       final accounts = await ref.read(accountsProvider.future);
       if (!context.mounted) return;
       if (accounts.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No accounts to export.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No accounts to export.')));
         return;
       }
-      await shareReportCsv(csv: formatCoaCsv(accounts), subject: 'FX Ledger Chart of Accounts');
+      await shareReportCsv(
+        csv: formatCoaCsv(accounts),
+        subject: 'FX Ledger Chart of Accounts',
+      );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
   }
@@ -45,21 +50,34 @@ class ChartOfAccountsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Chart of Accounts', style: AppTypography.headlineLg(Theme.of(context).colorScheme.onSurface, context: context)),
+          Text(
+            'Chart of Accounts',
+            style: AppTypography.headlineLg(
+              Theme.of(context).colorScheme.onSurface,
+              context: context,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Read-only COA from fx_accounts.',
-            style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context),
+            style: AppTypography.bodyMd(
+              Theme.of(context).colorScheme.onSurfaceVariant,
+              context: context,
+            ),
           ),
           const SizedBox(height: 16),
           accountsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => const FxObsidianReportPanel(
-              child: Text('Unable to load accounts. Profile and RLS permissions required.'),
+              child: Text(
+                'Unable to load accounts. Profile and RLS permissions required.',
+              ),
             ),
             data: (accounts) {
               if (accounts.isEmpty) {
-                return const FxObsidianReportPanel(child: Text('No accounts visible for your profile.'));
+                return const FxObsidianReportPanel(
+                  child: Text('No accounts visible for your profile.'),
+                );
               }
               return Container(
                 decoration: BoxDecoration(
@@ -71,13 +89,34 @@ class ChartOfAccountsScreen extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: accounts.length,
-                  separatorBuilder: (context, index) => Divider(height: 1, color: context.fx.outlineVariant),
+                  separatorBuilder: (context, index) =>
+                      Divider(height: 1, color: context.fx.outlineVariant),
                   itemBuilder: (context, index) {
                     final a = accounts[index];
                     return ListTile(
-                      title: Text('${a.code} · ${a.name}', style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurface, context: context)),
-                      subtitle: Text(a.accountType, style: AppTypography.bodyMd(Theme.of(context).colorScheme.onSurfaceVariant, context: context).copyWith(fontSize: 12)),
-                      trailing: a.isActive ? null : Text('Inactive', style: AppTypography.labelCaps(context.fx.onSurfaceVariant, context: context)),
+                      title: Text(
+                        '${a.code} · ${a.name}',
+                        style: AppTypography.bodyMd(
+                          Theme.of(context).colorScheme.onSurface,
+                          context: context,
+                        ),
+                      ),
+                      subtitle: Text(
+                        a.accountType,
+                        style: AppTypography.bodyMd(
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
+                      ),
+                      trailing: a.isActive
+                          ? null
+                          : Text(
+                              'Inactive',
+                              style: AppTypography.labelCaps(
+                                context.fx.onSurfaceVariant,
+                                context: context,
+                              ),
+                            ),
                     );
                   },
                 ),

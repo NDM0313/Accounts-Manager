@@ -35,7 +35,10 @@ class OpeningBalanceHubScreen extends ConsumerWidget {
                 Text(
                   'Enter starting balances once before real transactions. '
                   'This posts balanced opening journals through the ledger posting engine.',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
@@ -47,11 +50,17 @@ class OpeningBalanceHubScreen extends ConsumerWidget {
               if (view.status == FxOpeningBalanceStatus.draft) ...[
                 Text(
                   'You have a draft opening balance batch. Continue editing or post when balanced.',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (view.batch != null) ...[
-                  _SummaryTile(label: 'Opening date', value: DateFormat.yMMMd().format(view.batch!.openingDate)),
+                  _SummaryTile(
+                    label: 'Opening date',
+                    value: DateFormat.yMMMd().format(view.batch!.openingDate),
+                  ),
                   _SummaryTile(label: 'Lines', value: '${view.lines.length}'),
                   _SummaryTile(
                     label: 'Total PKR',
@@ -65,21 +74,38 @@ class OpeningBalanceHubScreen extends ConsumerWidget {
                   label: const Text('Continue Draft'),
                 ),
               ],
-              if (view.status == FxOpeningBalanceStatus.posted && view.batch != null) ...[
-                _SummaryTile(label: 'Batch', value: view.batch!.batchNo ?? view.batch!.id.substring(0, 8)),
-                _SummaryTile(label: 'Opening date', value: DateFormat.yMMMd().format(view.batch!.openingDate)),
-                _SummaryTile(label: 'Lines posted', value: '${view.lines.length}'),
-                _SummaryTile(label: 'Total PKR', value: fmt.format(view.batch!.totalDebitPkr)),
+              if (view.status == FxOpeningBalanceStatus.posted &&
+                  view.batch != null) ...[
+                _SummaryTile(
+                  label: 'Batch',
+                  value: view.batch!.batchNo ?? view.batch!.id.substring(0, 8),
+                ),
+                _SummaryTile(
+                  label: 'Opening date',
+                  value: DateFormat.yMMMd().format(view.batch!.openingDate),
+                ),
+                _SummaryTile(
+                  label: 'Lines posted',
+                  value: '${view.lines.length}',
+                ),
+                _SummaryTile(
+                  label: 'Total PKR',
+                  value: fmt.format(view.batch!.totalDebitPkr),
+                ),
                 if (view.batch!.postedAt != null)
                   _SummaryTile(
                     label: 'Posted',
-                    value: DateFormat.yMMMd().add_jm().format(view.batch!.postedAt!.toLocal()),
+                    value: DateFormat.yMMMd().add_jm().format(
+                      view.batch!.postedAt!.toLocal(),
+                    ),
                   ),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () async {
                     final accounts = await ref.read(accountsProvider.future);
-                    final parties = await ref.read(partiesProvider(null).future);
+                    final parties = await ref.read(
+                      partiesProvider(null).future,
+                    );
                     if (!context.mounted) return;
                     await shareOpeningBalanceSummary(
                       batch: view.batch!,
@@ -94,7 +120,10 @@ class OpeningBalanceHubScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Opening balance is locked. Contact an admin to void and repost if correction is needed.',
-                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                  style: AppTypography.bodyMd(
+                    context.fx.onSurfaceVariant,
+                    context: context,
+                  ),
                 ),
               ],
               const SizedBox(height: 32),
@@ -105,7 +134,10 @@ class OpeningBalanceHubScreen extends ConsumerWidget {
                 '• Foreign currency positions with rates\n'
                 '• Customer & agent receivables / payables\n'
                 '• Balanced by Owner Capital (3100)',
-                style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
             ],
           );
@@ -124,25 +156,25 @@ class _StatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final (color, icon, label) = switch (status) {
       FxOpeningBalanceStatus.missing => (
-          context.fx.error,
-          Icons.warning_amber_outlined,
-          'Opening balances not set'
-        ),
+        context.fx.error,
+        Icons.warning_amber_outlined,
+        'Opening balances not set',
+      ),
       FxOpeningBalanceStatus.draft => (
-          context.fx.primary,
-          Icons.edit_note_outlined,
-          'Draft in progress'
-        ),
+        context.fx.primary,
+        Icons.edit_note_outlined,
+        'Draft in progress',
+      ),
       FxOpeningBalanceStatus.posted => (
-          context.fx.tertiary,
-          Icons.check_circle_outline,
-          'Opening balance posted'
-        ),
+        context.fx.tertiary,
+        Icons.check_circle_outline,
+        'Opening balance posted',
+      ),
       FxOpeningBalanceStatus.voided => (
-          context.fx.onSurfaceVariant,
-          Icons.block_outlined,
-          'Opening balance voided'
-        ),
+        context.fx.onSurfaceVariant,
+        Icons.block_outlined,
+        'Opening balance voided',
+      ),
     };
 
     return Container(
@@ -181,8 +213,17 @@ class _SummaryTile extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.bodyMd(context.fx.onSurfaceVariant, context: context)),
-          Text(value, style: AppTypography.bodyMd(context.fx.onSurface, context: context)),
+          Text(
+            label,
+            style: AppTypography.bodyMd(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
+          ),
+          Text(
+            value,
+            style: AppTypography.bodyMd(context.fx.onSurface, context: context),
+          ),
         ],
       ),
     );

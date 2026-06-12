@@ -80,22 +80,19 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (!loggedIn) return onLogin ? null : '/login';
       if (loggedIn && onLogin) return '/';
-      if (loggedIn && state.matchedLocation == '/transactions') return '/ledger';
+      if (loggedIn && state.matchedLocation == '/transactions') {
+        return '/ledger';
+      }
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/branch',
-        builder: (context, state) => const AuthGate(child: BranchSelectScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: BranchSelectScreen()),
       ),
-      GoRoute(
-        path: '/transactions',
-        redirect: (context, state) => '/ledger',
-      ),
+      GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
       GoRoute(
         path: '/transactions/new',
         builder: (context, state) {
@@ -126,8 +123,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/transactions/:id/complete',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          final mode = TransactionDraftMode.fromQuery(state.uri.queryParameters['mode']);
-          return AuthGate(child: TransactionCompleteScreen(transactionId: id, draftMode: mode));
+          final mode = TransactionDraftMode.fromQuery(
+            state.uri.queryParameters['mode'],
+          );
+          return AuthGate(
+            child: TransactionCompleteScreen(
+              transactionId: id,
+              draftMode: mode,
+            ),
+          );
         },
       ),
       GoRoute(
@@ -146,7 +150,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/transactions/chained-exchange',
-        builder: (context, state) => const AuthGate(child: ChainedExchangeWizardScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: ChainedExchangeWizardScreen()),
       ),
       GoRoute(
         path: '/deals',
@@ -154,7 +159,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/deals/new',
-        builder: (context, state) => const AuthGate(child: NewCustomerFxOrderScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: NewCustomerFxOrderScreen()),
       ),
       GoRoute(
         path: '/deals/:id',
@@ -175,7 +181,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final legId = state.uri.queryParameters['legId'];
-          return AuthGate(child: AgentSourceLegScreen(dealId: id, legId: legId));
+          return AuthGate(
+            child: AgentSourceLegScreen(dealId: id, legId: legId),
+          );
         },
       ),
       GoRoute(
@@ -222,19 +230,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/remittance',
-        builder: (context, state) => const AuthGate(child: RemittanceListScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: RemittanceListScreen()),
       ),
       GoRoute(
         path: '/remittance/new',
-        builder: (context, state) => const AuthGate(child: NewRemittanceOrderScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: NewRemittanceOrderScreen()),
       ),
       GoRoute(
         path: '/remittance/reports',
-        builder: (context, state) => const AuthGate(child: RemittanceReportsScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: RemittanceReportsScreen()),
       ),
       GoRoute(
         path: '/remittance/agent',
-        builder: (context, state) => const AuthGate(child: AgentRemittanceInboxScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: AgentRemittanceInboxScreen()),
       ),
       GoRoute(
         path: '/remittance/agent/:id/confirm',
@@ -252,13 +264,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/notifications',
-        builder: (context, state) => const AuthGate(child: NotificationsInboxScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: NotificationsInboxScreen()),
       ),
       GoRoute(
         path: '/remittance/:id/payment',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return AuthGate(child: RemittanceCustomerPaymentScreen(remittanceId: id));
+          return AuthGate(
+            child: RemittanceCustomerPaymentScreen(remittanceId: id),
+          );
         },
       ),
       GoRoute(
@@ -272,14 +287,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/remittance/:id/payout',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return AuthGate(child: RemittanceConfirmPayoutScreen(remittanceId: id));
+          return AuthGate(
+            child: RemittanceConfirmPayoutScreen(remittanceId: id),
+          );
         },
       ),
       GoRoute(
         path: '/remittance/:id/settlement',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return AuthGate(child: RemittanceAgentSettlementScreen(remittanceId: id));
+          return AuthGate(
+            child: RemittanceAgentSettlementScreen(remittanceId: id),
+          );
         },
       ),
       GoRoute(
@@ -291,7 +310,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/messages',
-        builder: (context, state) => const AuthGate(child: MessagesInboxScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: MessagesInboxScreen()),
       ),
       GoRoute(
         path: '/messages/:id',
@@ -302,15 +322,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/settings/currency-settings',
-        builder: (context, state) => const AuthGate(child: CurrencySettingsScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: CurrencySettingsScreen()),
       ),
       GoRoute(
         path: '/guide/fx-workflow',
-        builder: (context, state) => const AuthGate(child: FxWorkflowGuideScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: FxWorkflowGuideScreen()),
       ),
       GoRoute(
         path: '/settings/currencies',
-        builder: (context, state) => const AuthGate(child: CurrencyManagementScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: CurrencyManagementScreen()),
       ),
       GoRoute(
         path: '/rates',
@@ -320,11 +343,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/rates/new',
         builder: (context, state) {
           final q = state.uri.queryParameters;
-          return AuthGate(
-            child: RateFormScreen(
-              duplicateFromId: q['from'],
-            ),
-          );
+          return AuthGate(child: RateFormScreen(duplicateFromId: q['from']));
         },
       ),
       GoRoute(
@@ -343,11 +362,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/accounts',
-        builder: (context, state) => const AuthGate(child: ChartOfAccountsScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: ChartOfAccountsScreen()),
       ),
       GoRoute(
         path: '/reports/general-ledger',
-        builder: (context, state) => const AuthGate(child: GeneralLedgerScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: GeneralLedgerScreen()),
       ),
       GoRoute(
         path: '/reports/profit-loss',
@@ -355,19 +376,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/reports/balance-sheet',
-        builder: (context, state) => const AuthGate(child: BalanceSheetScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: BalanceSheetScreen()),
       ),
       GoRoute(
         path: '/reports/currency-position',
-        builder: (context, state) => const AuthGate(child: CurrencyPositionScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: CurrencyPositionScreen()),
       ),
       GoRoute(
         path: '/closing',
-        builder: (context, state) => const AuthGate(child: DailyClosingScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: DailyClosingScreen()),
       ),
       GoRoute(
         path: '/reports/trial-balance',
-        builder: (context, state) => const AuthGate(child: TrialBalanceScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: TrialBalanceScreen()),
       ),
       GoRoute(
         path: '/reports/account-journal',
@@ -394,7 +419,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/journal/new',
-        builder: (context, state) => const AuthGate(child: ManualJournalScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: ManualJournalScreen()),
       ),
       GoRoute(
         path: '/parties',
@@ -424,11 +450,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/opening-balances',
-        builder: (context, state) => const AuthGate(child: OpeningBalanceHubScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: OpeningBalanceHubScreen()),
       ),
       GoRoute(
         path: '/opening-balances/wizard',
-        builder: (context, state) => const AuthGate(child: OpeningBalanceWizardScreen()),
+        builder: (context, state) =>
+            const AuthGate(child: OpeningBalanceWizardScreen()),
       ),
       GoRoute(
         path: '/journal/:entryId',
@@ -444,27 +472,43 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const DashboardScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/ledger', builder: (context, state) => const LedgerHubScreen()),
+              GoRoute(
+                path: '/ledger',
+                builder: (context, state) => const LedgerHubScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/accounts-hub', builder: (context, state) => const GeneralHubScreen()),
+              GoRoute(
+                path: '/accounts-hub',
+                builder: (context, state) => const GeneralHubScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/audit', builder: (context, state) => const AuditLogScreen(inShell: true)),
+              GoRoute(
+                path: '/audit',
+                builder: (context, state) =>
+                    const AuditLogScreen(inShell: true),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SettingsScreen(),
+              ),
             ],
           ),
         ],

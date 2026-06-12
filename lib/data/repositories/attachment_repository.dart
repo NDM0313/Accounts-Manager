@@ -57,34 +57,76 @@ class AttachmentRepository {
       'id, transaction_id, deal_id, deal_leg_id, message_id, remittance_id, remittance_event_id, storage_path, file_name, mime_type, file_size_bytes, attachment_type';
 
   Future<List<FxAttachment>> fetchForTransaction(String transactionId) async {
-    final rows = await supabase.from('fx_attachments').select(_selectCols).eq('transaction_id', transactionId).order('created_at');
-    return (rows as List).cast<Map<String, dynamic>>().map(FxAttachment.fromJson).toList();
+    final rows = await supabase
+        .from('fx_attachments')
+        .select(_selectCols)
+        .eq('transaction_id', transactionId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxAttachment.fromJson)
+        .toList();
   }
 
   Future<List<FxAttachment>> fetchForLeg(String dealLegId) async {
-    final rows = await supabase.from('fx_attachments').select(_selectCols).eq('deal_leg_id', dealLegId).order('created_at');
-    return (rows as List).cast<Map<String, dynamic>>().map(FxAttachment.fromJson).toList();
+    final rows = await supabase
+        .from('fx_attachments')
+        .select(_selectCols)
+        .eq('deal_leg_id', dealLegId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxAttachment.fromJson)
+        .toList();
   }
 
   Future<List<FxAttachment>> fetchForRemittance(String remittanceId) async {
-    final rows = await supabase.from('fx_attachments').select(_selectCols).eq('remittance_id', remittanceId).order('created_at');
-    return (rows as List).cast<Map<String, dynamic>>().map(FxAttachment.fromJson).toList();
+    final rows = await supabase
+        .from('fx_attachments')
+        .select(_selectCols)
+        .eq('remittance_id', remittanceId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxAttachment.fromJson)
+        .toList();
   }
 
-  Future<List<FxAttachment>> fetchForRemittanceEvent(String remittanceEventId) async {
-    final rows = await supabase.from('fx_attachments').select(_selectCols).eq('remittance_event_id', remittanceEventId).order('created_at');
-    return (rows as List).cast<Map<String, dynamic>>().map(FxAttachment.fromJson).toList();
+  Future<List<FxAttachment>> fetchForRemittanceEvent(
+    String remittanceEventId,
+  ) async {
+    final rows = await supabase
+        .from('fx_attachments')
+        .select(_selectCols)
+        .eq('remittance_event_id', remittanceEventId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FxAttachment.fromJson)
+        .toList();
   }
 
-  Future<Set<String>> fetchTransactionIdsWithAttachments(List<String> transactionIds) async {
+  Future<Set<String>> fetchTransactionIdsWithAttachments(
+    List<String> transactionIds,
+  ) async {
     if (transactionIds.isEmpty) return {};
-    final rows = await supabase.from('fx_attachments').select('transaction_id').inFilter('transaction_id', transactionIds);
-    return (rows as List).cast<Map<String, dynamic>>().where((r) => r['transaction_id'] != null).map((r) => r['transaction_id'] as String).toSet();
+    final rows = await supabase
+        .from('fx_attachments')
+        .select('transaction_id')
+        .inFilter('transaction_id', transactionIds);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .where((r) => r['transaction_id'] != null)
+        .map((r) => r['transaction_id'] as String)
+        .toSet();
   }
 
   Future<Map<String, int>> fetchLegAttachmentCounts(List<String> legIds) async {
     if (legIds.isEmpty) return {};
-    final rows = await supabase.from('fx_attachments').select('deal_leg_id').inFilter('deal_leg_id', legIds);
+    final rows = await supabase
+        .from('fx_attachments')
+        .select('deal_leg_id')
+        .inFilter('deal_leg_id', legIds);
     final counts = <String, int>{};
     for (final row in (rows as List).cast<Map<String, dynamic>>()) {
       final id = row['deal_leg_id'] as String?;
@@ -109,7 +151,10 @@ class AttachmentRepository {
     String? attachmentType,
   }) async {
     assert(
-      transactionId != null || dealLegId != null || messageId != null || remittanceId != null,
+      transactionId != null ||
+          dealLegId != null ||
+          messageId != null ||
+          remittanceId != null,
       'Need transactionId, dealLegId, messageId, or remittanceId',
     );
 
@@ -118,12 +163,18 @@ class AttachmentRepository {
     final path = messageId != null
         ? '${sanitizeStoragePathSegment(branchId)}/messages/${sanitizeStoragePathSegment(messageId)}/${ts}_$safeName'
         : remittanceId != null
-            ? '${sanitizeStoragePathSegment(branchId)}/remittance/${sanitizeStoragePathSegment(remittanceId)}/${ts}_$safeName'
-            : dealLegId != null && dealId != null
-                ? '${sanitizeStoragePathSegment(branchId)}/deals/${sanitizeStoragePathSegment(dealId)}/legs/${sanitizeStoragePathSegment(dealLegId)}/${ts}_$safeName'
-                : '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId!)}/${ts}_$safeName';
+        ? '${sanitizeStoragePathSegment(branchId)}/remittance/${sanitizeStoragePathSegment(remittanceId)}/${ts}_$safeName'
+        : dealLegId != null && dealId != null
+        ? '${sanitizeStoragePathSegment(branchId)}/deals/${sanitizeStoragePathSegment(dealId)}/legs/${sanitizeStoragePathSegment(dealLegId)}/${ts}_$safeName'
+        : '${sanitizeStoragePathSegment(branchId)}/${sanitizeStoragePathSegment(transactionId!)}/${ts}_$safeName';
 
-    await supabase.storage.from(bucket).uploadBinary(path, bytes, fileOptions: FileOptions(contentType: mimeType));
+    await supabase.storage
+        .from(bucket)
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: mimeType),
+        );
 
     final insert = <String, dynamic>{
       'storage_path': path,
@@ -137,10 +188,16 @@ class AttachmentRepository {
     if (dealLegId != null) insert['deal_leg_id'] = dealLegId;
     if (messageId != null) insert['message_id'] = messageId;
     if (remittanceId != null) insert['remittance_id'] = remittanceId;
-    if (remittanceEventId != null) insert['remittance_event_id'] = remittanceEventId;
+    if (remittanceEventId != null) {
+      insert['remittance_event_id'] = remittanceEventId;
+    }
     if (attachmentType != null) insert['attachment_type'] = attachmentType;
 
-    final row = await supabase.from('fx_attachments').insert(insert).select(_selectCols).single();
+    final row = await supabase
+        .from('fx_attachments')
+        .insert(insert)
+        .select(_selectCols)
+        .single();
     return FxAttachment.fromJson(row);
   }
 
