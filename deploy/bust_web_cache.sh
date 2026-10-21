@@ -9,22 +9,19 @@ COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
   exit 1
 }
 python3 - "$WEB" "$COMMIT" <<'PY'
-import pathlib, sys
+import pathlib, re, sys
 web, commit = pathlib.Path(sys.argv[1]), sys.argv[2]
 idx = web / "index.html"
 boot = web / "flutter_bootstrap.js"
-idx.write_text(
-    idx.read_text().replace(
-        'src="flutter_bootstrap.js"',
-        f'src="flutter_bootstrap.js?v={commit}"',
-    ).replace(
-        f'src="flutter_bootstrap.js?v={commit}?v=',
-        f'src="flutter_bootstrap.js?v=',
-    )
+idx_text = idx.read_text()
+idx_text = re.sub(
+    r'(src="flutter_bootstrap\.js)(\?v=[^"]*)?(")',
+    rf'\1?v={commit}\3',
+    idx_text,
 )
+idx.write_text(idx_text)
 t = boot.read_text()
-t = t.replace('"main.dart.js"', f'"main.dart.js?v={commit}"')
-t = t.replace("'main.dart.js'", f"'main.dart.js?v={commit}'")
+t = re.sub(r'main\.dart\.js(\?v=[^"\']*)?', f'main.dart.js?v={commit}', t)
 boot.write_text(t)
 print(f"cache-bust commit={commit}")
 PY
