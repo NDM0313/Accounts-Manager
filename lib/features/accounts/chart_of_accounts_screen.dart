@@ -127,6 +127,7 @@ class ChartOfAccountsScreen extends ConsumerWidget {
                       Divider(height: 1, color: context.fx.outlineVariant),
                   itemBuilder: (context, index) {
                     final a = accounts[index];
+                    final currency = a.currencyCode ?? '—';
                     return ListTile(
                       title: Text(
                         '${a.code} · ${a.name}',
@@ -136,14 +137,39 @@ class ChartOfAccountsScreen extends ConsumerWidget {
                         ),
                       ),
                       subtitle: Text(
-                        a.accountType,
+                        '${a.accountType} · $currency'
+                        '${a.code.startsWith('11') || a.code.startsWith('12') ? ' · cash/bank' : ''}',
                         style: AppTypography.bodyMd(
                           Theme.of(context).colorScheme.onSurfaceVariant,
                           context: context,
                         ).copyWith(fontSize: 12),
                       ),
                       trailing: a.isActive
-                          ? null
+                          ? IconButton(
+                              tooltip: 'Deactivate',
+                              icon: const Icon(Icons.block, size: 20),
+                              onPressed: () async {
+                                try {
+                                  await ref
+                                      .read(accountRepositoryProvider)
+                                      .deactivateAccount(a.id);
+                                  ref.invalidate(accountsProvider);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Deactivated ${a.code}'),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$e')),
+                                    );
+                                  }
+                                }
+                              },
+                            )
                           : Text(
                               'Inactive',
                               style: AppTypography.labelCaps(

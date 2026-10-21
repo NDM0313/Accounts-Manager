@@ -124,37 +124,60 @@ class _NewCustomerFxOrderScreenState
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
               data: (choices) {
+                Future<void> addCustomer() async {
+                  final id = await context.push<String>('/parties/new');
+                  ref.invalidate(customerOrderPartyChoicesProvider);
+                  ref.invalidate(partiesProvider(null));
+                  if (id != null && mounted) {
+                    setState(() => _customerId = id);
+                  }
+                }
+
                 if (choices.parties.isEmpty) {
                   return OutlinedButton.icon(
-                    onPressed: _busy ? null : () => context.push('/parties/new'),
+                    onPressed: _busy ? null : addCustomer,
                     icon: const Icon(Icons.person_add_outlined),
                     label: const Text('Add customer'),
                   );
                 }
-                return DropdownButtonFormField<String>(
-                  initialValue: _customerId,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search or select customer…',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: context.fx.surfaceContainerLowest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                    ),
-                  ),
-                  hint: const Text('Select customer'),
-                  items: choices.parties
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text('${p.code} · ${p.name}'),
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _customerId,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          hintText: 'Search or select customer…',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: context.fx.surfaceContainerLowest,
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusLg),
+                          ),
                         ),
-                      )
-                      .toList(),
-                  onChanged:
-                      _busy ? null : (v) => setState(() => _customerId = v),
-                  validator: (v) => v == null ? 'Select customer' : null,
+                        hint: const Text('Select customer'),
+                        items: choices.parties
+                            .map(
+                              (p) => DropdownMenuItem(
+                                value: p.id,
+                                child: Text('${p.code} · ${p.name}'),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: _busy
+                            ? null
+                            : (v) => setState(() => _customerId = v),
+                        validator: (v) => v == null ? 'Select customer' : null,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Add customer',
+                      onPressed: _busy ? null : addCustomer,
+                      icon: const Icon(Icons.person_add_outlined),
+                    ),
+                  ],
                 );
               },
             ),

@@ -67,4 +67,8 @@ class PartyRepository {
         .single();
     return FxParty.fromJson(row);
   }
+
+  Future<void> deactivateParty(String partyId) async {
+    await supabase.rpc('fx_deactivate_party', params: {'p_party_id': partyId});
+  }
 }

@@ -47,16 +47,20 @@ class _ImportPaymentSlipScreenState
   String? _attachmentId;
   String? _clientOp;
   String? _cashAccountId;
+  String? _destinationAccountId;
   String? _partyId;
   String _currency = 'PKR';
   String _classification = 'receive_from_party';
+  String _partyFlow = 'unspecified';
   List<String> _uncertain = [];
   List<Map<String, dynamic>> _duplicates = [];
   String? _ocrError;
+  String? _ocrProgress;
   String? _printedStatus;
   bool _busy = false;
   bool _keepHighQuality = false;
   bool _ready = false;
+  bool _userTouchedFields = false;
 
   @override
   void dispose() {
@@ -83,10 +87,22 @@ class _ImportPaymentSlipScreenState
     final result = await FilePicker.platform.pickFiles(
       withData: true,
       type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'heic'],
     );
     if (result == null || result.files.isEmpty) return;
     final f = result.files.first;
+    if (f.extension?.toLowerCase() == 'heic') {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'HEIC is not supported in mobile Safari web — export as JPEG/PNG/PDF first.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (f.bytes == null) return;
     await _ingest(f.bytes!, f.name, _mimeFor(f.extension));
   }
@@ -189,9 +205,13 @@ class _ImportPaymentSlipScreenState
         final raw = await SlipOcrEngine.recognizeImageBytes(
           bytes,
           mimeType: mime ?? 'image/jpeg',
+          onProgress: (s) {
+            if (mounted) setState(() => _ocrProgress = s);
+          },
         );
         final extract = PakBankSlipParser.parse(raw);
-        _applyExtract(extract);
+        // Never overwrite fields the user already corrected.
+        _applyExtract(extract, onlyEmpty: _userTouchedFields);
         await ref.read(slipImportRepositoryProvider).upsertDraft({
           'client_operation_id': _clientOp,
           'raw_text': raw,
@@ -207,16 +227,24 @@ class _ImportPaymentSlipScreenState
           'provider_name': extract.providerName,
           'printed_status': extract.printedStatus,
           'uncertain_fields': extract.uncertainFields,
-          'extracted_json': extract.toJson(),
+          'extracted_json': {
+            ...extract.toJson(),
+            'processing': 'in_browser_wasm',
+            'engine': SlipOcrEngine.engineId,
+          },
           'description': PakBankSlipParser.buildDescription(extract),
           'attachment_id': _attachmentId,
           'ocr_engine': SlipOcrEngine.engineId,
           'status': 'draft',
         });
-        setState(() => _ready = true);
+        setState(() {
+          _ready = true;
+          _ocrProgress = null;
+        });
       } catch (e) {
         setState(() {
           _ocrError = e.toString();
+          _ocrProgress = null;
           _ready = true;
         });
         await ref.read(slipImportRepositoryProvider).upsertDraft({
@@ -237,18 +265,30 @@ class _ImportPaymentSlipScreenState
     }
   }
 
-  void _applyExtract(SlipOcrExtract e) {
-    _amountCtrl.text = e.amount?.toString() ?? '';
-    _dateCtrl.text = e.txnDate ?? '';
-    _timeCtrl.text = e.txnTimeText ?? '';
-    _refCtrl.text = e.bankReference ?? '';
-    _senderCtrl.text = e.senderName ?? '';
-    _receiverCtrl.text = e.receiverName ?? '';
-    _rawCtrl.text = e.rawText;
-    _currency = e.currencyCode ?? 'PKR';
-    _printedStatus = e.printedStatus;
+  void _applyExtract(SlipOcrExtract e, {bool onlyEmpty = false}) {
+    void put(TextEditingController c, String? v) {
+      if (v == null || v.isEmpty) return;
+      if (onlyEmpty && c.text.trim().isNotEmpty) return;
+      c.text = v;
+    }
+
+    put(_amountCtrl, e.amount?.toString());
+    put(_dateCtrl, e.txnDate);
+    put(_timeCtrl, e.txnTimeText);
+    put(_refCtrl, e.bankReference);
+    put(_senderCtrl, e.senderName);
+    put(_receiverCtrl, e.receiverName);
+    if (!onlyEmpty || _rawCtrl.text.trim().isEmpty) {
+      _rawCtrl.text = e.rawText;
+    }
+    if (!onlyEmpty || _currency.isEmpty) {
+      _currency = e.currencyCode ?? _currency;
+    }
+    _printedStatus = e.printedStatus ?? _printedStatus;
     _uncertain = List.of(e.uncertainFields);
-    _descCtrl.text = PakBankSlipParser.buildDescription(e);
+    if (!onlyEmpty || _descCtrl.text.trim().isEmpty) {
+      _descCtrl.text = PakBankSlipParser.buildDescription(e);
+    }
   }
 
   Future<void> _confirm() async {
@@ -271,23 +311,31 @@ class _ImportPaymentSlipScreenState
       );
       return;
     }
-    if (_classification == 'unsupported') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unsupported — kept as draft only')),
-      );
-      return;
-    }
-    if (_classification == 'internal_transfer') {
+    if (_classification == 'unsupported' ||
+        _partyFlow == 'agent_to_beneficiary') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Use the Transfer transaction workflow for own-account moves.',
+            'Kept as draft — unsupported / agent-to-beneficiary does not post to our bank.',
           ),
         ),
       );
       return;
     }
-    if (_partyId == null) {
+    if (_classification == 'internal_transfer') {
+      if (_destinationAccountId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select destination cash/bank account')),
+        );
+        return;
+      }
+      if (_destinationAccountId == _cashAccountId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Source and destination must differ')),
+        );
+        return;
+      }
+    } else if (_partyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select counterparty')),
       );
@@ -317,7 +365,9 @@ class _ImportPaymentSlipScreenState
               'raw_text': _rawCtrl.text,
               'description': _descCtrl.text.trim(),
               'classification': _classification,
+              'party_flow': _partyFlow,
               'cash_account_id': _cashAccountId,
+              'destination_account_id': _destinationAccountId,
               'counterparty_party_id': _partyId,
               'deal_id': widget.dealId,
               'attachment_id': _attachmentId,
@@ -327,7 +377,7 @@ class _ImportPaymentSlipScreenState
 
       final opId = await ClientOperationId.begin(
         'slip_import_confirm',
-        '$_importId:$amount:$_cashAccountId:$_partyId',
+        '$_importId:$amount:$_cashAccountId:${_destinationAccountId ?? _partyId}',
       );
       final txId = await ref.read(slipImportRepositoryProvider).confirm(
             importId: _importId!,
@@ -336,6 +386,41 @@ class _ImportPaymentSlipScreenState
       if (!mounted) return;
       context.go('/transactions/$txId');
     } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('DUPLICATE_TRANSFER') &&
+          _duplicates.isNotEmpty &&
+          _duplicates.first['resulting_tx_id'] != null &&
+          mounted) {
+        final existingTx = _duplicates.first['resulting_tx_id'] as String;
+        final attach = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Duplicate transfer'),
+            content: const Text(
+              'Same reference/amount/account already confirmed. '
+              'Attach this slip as extra evidence without posting again?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Attach only'),
+              ),
+            ],
+          ),
+        );
+        if (attach == true) {
+          final txId = await ref.read(slipImportRepositoryProvider).attachToExisting(
+                importId: _importId!,
+                transactionId: existingTx,
+              );
+          if (mounted) context.go('/transactions/$txId');
+          return;
+        }
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Confirm failed: $e')),
@@ -400,13 +485,21 @@ class _ImportPaymentSlipScreenState
             ),
           ],
           if (_busy) const LinearProgressIndicator(),
+          if (_ocrProgress != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('OCR: $_ocrProgress'),
+            ),
           if (_ocrError != null) ...[
             const SizedBox(height: 8),
             Material(
               color: Colors.orange.shade50,
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Text('OCR note: $_ocrError'),
+                child: Text(
+                  'OCR note: $_ocrError\n'
+                  'Draft + attachment preserved — correct fields manually and confirm, or retry upload.',
+                ),
               ),
             ),
           ],
@@ -424,7 +517,7 @@ class _ImportPaymentSlipScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Possible duplicates:'),
+                    const Text('Possible duplicates (file hash and/or ref+amount):'),
                     ..._duplicates.map(
                       (d) => Text(
                         '• ${d['match_reason']} / ${d['status']} / '
@@ -456,7 +549,7 @@ class _ImportPaymentSlipScreenState
               ),
               DropdownMenuItem(
                 value: 'internal_transfer',
-                child: Text('Own-account transfer (use Transfer form)'),
+                child: Text('Internal transfer (our accounts)'),
               ),
               DropdownMenuItem(
                 value: 'unsupported',
@@ -466,10 +559,44 @@ class _ImportPaymentSlipScreenState
             onChanged: (v) =>
                 setState(() => _classification = v ?? _classification),
           ),
+          if (_classification != 'internal_transfer')
+            DropdownButtonFormField<String>(
+              initialValue: _partyFlow,
+              decoration: const InputDecoration(
+                labelText: 'Party flow detail',
+                helperText:
+                    'Does not invent income/expense — settlement accounts only',
+              ),
+              items: const [
+                DropdownMenuItem(value: 'unspecified', child: Text('Unspecified')),
+                DropdownMenuItem(
+                  value: 'customer_receipt',
+                  child: Text('Customer receipt'),
+                ),
+                DropdownMenuItem(
+                  value: 'supplier_refund',
+                  child: Text('Supplier refund (incoming)'),
+                ),
+                DropdownMenuItem(
+                  value: 'supplier_payment',
+                  child: Text('Supplier payment (outgoing)'),
+                ),
+                DropdownMenuItem(
+                  value: 'agent_settlement',
+                  child: Text('Agent settlement'),
+                ),
+                DropdownMenuItem(
+                  value: 'agent_to_beneficiary',
+                  child: Text('Agent→beneficiary (draft only)'),
+                ),
+              ],
+              onChanged: (v) => setState(() => _partyFlow = v ?? _partyFlow),
+            ),
           TextFormField(
             controller: _amountCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(labelText: 'Amount'),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           DropdownButtonFormField<String>(
             initialValue: _currency,
@@ -487,24 +614,29 @@ class _ImportPaymentSlipScreenState
             decoration: const InputDecoration(
               labelText: 'Date YYYY-MM-DD (as on slip)',
             ),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           TextFormField(
             controller: _timeCtrl,
             decoration: const InputDecoration(labelText: 'Time as printed'),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           TextFormField(
             controller: _refCtrl,
             decoration: const InputDecoration(
               labelText: 'Bank reference / TID (keep leading zeros)',
             ),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           TextFormField(
             controller: _senderCtrl,
             decoration: const InputDecoration(labelText: 'Sender name'),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           TextFormField(
             controller: _receiverCtrl,
             decoration: const InputDecoration(labelText: 'Receiver name'),
+            onChanged: (_) => _userTouchedFields = true,
           ),
           accountsAsync.when(
             loading: () => const LinearProgressIndicator(),
@@ -517,67 +649,93 @@ class _ImportPaymentSlipScreenState
                         (a.code.startsWith('11') || a.code.startsWith('12')),
                   )
                   .toList();
-              return DropdownButtonFormField<String>(
-                initialValue: _cashAccountId,
+              final items = cash
+                  .map(
+                    (a) => DropdownMenuItem(
+                      value: a.id,
+                      child: Text(
+                        '${a.code} ${a.name} (${a.currencyCode ?? 'PKR'})',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList();
+              return Column(
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: _cashAccountId,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: _classification == 'internal_transfer'
+                          ? 'From (source) cash/bank'
+                          : 'Our cash/bank account',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () async {
+                          final id = await context.push<String>(
+                            '/accounts/new-cash',
+                          );
+                          ref.invalidate(accountsProvider);
+                          if (id != null) {
+                            setState(() => _cashAccountId = id);
+                          }
+                        },
+                      ),
+                    ),
+                    items: items,
+                    onChanged: (v) => setState(() => _cashAccountId = v),
+                  ),
+                  if (_classification == 'internal_transfer') ...[
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _destinationAccountId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'To (destination) cash/bank',
+                        helperText:
+                            'Cross-currency requires explicit transfer_rate — not guessed',
+                      ),
+                      items: items,
+                      onChanged: (v) =>
+                          setState(() => _destinationAccountId = v),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+          if (_classification != 'internal_transfer')
+            partiesAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (e, _) => Text('Parties error: $e'),
+              data: (parties) => DropdownButtonFormField<String>(
+                initialValue: _partyId,
                 isExpanded: true,
                 decoration: InputDecoration(
-                  labelText: 'Our cash/bank account',
+                  labelText: 'Counterparty',
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Icons.person_add_alt),
                     onPressed: () async {
-                      final id =
-                          await context.push<String>('/accounts/new-cash');
-                      ref.invalidate(accountsProvider);
-                      if (id != null) setState(() => _cashAccountId = id);
+                      final id = await context.push<String>('/parties/new');
+                      ref.invalidate(partiesProvider(null));
+                      if (id != null) setState(() => _partyId = id);
                     },
                   ),
                 ),
-                items: cash
+                items: parties
                     .map(
-                      (a) => DropdownMenuItem(
-                        value: a.id,
+                      (p) => DropdownMenuItem(
+                        value: p.id,
                         child: Text(
-                          '${a.code} ${a.name} (${a.currencyCode ?? 'PKR'})',
+                          '${p.name} (${p.partyType.label})',
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _cashAccountId = v),
-              );
-            },
-          ),
-          partiesAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (e, _) => Text('Parties error: $e'),
-            data: (parties) => DropdownButtonFormField<String>(
-              initialValue: _partyId,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: 'Counterparty',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.person_add_alt),
-                  onPressed: () async {
-                    final id = await context.push<String>('/parties/new');
-                    ref.invalidate(partiesProvider(null));
-                    if (id != null) setState(() => _partyId = id);
-                  },
-                ),
+                onChanged: (v) => setState(() => _partyId = v),
               ),
-              items: parties
-                  .map(
-                    (p) => DropdownMenuItem(
-                      value: p.id,
-                      child: Text(
-                        '${p.name} (${p.partyType.label})',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() => _partyId = v),
             ),
-          ),
           TextFormField(
             controller: _descCtrl,
             maxLines: 3,

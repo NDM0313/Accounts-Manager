@@ -55,4 +55,19 @@ class SlipImportRepository {
         .eq('id', id)
         .maybeSingle();
   }
+
+  /// Link slip attachment to an existing posted tx — no second payment.
+  Future<String> attachToExisting({
+    required String importId,
+    required String transactionId,
+  }) async {
+    final txId = await supabase.rpc(
+      'fx_attach_slip_to_existing_transaction',
+      params: {
+        'p_import_id': importId,
+        'p_transaction_id': transactionId,
+      },
+    );
+    return txId as String;
+  }
 }

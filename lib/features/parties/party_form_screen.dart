@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
+import 'package:accounts_manager/data/repositories/party_bank_repository.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -130,6 +131,67 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
                     maxLines: 3,
                     enabled: !_busy,
                   ),
+                  if (isEdit) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Bank details (optional, multiple allowed — identifiers masked)',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    _PartyBankSection(partyId: widget.partyId!),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _busy
+                          ? null
+                          : () async {
+                              final ok = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Deactivate party?'),
+                                  content: const Text(
+                                    'Soft-deactivate only. History stays; no hard delete.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Deactivate'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (ok != true) return;
+                              setState(() => _busy = true);
+                              try {
+                                await ref
+                                    .read(partyRepositoryProvider)
+                                    .deactivateParty(widget.partyId!);
+                                ref.invalidate(partiesProvider);
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Party deactivated'),
+                                    ),
+                                  );
+                                  context.pop();
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed: $e')),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) setState(() => _busy = false);
+                              }
+                            },
+                      icon: const Icon(Icons.archive_outlined),
+                      label: const Text('Deactivate party'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -206,5 +268,123 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+}
+
+class _PartyBankSection extends ConsumerStatefulWidget {
+  const _PartyBankSection({required this.partyId});
+  final String partyId;
+
+  @override
+  ConsumerState<_PartyBankSection> createState() => _PartyBankSectionState();
+}
+
+class _PartyBankSectionState extends ConsumerState<_PartyBankSection> {
+  final _repo = PartyBankRepository();
+  List<FxPartyBankAccount> _rows = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      _rows = await _repo.fetchForParty(widget.partyId);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _add() async {
+    final profile = await ref.read(currentProfileProvider.future);
+    if (profile == null) return;
+    final bank = TextEditingController();
+    final title = TextEditingController();
+    final number = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add bank account'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: bank,
+              decoration: const InputDecoration(labelText: 'Bank name'),
+            ),
+            TextField(
+              controller: title,
+              decoration: const InputDecoration(labelText: 'Account title'),
+            ),
+            TextField(
+              controller: number,
+              decoration: const InputDecoration(
+                labelText: 'Account / IBAN',
+                helperText: 'Stored structured — not used for silent OCR match',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _repo.upsert(
+      companyId: profile.companyId,
+      partyId: widget.partyId,
+      bankName: bank.text.trim().isEmpty ? null : bank.text.trim(),
+      accountTitle: title.text.trim().isEmpty ? null : title.text.trim(),
+      accountNumber: number.text.trim().isEmpty ? null : number.text.trim(),
+      isPrimary: _rows.isEmpty,
+    );
+    await _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const LinearProgressIndicator();
+    return Column(
+      children: [
+        ..._rows.map(
+          (b) => ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(b.bankName ?? 'Bank'),
+            subtitle: Text(
+              '${b.accountTitle ?? ''} · ${b.maskedIdentifier}'
+              '${b.isPrimary ? ' · default' : ''}',
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.link_off),
+              tooltip: 'Deactivate',
+              onPressed: () async {
+                await _repo.deactivate(b.id);
+                await _load();
+              },
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _add,
+            icon: const Icon(Icons.add),
+            label: const Text('Add bank details'),
+          ),
+        ),
+      ],
+    );
   }
 }
