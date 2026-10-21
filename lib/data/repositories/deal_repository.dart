@@ -115,92 +115,65 @@ class DealRepository {
 
   Future<String> bookCustomerDeal({
     required String branchId,
-
     required String customerPartyId,
-
     required String sellCurrencyCode,
-
     required double sellAmount,
-
     required double saleRatePkr,
-
     double customerPaidNowPkr = 0,
-
     FxDeliveryMethod deliveryMethod = FxDeliveryMethod.later,
-
     bool allowShortPosition = false,
-
     String? notes,
-
     bool autoSource = true,
-
     RateReferenceSnapshot? rateSnapshot,
+    String? cashAccountId,
+    String? clientOperationId,
+    DateTime? expectedPaymentDate,
+    String? paymentNotes,
   }) async {
-    // Book with paid=0 on deal row; record payment once via fx_record_deal_customer_payment
-
-    // so customer_paid_pkr is not double-counted.
-
-    final paidNow = customerPaidNowPkr;
-
+    // Initial payment (if any) is posted inside fx_book_customer_deal_v2 so a
+    // payment failure rolls back the deal insert (no orphan unpaid deal).
     final payload = DealRpcPayload.bookCustomerDeal(
       branchId: branchId,
-
       customerPartyId: customerPartyId,
-
       sellCurrencyCode: sellCurrencyCode,
-
       sellAmount: sellAmount,
-
       saleRatePkr: saleRatePkr,
-
-      customerPaidNowPkr: 0,
-
+      customerPaidNowPkr: customerPaidNowPkr,
       deliveryMethod: deliveryMethod,
-
       allowShortPosition: allowShortPosition,
-
       notes: notes,
-
       autoSource: autoSource,
-
       rateSnapshot: rateSnapshot,
+      cashAccountId: cashAccountId,
+      clientOperationId: clientOperationId,
+      expectedPaymentDate:
+          expectedPaymentDate?.toIso8601String().split('T').first,
+      paymentNotes: paymentNotes,
     );
 
     final dealId = await supabase.rpc(
       'fx_book_customer_deal_v2',
-
       params: {'p_payload': payload},
     );
 
-    final id = dealId as String;
-
-    if (paidNow > 0) {
-      await recordCustomerPayment(
-        dealId: id,
-        amountPkr: paidNow,
-        notes: 'Initial payment on booking',
-      );
-    }
-
-    return id;
+    return dealId as String;
   }
 
   Future<String> recordCustomerPayment({
     required String dealId,
-
     required double amountPkr,
-
     String? notes,
+    String? cashAccountId,
+    String? clientOperationId,
   }) async {
     final txId = await supabase.rpc(
       'fx_record_deal_customer_payment',
-
       params: {
         'p_deal_id': dealId,
-
         'p_amount_pkr': amountPkr,
-
         'p_notes': notes,
+        'p_cash_account_id': cashAccountId,
+        'p_client_operation_id': clientOperationId,
       },
     );
 

@@ -17,6 +17,10 @@ abstract final class DealRpcPayload {
     String? notes,
     bool autoSource = true,
     RateReferenceSnapshot? rateSnapshot,
+    String? cashAccountId,
+    String? clientOperationId,
+    String? expectedPaymentDate,
+    String? paymentNotes,
   }) {
     final payload = <String, dynamic>{
       'branch_id': branchId,
@@ -30,6 +34,18 @@ abstract final class DealRpcPayload {
       'auto_source': autoSource,
     };
     if (notes != null && notes.isNotEmpty) payload['notes'] = notes;
+    if (cashAccountId != null && cashAccountId.isNotEmpty) {
+      payload['cash_account_id'] = cashAccountId;
+    }
+    if (clientOperationId != null && clientOperationId.isNotEmpty) {
+      payload['client_operation_id'] = clientOperationId;
+    }
+    if (expectedPaymentDate != null && expectedPaymentDate.isNotEmpty) {
+      payload['expected_payment_date'] = expectedPaymentDate;
+    }
+    if (paymentNotes != null && paymentNotes.isNotEmpty) {
+      payload['payment_notes'] = paymentNotes;
+    }
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
       payload.addAll(snapshotFields(rateSnapshot));
     }

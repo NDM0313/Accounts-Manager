@@ -1,11 +1,14 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/export/fx_document_export.dart';
+import 'package:accounts_manager/core/utils/client_operation_id.dart';
+import 'package:accounts_manager/core/utils/deal_posting_errors.dart';
 import 'package:accounts_manager/core/utils/deal_statement.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_bottom_bar.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_widgets.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
+import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/services/deal_workflow_guide.dart';
@@ -151,6 +154,62 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
                         pkrTotal: 'PKR ${fmt.format(deal.customerPayablePkr)}',
                       ),
                       const SizedBox(height: 12),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Customer payment',
+                                style: AppTypography.headlineSm(
+                                  context.fx.primary,
+                                  context: context,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Total PKR ${fmt.format(deal.customerPayablePkr)} · '
+                                'Received PKR ${fmt.format(deal.customerPaidPkr)} · '
+                                'Remaining PKR ${fmt.format(deal.customerReceivablePkr)}',
+                              ),
+                              Text(
+                                'Payment status follows customer_paid_pkr — '
+                                'it does not mean currency was delivered.',
+                                style: AppTypography.bodySm(
+                                  context.fx.onSurfaceVariant,
+                                  context: context,
+                                ),
+                              ),
+                              if (deal.customerReceivablePkr > 0) ...[
+                                const SizedBox(height: 8),
+                                FilledButton.tonal(
+                                  onPressed: () =>
+                                      _recordPayment(context, ref, deal),
+                                  child: const Text('Receive Payment'),
+                                ),
+                              ],
+                              ...legs
+                                  .where(
+                                    (l) =>
+                                        l.legType ==
+                                        FxDealLegType.customerPayment,
+                                  )
+                                  .map(
+                                    (l) => ListTile(
+                                      dense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        'Payment PKR ${fmt.format(l.payAmount > 0 ? l.payAmount : l.paidAmount)}',
+                                      ),
+                                      subtitle: Text(l.notes ?? 'Customer payment'),
+                                    ),
+                                  ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       if (wide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,45 +281,111 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
     WidgetRef ref,
     FxDeal deal,
   ) async {
+    final outstanding = deal.customerReceivablePkr;
+    if (outstanding <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This deal is already fully paid.')),
+      );
+      return;
+    }
+
     final amountCtrl = TextEditingController(
-      text: deal.customerReceivablePkr.toStringAsFixed(0),
+      text: outstanding.toStringAsFixed(0),
     );
     final notesCtrl = TextEditingController();
+    final accounts = await ref.read(accountsProvider.future);
+    final cashAccounts = accounts
+        .where(
+          (a) =>
+              a.isActive &&
+              a.accountType == 'asset' &&
+              (a.code == '1110' ||
+                  (a.code.startsWith('11') &&
+                      a.name.toUpperCase().contains('PKR'))),
+        )
+        .toList();
+    String? cashId = cashAccounts
+        .where((a) => a.code == '1110')
+        .map((a) => a.id)
+        .cast<String?>()
+        .firstWhere((_) => true, orElse: () => cashAccounts.isEmpty ? null : cashAccounts.first.id);
 
+    if (!context.mounted) return;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Record customer payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FxObsidianFormField(
-              controller: amountCtrl,
-              label: 'Amount (PKR)',
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocal) => AlertDialog(
+            title: const Text('Receive Payment'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Deal total PKR ${deal.customerPayablePkr.toStringAsFixed(2)}\n'
+                    'Already received PKR ${deal.customerPaidPkr.toStringAsFixed(2)}\n'
+                    'Remaining due PKR ${outstanding.toStringAsFixed(2)}',
+                    style: AppTypography.bodySm(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FxObsidianFormField(
+                    controller: amountCtrl,
+                    label: 'Amount (PKR)',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                  const SizedBox(height: 8),
+                  if (cashAccounts.isEmpty)
+                    Text(
+                      'No PKR cash/bank account available.',
+                      style: TextStyle(color: context.fx.error),
+                    )
+                  else
+                    DropdownButtonFormField<String>(
+                      initialValue: cashId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Receiving cash/bank',
+                      ),
+                      items: cashAccounts
+                          .map(
+                            (FxAccount a) => DropdownMenuItem(
+                              value: a.id,
+                              child: Text('${a.code} · ${a.name}'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setLocal(() => cashId = v),
+                    ),
+                  FxObsidianFormField(
+                    controller: notesCtrl,
+                    label: 'Notes',
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
-            FxObsidianFormField(
-              controller: notesCtrl,
-              label: 'Notes',
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Save'),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+        );
+      },
     );
 
     if (ok != true || !context.mounted) return;
-    final amount = double.tryParse(amountCtrl.text);
+    final amount = double.tryParse(amountCtrl.text.replaceAll(',', ''));
     final notes = notesCtrl.text.trim();
     amountCtrl.dispose();
     notesCtrl.dispose();
@@ -270,13 +395,38 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
       );
       return;
     }
+    if (amount > outstanding + 0.0000001) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment cannot exceed the remaining due amount.'),
+        ),
+      );
+      return;
+    }
+    if (cashId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a receiving cash/bank account.')),
+      );
+      return;
+    }
 
+    final opId = await ClientOperationId.beginAmounted(
+      'deal_customer_payment',
+      widget.dealId,
+      amount,
+    );
     try {
       await ref.read(dealRepositoryProvider).recordCustomerPayment(
             dealId: widget.dealId,
             amountPkr: amount,
             notes: notes.isEmpty ? null : notes,
+            cashAccountId: cashId,
+            clientOperationId: opId,
           );
+      await ClientOperationId.completeAmounted(
+        'deal_customer_payment',
+        widget.dealId,
+      );
       ref.read(dealsRefreshProvider.notifier).refresh();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -285,7 +435,9 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(friendlyDealPostingError(e))),
+        );
       }
     }
   }
