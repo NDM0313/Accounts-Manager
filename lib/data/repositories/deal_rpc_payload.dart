@@ -64,6 +64,7 @@ abstract final class DealRpcPayload {
     FxDeliveryTarget? deliveryTarget,
     String? parentLegId,
     String? notes,
+    String? clientOperationId,
     RateReferenceSnapshot? rateSnapshot,
   }) {
     final payload = <String, dynamic>{
@@ -87,6 +88,9 @@ abstract final class DealRpcPayload {
     }
     if (parentLegId != null) payload['parent_leg_id'] = parentLegId;
     if (notes != null && notes.isNotEmpty) payload['notes'] = notes;
+    if (clientOperationId != null && clientOperationId.isNotEmpty) {
+      payload['client_operation_id'] = clientOperationId;
+    }
     if (FeatureFlags.rateSnapshotColumnsEnabled && rateSnapshot != null) {
       payload.addAll(snapshotFields(rateSnapshot));
     }

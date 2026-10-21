@@ -158,13 +158,23 @@ abstract final class DealWorkflowGuide {
     );
 
     final receipt = find(FxDealLegType.currencyReceipt);
+    final openSources = legs
+        .where(
+          (l) =>
+              l.legType == FxDealLegType.agentSource &&
+              (l.status == FxDealLegStatus.pending ||
+                  l.status == FxDealLegStatus.partial),
+        )
+        .toList();
     steps.add(
       DealWorkflowStep(
         key: 'currency_receipt',
-        label: 'Currency Receipt',
-        status: receipt == null
-            ? DealWorkflowStepStatus.skipped
-            : DealWorkflowStepStatus.completed,
+        label: 'Currency Receipt (sourced FX)',
+        status: openSources.isEmpty
+            ? (receipt == null
+                ? DealWorkflowStepStatus.skipped
+                : DealWorkflowStepStatus.completed)
+            : DealWorkflowStepStatus.pending,
         attachmentCount: receipt?.attachmentCount ?? 0,
         route: '/deals/${deal.id}/legs/currency-receipt',
       ),

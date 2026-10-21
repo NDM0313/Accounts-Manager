@@ -203,6 +203,8 @@ class DealRepository {
 
     String? notes,
 
+    String? clientOperationId,
+
     RateReferenceSnapshot? rateSnapshot,
   }) async {
     final payload = DealRpcPayload.addLeg(
@@ -227,6 +229,8 @@ class DealRepository {
       parentLegId: parentLegId,
 
       notes: notes,
+
+      clientOperationId: clientOperationId,
 
       rateSnapshot: rateSnapshot,
     );

@@ -26,11 +26,32 @@ String friendlyDealPostingError(Object error) {
   if (lower.contains('unauthorized')) {
     return 'You do not have permission to post this deal or payment.';
   }
+  if (lower.contains('currency_mismatch')) {
+    return 'Currency must match the selected source leg. '
+        'This screen receives sourced foreign currency — use Receive customer payment for PKR.';
+  }
+  if (lower.contains('counterparty_mismatch')) {
+    return 'Counterparty must be the source agent on the selected leg.';
+  }
+  if (lower.contains('over_remaining') ||
+      lower.contains('exceeds remaining on source')) {
+    return 'Receipt amount exceeds remaining on the source leg (same currency). '
+        'Lower the amount or refresh the deal and try again.';
+  }
+  if (lower.contains('must be greater than zero')) {
+    return 'Enter a receipt amount greater than zero in the source currency.';
+  }
+  if (lower.contains('parent_leg_id')) {
+    return 'Select the agent source leg this receipt belongs to.';
+  }
+  if (lower.contains('not open for receipt')) {
+    return 'That source leg is already fully received. Refresh the deal.';
+  }
 
   // Keep a short sanitized hint without dumping full PostgREST JSON.
   final msgMatch = RegExp(r'message:\s*([^,\)]+)').firstMatch(raw);
   if (msgMatch != null) {
-    return 'Could not save deal: ${msgMatch.group(1)!.trim()}';
+    return 'Could not save: ${msgMatch.group(1)!.trim()}';
   }
-  return 'Could not save deal. Check amounts, accounts, and try again.';
+  return 'Could not save. Check currency, amounts, and try again.';
 }
