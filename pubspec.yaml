@@ -76,8 +76,9 @@ flutter:
 
   assets:
     # Public client config only (API URL + publishable/anon key).
+    # Prefer client_config.json — *.env filenames are often blocked by nginx.
     # Never list root .env here — it may contain migration DB secrets.
-    - assets/config/client.env
+    - assets/config/client_config.json
     - assets/branding/
 
   fonts:

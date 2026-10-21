@@ -1,0 +1,5 @@
+{
+  "SUPABASE_URL": "https://api.ndmcore.com",
+  "SUPABASE_PUBLISHABLE_KEY": "REPLACE_WITH_HOME_ANON_OR_PUBLISHABLE_KEY",
+  "APP_ENV": "production"
+}

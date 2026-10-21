@@ -14,7 +14,7 @@ Shared-DB reconciliation SQL is prepared under `supabase/reconciliation/home/` a
 ```bash
 git clone https://github.com/NDM0313/Accounts-Manager.git
 cd Accounts-Manager
-cp assets/config/client.env.example assets/config/client.env   # public keys only
+cp assets/config/client_config.json.example assets/config/client_config.json   # public keys only
 # Optional: copy supabase/.env.migrations.example for CLI tooling (never in Flutter assets)
 flutter pub get && flutter run -d chrome
 ```
@@ -28,11 +28,11 @@ flutter pub get && flutter run -d chrome
 | Legacy Cloud host (explicit only) | `https://ygidlcqhupmxvsdjmvnf.supabase.co` |
 
 **Do not use** `supabase.dincouture.pk`, Studio URLs as API, or unknown hosts.  
-Flutter loads `assets/config/client.env` (URL + publishable/anon key only).
+Flutter loads `assets/config/client_config.json` (URL + publishable/anon key only).
 
 ## Setup
 
-1. Create `assets/config/client.env` from the example (public client keys only).
+1. Create `assets/config/client_config.json` from the example (public client keys only).
 2. Required Flutter variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`.
 3. DB passwords / service_role belong in `supabase/.env.migrations` — never in Flutter assets.
 4. Run `flutter pub get` then `flutter run`.
