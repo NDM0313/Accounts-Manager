@@ -96,6 +96,7 @@ abstract final class PartyStatementBuilder {
 
   static bool _isDebitNormal(FxPartyType type) => switch (type) {
     FxPartyType.customer => true,
+    FxPartyType.supplier => true,
     FxPartyType.agent => false,
     FxPartyType.settlement => false,
   };

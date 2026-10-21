@@ -17,6 +17,7 @@ class PendingProofFile {
 
 Future<void> uploadPendingProofsForLeg({
   required WidgetRef ref,
+  required String companyId,
   required String branchId,
   required String dealId,
   required String legId,
@@ -27,6 +28,7 @@ Future<void> uploadPendingProofsForLeg({
   final repo = ref.read(attachmentRepositoryProvider);
   for (final f in files) {
     await repo.upload(
+      companyId: companyId,
       branchId: branchId,
       dealId: dealId,
       dealLegId: legId,

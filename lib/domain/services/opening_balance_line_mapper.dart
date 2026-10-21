@@ -15,11 +15,13 @@ abstract final class OpeningBalanceLineMapper {
     return switch (kind) {
       FxOpeningBalanceLineKind.partyReceivable => switch (partyType) {
         FxPartyType.customer => '1190',
+        FxPartyType.supplier => '1190',
         FxPartyType.agent => '1180',
         FxPartyType.settlement => null,
       },
       FxOpeningBalanceLineKind.partyPayable => switch (partyType) {
         FxPartyType.customer => '2200',
+        FxPartyType.supplier => '2200',
         FxPartyType.agent => '2100',
         FxPartyType.settlement => '2300',
       },

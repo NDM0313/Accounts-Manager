@@ -132,6 +132,7 @@ class _TransactionAuditScreenState
         );
 
     await ref.read(attachmentRepositoryProvider).upload(
+          companyId: profile.companyId,
           branchId: profile.branchId,
           bytes: file.bytes!,
           fileName: file.name,

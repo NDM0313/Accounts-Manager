@@ -28,6 +28,11 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
     TransactionMenuGroup(
       title: 'Common',
       entries: [
+        const TransactionMenuEntry(
+          label: 'Import Payment Slip',
+          icon: Icons.document_scanner_outlined,
+          route: '/slips/import',
+        ),
         TransactionMenuEntry(
           label: TransactionDraftMode.customerReceipt.menuLabel,
           icon: Icons.call_received_outlined,

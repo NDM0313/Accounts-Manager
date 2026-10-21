@@ -47,13 +47,25 @@ const generalHubEntries = [
   ),
   GeneralHubEntry(
     title: 'Chart of Accounts',
-    subtitle: 'Read-only COA',
+    subtitle: 'Cash, bank & GL accounts',
     icon: Icons.account_tree_outlined,
     route: '/accounts',
   ),
   GeneralHubEntry(
+    title: 'Add Cash / Bank',
+    subtitle: 'Create accounts (zero opening)',
+    icon: Icons.add_card_outlined,
+    route: '/accounts/new-cash',
+  ),
+  GeneralHubEntry(
+    title: 'Import Payment Slip',
+    subtitle: 'OCR review → confirm post',
+    icon: Icons.document_scanner_outlined,
+    route: '/slips/import',
+  ),
+  GeneralHubEntry(
     title: 'Parties',
-    subtitle: 'Customers & agents',
+    subtitle: 'Customers, agents, suppliers',
     icon: Icons.people_outline,
     route: '/parties',
   ),

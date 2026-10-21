@@ -6,6 +6,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ChartOfAccountsScreen extends ConsumerWidget {
   const ChartOfAccountsScreen({super.key});
@@ -42,6 +43,14 @@ class ChartOfAccountsScreen extends ConsumerWidget {
       title: const Text('Chart of Accounts'),
       actions: [
         IconButton(
+          icon: const Icon(Icons.add_card_outlined),
+          tooltip: 'Add cash/bank',
+          onPressed: () async {
+            await context.push('/accounts/new-cash');
+            ref.invalidate(accountsProvider);
+          },
+        ),
+        IconButton(
           icon: const Icon(Icons.ios_share),
           tooltip: 'Export CSV',
           onPressed: () => _export(context, ref),
@@ -59,11 +68,36 @@ class ChartOfAccountsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Read-only COA from fx_accounts.',
+            'Cash/bank accounts can be added (zero opening). '
+            'Currency balances stay separate — never mixed. '
+            'System control codes are protected. '
+            'Opening balances use the Opening Balances workflow.',
             style: AppTypography.bodyMd(
               Theme.of(context).colorScheme.onSurfaceVariant,
               context: context,
             ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              ActionChip(
+                avatar: const Icon(Icons.payments_outlined, size: 18),
+                label: const Text('Add Cash'),
+                onPressed: () async {
+                  await context.push('/accounts/new-cash?kind=cash');
+                  ref.invalidate(accountsProvider);
+                },
+              ),
+              ActionChip(
+                avatar: const Icon(Icons.account_balance_outlined, size: 18),
+                label: const Text('Add Bank'),
+                onPressed: () async {
+                  await context.push('/accounts/new-cash?kind=bank');
+                  ref.invalidate(accountsProvider);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           accountsAsync.when(

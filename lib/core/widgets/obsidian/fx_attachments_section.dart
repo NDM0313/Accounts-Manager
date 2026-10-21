@@ -32,37 +32,33 @@ class _FxAttachmentsSectionState extends ConsumerState<FxAttachmentsSection> {
   Future<void> _pickAndUpload() async {
     setState(() => _uploading = true);
     try {
+      final profile = await ref.read(currentProfileProvider.future);
+      if (profile == null) return;
       final result = await FilePicker.platform.pickFiles(
         withData: true,
+        allowMultiple: true,
         type: FileType.custom,
         allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
       );
       if (result == null || result.files.isEmpty) return;
-      final file = result.files.first;
-      final bytes = file.bytes;
-      if (bytes == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not read file bytes.')),
-          );
-        }
-        return;
+      for (final file in result.files) {
+        final bytes = file.bytes;
+        if (bytes == null) continue;
+        await ref.read(attachmentRepositoryProvider).upload(
+              companyId: profile.companyId,
+              transactionId: widget.transactionId,
+              branchId: widget.branchId,
+              fileName: sanitizeStorageFileName(file.name),
+              displayFileName: file.name,
+              bytes: bytes,
+              mimeType: _mimeForName(file.name),
+            );
       }
-      await ref
-          .read(attachmentRepositoryProvider)
-          .upload(
-            transactionId: widget.transactionId,
-            branchId: widget.branchId,
-            fileName: sanitizeStorageFileName(file.name),
-            displayFileName: file.name,
-            bytes: bytes,
-            mimeType: _mimeForName(file.name),
-          );
       ref.invalidate(attachmentsForTransactionProvider(widget.transactionId));
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Uploaded ${file.name}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Uploaded ${result.files.length} file(s)')),
+        );
       }
     } catch (e) {
       if (mounted) {

@@ -3,8 +3,10 @@ import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
+import 'package:accounts_manager/features/accounts/cash_bank_account_form_screen.dart';
 import 'package:accounts_manager/features/accounts/chart_of_accounts_screen.dart';
 import 'package:accounts_manager/features/accounts/general_hub_screen.dart';
+import 'package:accounts_manager/features/slip_import/import_payment_slip_screen.dart';
 import 'package:accounts_manager/features/auth/branch_select_screen.dart';
 import 'package:accounts_manager/features/auth/login_screen.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -412,6 +414,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/accounts',
         builder: (context, state) =>
             const AuthGate(child: ChartOfAccountsScreen()),
+      ),
+      GoRoute(
+        path: '/accounts/new-cash',
+        builder: (context, state) {
+          final kind = state.uri.queryParameters['kind'] ?? 'cash';
+          return AuthGate(
+            child: CashBankAccountFormScreen(initialKind: kind),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/slips/import',
+        builder: (context, state) {
+          final dealId = state.uri.queryParameters['dealId'];
+          return AuthGate(
+            child: ImportPaymentSlipScreen(dealId: dealId),
+          );
+        },
       ),
       GoRoute(
         path: '/accounts-hub',

@@ -404,6 +404,7 @@ class _AgentSourceLegScreenState extends ConsumerState<AgentSourceLegScreen> {
         if (profile != null) {
           await uploadPendingProofsForLeg(
             ref: ref,
+            companyId: profile.companyId,
             branchId: profile.branchId,
             dealId: widget.dealId,
             legId: legId,

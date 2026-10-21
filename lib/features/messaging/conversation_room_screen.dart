@@ -97,6 +97,7 @@ class _ConversationRoomScreenState
     await ref
         .read(attachmentRepositoryProvider)
         .upload(
+          companyId: profile.companyId,
           branchId: profile.branchId,
           bytes: file.bytes!,
           fileName: file.name,

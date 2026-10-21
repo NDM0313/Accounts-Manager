@@ -161,7 +161,7 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
           notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         );
       } else {
-        await repo.createParty(
+        final created = await repo.createParty(
           FxParty(
             id: '',
             companyId: profile.companyId,
@@ -178,6 +178,14 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
             isActive: true,
           ),
         );
+        ref.invalidate(partiesProvider);
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Party saved.')));
+          context.pop(created.id);
+        }
+        return;
       }
       ref.invalidate(partiesProvider);
       if (widget.partyId != null) {

@@ -1,6 +1,7 @@
 enum FxPartyType {
   customer('customer'),
   agent('agent'),
+  supplier('supplier'),
   settlement('settlement');
 
   const FxPartyType(this.dbValue);
@@ -14,8 +15,9 @@ enum FxPartyType {
   }
 
   String get label => switch (this) {
-    customer => 'Customer',
+    customer => 'Customer / client',
     agent => 'Agent',
+    supplier => 'Supplier / counterparty',
     settlement => 'Settlement',
   };
 }

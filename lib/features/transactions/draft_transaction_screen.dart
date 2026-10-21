@@ -1012,7 +1012,8 @@ class _DraftTransactionScreenState
                                     int rank(FxPartyType t) => switch (t) {
                                       FxPartyType.agent => 0,
                                       FxPartyType.settlement => 1,
-                                      FxPartyType.customer => 2,
+                                      FxPartyType.supplier => 2,
+                                      FxPartyType.customer => 3,
                                     };
                                     final r = rank(
                                       a.partyType,

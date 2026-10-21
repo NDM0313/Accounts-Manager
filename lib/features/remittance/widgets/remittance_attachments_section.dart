@@ -51,22 +51,27 @@ class _RemittanceAttachmentsSectionState
   }
 
   Future<void> _upload() async {
-    final result = await FilePicker.platform.pickFiles(withData: true);
+    final profile = await ref.read(currentProfileProvider.future);
+    if (profile == null) return;
+    final result = await FilePicker.platform.pickFiles(
+      withData: true,
+      allowMultiple: true,
+    );
     if (result == null || result.files.isEmpty) return;
-    final file = result.files.first;
-    if (file.bytes == null) return;
     setState(() => _uploading = true);
     try {
-      await ref
-          .read(attachmentRepositoryProvider)
-          .upload(
-            branchId: widget.branchId,
-            fileName: file.name,
-            bytes: file.bytes!,
-            remittanceId: widget.remittanceId,
-            remittanceEventId: widget.remittanceEventId,
-            attachmentType: widget.attachmentType,
-          );
+      for (final file in result.files) {
+        if (file.bytes == null) continue;
+        await ref.read(attachmentRepositoryProvider).upload(
+              companyId: profile.companyId,
+              branchId: widget.branchId,
+              fileName: file.name,
+              bytes: file.bytes!,
+              remittanceId: widget.remittanceId,
+              remittanceEventId: widget.remittanceEventId,
+              attachmentType: widget.attachmentType,
+            );
+      }
       await _load();
     } finally {
       if (mounted) setState(() => _uploading = false);

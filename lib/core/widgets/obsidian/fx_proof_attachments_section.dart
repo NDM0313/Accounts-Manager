@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/utils/image_compressor.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/data/repositories/attachment_repository.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -76,31 +77,61 @@ class _FxProofAttachmentsSectionState
 
   Future<void> _pickAndUpload() async {
     if (!widget.canUpload) return;
+    final profile = await ref.read(currentProfileProvider.future);
+    if (profile == null) return;
     setState(() => _uploading = true);
     try {
       final result = await FilePicker.platform.pickFiles(
         withData: true,
+        allowMultiple: true,
         type: FileType.custom,
-        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'heic'],
       );
       if (result == null || result.files.isEmpty) return;
-      final file = result.files.first;
-      final bytes = file.bytes;
-      if (bytes == null) return;
 
-      await ref
-          .read(attachmentRepositoryProvider)
-          .upload(
-            branchId: widget.branchId,
-            fileName: file.name,
-            bytes: bytes,
-            mimeType: _mimeForExtension(file.extension),
-            transactionId: widget.transactionId,
-            dealId: widget.dealId,
-            dealLegId: widget.dealLegId,
-            attachmentType: widget.attachmentType,
+      var uploaded = 0;
+      for (final file in result.files) {
+        final bytes = file.bytes;
+        if (bytes == null) continue;
+        final mime = _mimeForExtension(file.extension);
+        if (mime == null && (file.extension?.toLowerCase() == 'heic')) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${file.name}: HEIC not supported in browser — export as JPEG/PNG/PDF.',
+                ),
+              ),
+            );
+          }
+          continue;
+        }
+        final att = await ref.read(attachmentRepositoryProvider).upload(
+              companyId: profile.companyId,
+              branchId: widget.branchId,
+              fileName: file.name,
+              bytes: bytes,
+              mimeType: mime,
+              transactionId: widget.transactionId,
+              dealId: widget.dealId,
+              dealLegId: widget.dealLegId,
+              attachmentType: widget.attachmentType,
+            );
+        uploaded++;
+        if (mounted && att.originalByteSize != null && att.storedByteSize != null) {
+          final o = ImageCompressor.formatBytes(att.originalByteSize!);
+          final s = ImageCompressor.formatBytes(att.storedByteSize!);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${file.name}: $o → $s')),
           );
+        }
+      }
       await _load();
+      if (mounted && uploaded == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No files uploaded.')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

@@ -49,9 +49,10 @@ dependencies:
   printing: ^5.14.2
   local_auth: ^2.3.0
   flutter_secure_storage: ^9.2.4
-  crypto: ^3.0.6
+  crypto: ^3.0.7
 
   postgrest: any
+  web: ^1.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -92,3 +93,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/Geist-Bold.ttf
           weight: 700
+
+dependency_overrides:
+  image: 4.5.4
