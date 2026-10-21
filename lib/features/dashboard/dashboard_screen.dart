@@ -28,10 +28,11 @@ class DashboardScreen extends ConsumerWidget {
         ? AppSpacing.marginDesktop
         : AppSpacing.marginMobile;
 
+    final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
     return ColoredBox(
       color: context.fx.background,
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(bottom: bottomInset),
         children: [
           ratesAsync.when(
             data: (rates) => FxMarqueeRateStrip(rates: rates),

@@ -36,101 +36,102 @@ class FxPremiumShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
     final isDemo = ref.watch(isDemoWorkspaceProvider);
-    final isDesktop = MediaQuery.sizeOf(context).width >= 900;
+    final width = MediaQuery.sizeOf(context).width;
+    final isDesktop = width >= 900;
+    final isNarrow = width < 420;
     final initials = _initials(profile?.fullName ?? profile?.email);
-    final appBarHeight = isDemo ? 64.0 + 34.0 : 64.0;
 
     return Scaffold(
       backgroundColor: context.fx.background,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isDemo) const DemoWorkspaceBanner(),
-            Material(
-              color: context.fx.surface,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: context.fx.outlineVariant),
-                  ),
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: isDesktop
-                      ? AppSpacing.marginDesktop
-                      : AppSpacing.marginMobile,
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  top: !isDemo,
-                  child: SizedBox(
-                    height: 56,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.account_balance_wallet,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 26,
-                        ),
-                        const SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            'FX Cash Ledger',
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.headlineSm(
-                              context.fx.primary,
-                              context: context,
-                            ).copyWith(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        if (isDesktop) ...[
-                          const SizedBox(width: 24),
-                          _navLink(context, PremiumNav.home, 'Home'),
-                          const SizedBox(width: 20),
-                          _navLink(context, PremiumNav.deals, 'Deals'),
-                          const SizedBox(width: 20),
-                          _navLink(context, PremiumNav.ledger, 'Ledger'),
-                          const SizedBox(width: 20),
-                          _navLink(context, PremiumNav.reports, 'Reports'),
-                          const SizedBox(width: 20),
-                          _navLink(context, PremiumNav.settings, 'Settings'),
-                        ],
-                        const Spacer(),
-                        const WorkspaceSwitcherButton(),
-                        IconButton(
-                          icon: Icon(Icons.refresh, color: context.fx.primary),
-                          onPressed: () {
-                            ref.invalidate(cashBalancesProvider);
-                            ref.invalidate(ratesProvider);
-                            ref.invalidate(dealsListProvider);
-                          },
-                        ),
-                        if (profile != null)
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: context.fx.secondaryContainer,
-                            child: Text(
-                              initials,
-                              style: AppTypography.labelCaps(
-                                context.fx.onSecondaryContainer,
-                                context: context,
-                              ).copyWith(fontSize: 10),
-                            ),
-                          ),
-                      ],
+        preferredSize: const Size.fromHeight(64),
+        child: Material(
+          color: context.fx.surface,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: context.fx.outlineVariant),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop
+                  ? AppSpacing.marginDesktop
+                  : AppSpacing.marginMobile,
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: 56,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 26,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    if (!isNarrow)
+                      Flexible(
+                        child: Text(
+                          'FX Cash Ledger',
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.headlineSm(
+                            context.fx.primary,
+                            context: context,
+                          ).copyWith(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    if (isDesktop) ...[
+                      const SizedBox(width: 24),
+                      _navLink(context, PremiumNav.home, 'Home'),
+                      const SizedBox(width: 20),
+                      _navLink(context, PremiumNav.deals, 'Deals'),
+                      const SizedBox(width: 20),
+                      _navLink(context, PremiumNav.ledger, 'Ledger'),
+                      const SizedBox(width: 20),
+                      _navLink(context, PremiumNav.reports, 'Reports'),
+                      const SizedBox(width: 20),
+                      _navLink(context, PremiumNav.settings, 'Settings'),
+                    ],
+                    const Spacer(),
+                    const WorkspaceSwitcherButton(),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(Icons.refresh, color: context.fx.primary),
+                      onPressed: () {
+                        ref.invalidate(cashBalancesProvider);
+                        ref.invalidate(ratesProvider);
+                        ref.invalidate(dealsListProvider);
+                      },
+                    ),
+                    if (profile != null && !isNarrow)
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: context.fx.secondaryContainer,
+                        child: Text(
+                          initials,
+                          style: AppTypography.labelCaps(
+                            context.fx.onSecondaryContainer,
+                            context: context,
+                          ).copyWith(fontSize: 10),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
-      body: navigationShell,
+      body: Column(
+        children: [
+          if (isDemo) const DemoWorkspaceBanner(),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: isDesktop
           ? null
           : Container(
