@@ -45,6 +45,7 @@ class BalanceSheetScreen extends ConsumerWidget {
                 dateLabel: dateLabel,
                 converter: converter,
                 view: currencyView,
+                isDemo: ref.read(isDemoWorkspaceProvider),
               );
             },
           ),

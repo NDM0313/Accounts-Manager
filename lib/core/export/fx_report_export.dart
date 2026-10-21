@@ -14,6 +14,7 @@ Future<void> exportTrialBalanceReport(
   required String dateLabel,
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
+  bool isDemo = false,
 }) async {
   if (rows.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -22,7 +23,10 @@ Future<void> exportTrialBalanceReport(
     return;
   }
   final fmt = NumberFormat('#,##0.00');
-  final csv = formatTrialBalanceCsv(rows, converter: converter, view: view);
+  final csv = withDemoExportBanner(
+    formatTrialBalanceCsv(rows, converter: converter, view: view),
+    isDemo: isDemo,
+  );
   final text = _textFromCsv(csv, title: 'Trial Balance as of $dateLabel');
   final pdfRows = rows
       .map(
@@ -47,6 +51,7 @@ Future<void> exportTrialBalanceReport(
     subtitle: 'As of $dateLabel',
     headers: const ['Code', 'Account', 'Debit PKR', 'Credit PKR', 'Net'],
     rows: pdfRows,
+    isDemo: isDemo,
   );
   if (!context.mounted) return;
   await showFxExportSheet(
@@ -67,6 +72,7 @@ Future<void> exportBalanceSheetReport(
   required String dateLabel,
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
+  bool isDemo = false,
 }) async {
   if (rows.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +81,10 @@ Future<void> exportBalanceSheetReport(
     return;
   }
   final fmt = NumberFormat('#,##0.00');
-  final csv = formatBalanceSheetCsv(rows, converter: converter, view: view);
+  final csv = withDemoExportBanner(
+    formatBalanceSheetCsv(rows, converter: converter, view: view),
+    isDemo: isDemo,
+  );
   final text = _textFromCsv(csv, title: 'Balance Sheet as of $dateLabel');
   final pdfRows = rows
       .map(
@@ -99,6 +108,7 @@ Future<void> exportBalanceSheetReport(
     subtitle: 'As of $dateLabel',
     headers: const ['Code', 'Account', 'Type', 'Balance'],
     rows: pdfRows,
+    isDemo: isDemo,
   );
   if (!context.mounted) return;
   await showFxExportSheet(
@@ -120,6 +130,7 @@ Future<void> exportProfitLossReport(
   required String toLabel,
   ReportingCurrencyConverter? converter,
   ReportCurrencyView view = ReportCurrencyView.base,
+  bool isDemo = false,
 }) async {
   if (rows.isEmpty) {
     ScaffoldMessenger.of(
@@ -128,7 +139,10 @@ Future<void> exportProfitLossReport(
     return;
   }
   final fmt = NumberFormat('#,##0.00');
-  final csv = formatProfitLossCsv(rows, converter: converter, view: view);
+  final csv = withDemoExportBanner(
+    formatProfitLossCsv(rows, converter: converter, view: view),
+    isDemo: isDemo,
+  );
   final text = _textFromCsv(csv, title: 'Profit & Loss $fromLabel → $toLabel');
   final pdfRows = rows
       .map(
@@ -152,6 +166,7 @@ Future<void> exportProfitLossReport(
     subtitle: '$fromLabel → $toLabel',
     headers: const ['Code', 'Account', 'Type', 'Amount'],
     rows: pdfRows,
+    isDemo: isDemo,
   );
   if (!context.mounted) return;
   await showFxExportSheet(

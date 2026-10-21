@@ -1,9 +1,12 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/demo_workspace_banner.dart';
+import 'package:accounts_manager/core/widgets/workspace_switcher.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 enum PremiumNav { home, deals, ledger, reports, settings }
 
 /// Main app shell: Stitch 64px top bar + 5-tab bottom navigation.
@@ -32,83 +35,99 @@ class FxPremiumShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
+    final isDemo = ref.watch(isDemoWorkspaceProvider);
     final isDesktop = MediaQuery.sizeOf(context).width >= 900;
     final initials = _initials(profile?.fullName ?? profile?.email);
+    final appBarHeight = isDemo ? 64.0 + 34.0 : 64.0;
 
     return Scaffold(
       backgroundColor: context.fx.background,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
-        child: Material(
-          color: context.fx.surface,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: context.fx.outlineVariant),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: isDesktop
-                  ? AppSpacing.marginDesktop
-                  : AppSpacing.marginMobile,
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: 56,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 26,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'FX Cash Ledger',
-                      style: AppTypography.headlineSm(
-                        context.fx.primary,
-                        context: context,
-                      ).copyWith(fontSize: 17, fontWeight: FontWeight.w700),
-                    ),
-                    if (isDesktop) ...[
-                      const SizedBox(width: 40),
-                      _navLink(context, PremiumNav.home, 'Home'),
-                      const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.deals, 'Deals'),
-                      const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.ledger, 'Ledger'),
-                      const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.reports, 'Reports'),
-                      const SizedBox(width: 20),
-                      _navLink(context, PremiumNav.settings, 'Settings'),
-                    ],
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(Icons.refresh, color: context.fx.primary),
-                      onPressed: () {
-                        ref.invalidate(cashBalancesProvider);
-                        ref.invalidate(ratesProvider);
-                        ref.invalidate(dealsListProvider);
-                      },
-                    ),
-                    if (profile != null)
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: context.fx.secondaryContainer,
-                        child: Text(
-                          initials,
-                          style: AppTypography.labelCaps(
-                            context.fx.onSecondaryContainer,
-                            context: context,
-                          ).copyWith(fontSize: 10),
+        preferredSize: Size.fromHeight(appBarHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isDemo) const DemoWorkspaceBanner(),
+            Material(
+              color: context.fx.surface,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: context.fx.outlineVariant),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop
+                      ? AppSpacing.marginDesktop
+                      : AppSpacing.marginMobile,
+                ),
+                child: SafeArea(
+                  bottom: false,
+                  top: !isDemo,
+                  child: SizedBox(
+                    height: 56,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 26,
                         ),
-                      ),
-                  ],
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            'FX Cash Ledger',
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.headlineSm(
+                              context.fx.primary,
+                              context: context,
+                            ).copyWith(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        if (isDesktop) ...[
+                          const SizedBox(width: 24),
+                          _navLink(context, PremiumNav.home, 'Home'),
+                          const SizedBox(width: 20),
+                          _navLink(context, PremiumNav.deals, 'Deals'),
+                          const SizedBox(width: 20),
+                          _navLink(context, PremiumNav.ledger, 'Ledger'),
+                          const SizedBox(width: 20),
+                          _navLink(context, PremiumNav.reports, 'Reports'),
+                          const SizedBox(width: 20),
+                          _navLink(context, PremiumNav.settings, 'Settings'),
+                        ],
+                        const Spacer(),
+                        const WorkspaceSwitcherButton(),
+                        IconButton(
+                          icon: Icon(Icons.refresh, color: context.fx.primary),
+                          onPressed: () {
+                            ref.invalidate(cashBalancesProvider);
+                            ref.invalidate(ratesProvider);
+                            ref.invalidate(dealsListProvider);
+                          },
+                        ),
+                        if (profile != null)
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: context.fx.secondaryContainer,
+                            child: Text(
+                              initials,
+                              style: AppTypography.labelCaps(
+                                context.fx.onSecondaryContainer,
+                                context: context,
+                              ).copyWith(fontSize: 10),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
       body: navigationShell,

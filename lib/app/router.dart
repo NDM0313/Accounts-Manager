@@ -10,6 +10,7 @@ import 'package:accounts_manager/features/auth/login_screen.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/closing/daily_closing_screen.dart';
 import 'package:accounts_manager/features/dashboard/dashboard_screen.dart';
+import 'package:accounts_manager/features/demo/demo_walkthrough_screen.dart';
 import 'package:accounts_manager/features/journal/journal_entry_detail_screen.dart';
 import 'package:accounts_manager/features/journal/manual_journal_screen.dart';
 import 'package:accounts_manager/features/parties/parties_list_screen.dart';
@@ -95,6 +96,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/branch',
         builder: (context, state) =>
             const AuthGate(child: BranchSelectScreen()),
+      ),
+      GoRoute(
+        path: '/demo/walkthrough',
+        builder: (context, state) =>
+            const AuthGate(child: DemoWalkthroughScreen()),
       ),
       GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
       GoRoute(

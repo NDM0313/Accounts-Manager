@@ -1,5 +1,6 @@
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
+import 'package:accounts_manager/domain/models/fx_workspace.dart';
 
 class ProfileRepository {
   Future<FxUserProfile?> fetchCurrentProfile() async {
@@ -14,6 +15,40 @@ class ProfileRepository {
 
     if (response == null) return null;
     return FxUserProfile.fromJson(response);
+  }
+
+  Future<List<FxWorkspace>> listMyWorkspaces() async {
+    final response = await supabase.rpc('fx_list_my_workspaces');
+    final rows = (response as List?) ?? const [];
+    return rows
+        .whereType<Map>()
+        .map((row) => FxWorkspace.fromJson(Map<String, dynamic>.from(row)))
+        .toList();
+  }
+
+  /// Server enforces membership; client must not invent company access.
+  Future<FxWorkspace> switchWorkspace({
+    required String companyId,
+    required String branchId,
+  }) async {
+    final response = await supabase.rpc(
+      'fx_switch_workspace',
+      params: {
+        'p_company_id': companyId,
+        'p_branch_id': branchId,
+      },
+    );
+    final map = Map<String, dynamic>.from(response as Map);
+    return FxWorkspace(
+      companyId: map['company_id'] as String,
+      companyCode: map['company_code'] as String? ?? '',
+      companyName: map['company_name'] as String? ?? '',
+      branchId: map['branch_id'] as String,
+      branchCode: map['branch_code'] as String? ?? '',
+      branchName: map['branch_name'] as String? ?? '',
+      isDemo: map['is_demo'] as bool? ?? false,
+      isActiveWorkspace: true,
+    );
   }
 
   Future<CompanyAccountingContext> fetchCompanyAccountingContext(

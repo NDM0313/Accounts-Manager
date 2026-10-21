@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/widgets/demo_workspace_banner.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
@@ -6,6 +7,11 @@ import 'package:share_plus/share_plus.dart';
 
 export 'transaction_receipt.dart'
     show formatTransactionReceipt, shareTransactionReceipt;
+
+String withDemoExportBanner(String csv, {required bool isDemo}) {
+  if (!isDemo) return csv;
+  return '# ${DemoWorkspaceBanner.label}\n$csv';
+}
 
 String formatCoaCsv(List<FxAccount> accounts) {
   final buf = StringBuffer('Code,Name,Type,Active,Currency\n');
@@ -183,6 +189,16 @@ String _displayAmount(
   return '${pkrAmount.toStringAsFixed(2)} / ${c.displayAmount.toStringAsFixed(2)}';
 }
 
-Future<void> shareReportCsv({required String csv, required String subject}) {
-  return SharePlus.instance.share(ShareParams(text: csv, subject: subject));
+Future<void> shareReportCsv({
+  required String csv,
+  required String subject,
+  bool isDemo = false,
+}) {
+  final body = withDemoExportBanner(csv, isDemo: isDemo);
+  final labeledSubject = isDemo
+      ? '${DemoWorkspaceBanner.label} — $subject'
+      : subject;
+  return SharePlus.instance.share(
+    ShareParams(text: body, subject: labeledSubject),
+  );
 }

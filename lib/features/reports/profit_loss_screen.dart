@@ -47,6 +47,7 @@ class ProfitLossScreen extends ConsumerWidget {
                 toLabel: toLabel,
                 converter: converter,
                 view: currencyView,
+                isDemo: ref.read(isDemoWorkspaceProvider),
               );
             },
           ),

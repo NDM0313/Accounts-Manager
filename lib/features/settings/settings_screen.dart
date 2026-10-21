@@ -12,7 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -232,6 +231,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: 'Workspace',
             children: [
               FxStitchSettingsTile(
+                icon: Icons.swap_horiz,
+                title: 'Switch company / demo',
+                subtitle: branchAsync.whenOrNull(
+                      data: (ctx) => ctx == null
+                          ? 'Select real or DEMO workspace'
+                          : '${ctx.companyCode} · ${ctx.branchCode}',
+                    ) ??
+                    'Select real or DEMO workspace',
+                onTap: () => context.push('/branch'),
+              ),
+              if (ref.watch(isDemoWorkspaceProvider))
+                FxStitchSettingsTile(
+                  icon: Icons.map_outlined,
+                  title: 'Demo walkthrough',
+                  subtitle: 'Opening → purchases → Ali/Sara/Bilal/Hina',
+                  onTap: () => context.push('/demo/walkthrough'),
+                ),
+              FxStitchSettingsTile(
                 icon: Icons.currency_exchange,
                 title: 'Currencies',
                 subtitle: 'Add PKR, USD, AED, GBP…',
@@ -248,12 +265,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'Opening Balances',
                 subtitle: 'Starting cash, FX & party balances',
                 onTap: () => context.push('/opening-balances'),
-              ),
-              FxStitchSettingsTile(
-                icon: Icons.business_outlined,
-                title: 'Workspace',
-                subtitle: 'Company and branch',
-                onTap: () => context.push('/branch'),
               ),
               FxStitchSettingsTile(
                 icon: Icons.lock_clock_outlined,
@@ -319,11 +330,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
         return;
       }
-      await SharePlus.instance.share(
-        ShareParams(
-          text: formatTrialBalanceCsv(rows),
-          subject: 'FX Ledger Trial Balance',
-        ),
+      await shareReportCsv(
+        csv: formatTrialBalanceCsv(rows),
+        subject: 'FX Ledger Trial Balance',
+        isDemo: ref.read(isDemoWorkspaceProvider),
       );
     } catch (e) {
       if (context.mounted) {

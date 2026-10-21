@@ -26,6 +26,7 @@ import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
 import 'package:accounts_manager/domain/services/rate_suggestion_service.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/fx_user_profile.dart';
+import 'package:accounts_manager/domain/models/fx_workspace.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -778,8 +779,54 @@ final attachmentsForTransactionProvider =
     });
 
 final branchContextProvider = FutureProvider<BranchContext?>((ref) async {
+  ref.watch(currentProfileProvider);
   return ref.read(profileRepositoryProvider).fetchBranchContext();
 });
+
+final myWorkspacesProvider = FutureProvider<List<FxWorkspace>>((ref) async {
+  final authenticated = ref.watch(isAuthenticatedProvider);
+  if (!authenticated) return const [];
+  ref.watch(authSessionProvider);
+  ref.watch(currentProfileProvider);
+  return ref.read(profileRepositoryProvider).listMyWorkspaces();
+});
+
+final isDemoWorkspaceProvider = Provider<bool>((ref) {
+  final branch = ref.watch(branchContextProvider).value;
+  if (branch?.companyCode == 'AM_DEMO') return true;
+  final workspaces = ref.watch(myWorkspacesProvider).asData?.value;
+  return workspaces?.any((w) => w.isActiveWorkspace && w.isDemo) ?? false;
+});
+
+/// Clears workspace-scoped caches after a server-side membership switch.
+void invalidateWorkspaceScopedProviders(WidgetRef ref) {
+  ref.invalidate(currentProfileProvider);
+  ref.invalidate(branchContextProvider);
+  ref.invalidate(myWorkspacesProvider);
+  ref.invalidate(currenciesProvider);
+  ref.invalidate(accountsProvider);
+  ref.invalidate(ratesProvider);
+  ref.invalidate(rateBoardPairsProvider);
+  ref.invalidate(cashBalancesProvider);
+  ref.invalidate(draftTransactionsProvider);
+  ref.invalidate(voidedTransactionsProvider);
+  ref.invalidate(todayTransactionsProvider);
+  ref.invalidate(trialBalanceProvider);
+  ref.invalidate(trialBalanceTotalsProvider);
+  ref.invalidate(generalLedgerProvider);
+  ref.invalidate(accountStatementProvider);
+  ref.invalidate(profitLossProvider);
+  ref.invalidate(balanceSheetProvider);
+  ref.invalidate(currencyPositionProvider);
+  ref.invalidate(dealsListProvider);
+  ref.invalidate(closingPreviewProvider);
+  ref.invalidate(dayClosedProvider);
+  ref.invalidate(pendingSettlementsCountProvider);
+  ref.invalidate(todayProfitLossProvider);
+  ref.invalidate(dashboardKpiProvider);
+  ref.invalidate(closingDayClosedProvider);
+  ref.invalidate(auditLogsProvider);
+}
 
 final closingDayClosedProvider = FutureProvider<bool>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);

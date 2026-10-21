@@ -11,6 +11,7 @@ Future<Uint8List> buildSimpleReportPdf({
   String? footer,
   String? companyName,
   String? branchName,
+  bool isDemo = false,
 }) async {
   final doc = pw.Document();
   final generated = DateFormat('d MMM yyyy HH:mm').format(DateTime.now());
@@ -22,6 +23,21 @@ Future<Uint8List> buildSimpleReportPdf({
       header: (context) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
+          if (isDemo)
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(6),
+              color: PdfColors.orange800,
+              child: pw.Text(
+                'DEMO — SAMPLE DATA, NOT REAL ACCOUNTS',
+                style: pw.TextStyle(
+                  color: PdfColors.white,
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+          if (isDemo) pw.SizedBox(height: 6),
           pw.Text(
             'FX Cash Ledger',
             style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
@@ -42,7 +58,10 @@ Future<Uint8List> buildSimpleReportPdf({
         ],
       ),
       footer: (context) => pw.Text(
-        footer ?? 'Internal ledger statement — for accounting use.',
+        footer ??
+            (isDemo
+                ? 'DEMO — SAMPLE DATA, NOT REAL ACCOUNTS'
+                : 'Internal ledger statement — for accounting use.'),
         style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
       ),
       build: (context) => [
