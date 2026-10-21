@@ -1,7 +1,6 @@
 import 'package:accounts_manager/core/config/feature_flags.dart';
-
+import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/data/repositories/deal_rpc_payload.dart';
-
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 
 import 'package:accounts_manager/domain/models/fx_deal.dart';
@@ -364,35 +363,42 @@ class DealRepository {
 
   Future<String> confirmDelivery({
     required String dealId,
-
     required double deliveredAmount,
-
     FxDeliveryTarget deliveryTarget = FxDeliveryTarget.directToCustomer,
-
     double? costBasisPkr,
-
     String? proofReference,
-
     String? notes,
+    String? clientOperationId,
   }) async {
-    final legId = await supabase.rpc(
-      'fx_confirm_deal_delivery',
-
-      params: {
-        'p_deal_id': dealId,
-
-        'p_delivered_amount': deliveredAmount,
-
-        'p_delivery_target': deliveryTarget.dbValue,
-
-        'p_cost_basis_pkr': costBasisPkr,
-
-        'p_proof_reference': proofReference,
-
-        'p_notes': notes,
-      },
-    );
-
-    return legId as String;
+    if (costBasisPkr == null) {
+      throw ArgumentError(
+        'cost_basis_pkr is required; sale value must not be used as cost',
+      );
+    }
+    final opId =
+        clientOperationId ??
+        await ClientOperationId.beginAmounted(
+          'deal_delivery',
+          dealId,
+          deliveredAmount,
+        );
+    try {
+      final legId = await supabase.rpc(
+        'fx_confirm_deal_delivery',
+        params: {
+          'p_deal_id': dealId,
+          'p_delivered_amount': deliveredAmount,
+          'p_delivery_target': deliveryTarget.dbValue,
+          'p_cost_basis_pkr': costBasisPkr,
+          'p_proof_reference': proofReference,
+          'p_notes': notes,
+          'p_client_operation_id': opId,
+        },
+      );
+      await ClientOperationId.completeAmounted('deal_delivery', dealId);
+      return legId as String;
+    } catch (_) {
+      rethrow;
+    }
   }
 }

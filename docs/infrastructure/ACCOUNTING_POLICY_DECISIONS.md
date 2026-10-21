@@ -1,14 +1,14 @@
-# Unresolved accounting policy decisions
+# Accounting policy decisions (P1–P6)
 
-Do **not** invent these in code. Independent repairs in `H_accounting_repairs.sql` proceed without resolving them.
+| ID | Decision | Classification | Implementation stance |
+|---|---|---|---|
+| P1 | Meaning of **“TTP”** | **Unresolved business rule** | No code assumes TTP meaning. Delivery proof field remains free-text. |
+| P2 | FX inventory **cost basis** (FIFO / WA / explicit lots) | **Partially established** by user: never default cost to sale / zero profit. Method choice still business. | Delivery requires explicit `cost_basis_pkr` per slice. `fx_accounting_policies.cost_basis_method` persisted; NULL = not configured. |
+| P3 | Whether **refund** reverses commission | **Unresolved business rule** | `fx_accounting_policies.refund_reverses_commission` nullable; refund RPC currently reverses cash/liability only — commission reversal **disabled** until configured. |
+| P4 | Agent settlement **due basis** | **Unresolved business rule** | `settlement_due_basis` nullable on policy table; partial settlement uses explicit `p_amount` (no silent receive≠payout conversion). |
+| P5 | Unrealized FX revaluation | **Unresolved business rule** | Revaluation posting not enabled in this release. |
+| P6 | Cross-currency leg fees bearer | **Unresolved business rule** | Fee auto-allocation not implemented. |
 
-| ID | Decision needed | Risk if guessed |
-|---|---|---|
-| P1 | Meaning of **“TTP”** | Wrong product workflow |
-| P2 | FX inventory **cost basis** (FIFO / weighted average / explicit lots) | Silent zero/wrong profit if sale used as cost |
-| P3 | Whether **refund** reverses commission (and order vs liability) | P&L distortion |
-| P4 | Agent settlement **due basis** (receive_amount PKR vs payout currency) | Over/under settlement |
-| P5 | Unrealized FX revaluation rules/accounts | Balance sheet misstatement |
-| P6 | Fees on cross-currency legs — who bears cost | Misallocated expense |
+**Technical choices (autonomous):** idempotent `client_operation_id` + `request_hash`; proportional partial delivery; A6 currency↔PKR recon RPC; FOR UPDATE on money RPCs.
 
 **Rule:** reports and RPCs must **not** default missing purchase cost to sale value.

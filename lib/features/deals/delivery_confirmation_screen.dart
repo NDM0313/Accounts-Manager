@@ -139,9 +139,25 @@ class _DeliveryConfirmationScreenState
                 ),
                 FxObsidianFormField(
                   controller: _costCtrl,
-                  label: 'Actual cost basis (PKR) — for P/L',
+                  label: 'Actual cost basis (PKR) — required for P/L',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
+                  ),
+                  validator: (v) {
+                    final n = double.tryParse(v ?? '');
+                    if (n == null) return 'Cost basis required';
+                    if (n < 0) return 'Cost must be >= 0';
+                    return null;
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Missing cost will not default to sale value or zero profit.',
+                    style: AppTypography.bodySm(
+                      context.fx.onSurfaceVariant,
+                      context: context,
+                    ),
                   ),
                 ),
                 FxObsidianFormField(
@@ -173,6 +189,13 @@ class _DeliveryConfirmationScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final cost = double.tryParse(_costCtrl.text);
+    if (cost == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter cost basis (PKR)')),
+      );
+      return;
+    }
     setState(() => _busy = true);
     try {
       await ref
@@ -181,7 +204,7 @@ class _DeliveryConfirmationScreenState
             dealId: widget.dealId,
             deliveredAmount: double.parse(_amountCtrl.text),
             deliveryTarget: _target,
-            costBasisPkr: double.tryParse(_costCtrl.text),
+            costBasisPkr: cost,
             proofReference: _proofCtrl.text.trim().isEmpty
                 ? null
                 : _proofCtrl.text.trim(),

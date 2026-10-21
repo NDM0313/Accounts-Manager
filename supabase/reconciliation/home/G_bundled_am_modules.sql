@@ -98,7 +98,8 @@ CREATE TYPE fx_account_type AS ENUM (
   'expense',
   'adjustment'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 DO $$ BEGIN
 CREATE TYPE fx_party_type AS ENUM (
@@ -106,7 +107,8 @@ CREATE TYPE fx_party_type AS ENUM (
   'agent',
   'settlement'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 DO $$ BEGIN
 CREATE TYPE fx_transaction_type AS ENUM (
@@ -122,7 +124,8 @@ CREATE TYPE fx_transaction_type AS ENUM (
   'opening_balance',
   'daily_closing_adjustment'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 DO $$ BEGIN
 CREATE TYPE fx_transaction_status AS ENUM (
@@ -130,7 +133,8 @@ CREATE TYPE fx_transaction_status AS ENUM (
   'posted',
   'voided'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- Org / access
@@ -268,24 +272,31 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_fx_companies_updated_at ON fx_companies;
 CREATE TRIGGER trg_fx_companies_updated_at
   BEFORE UPDATE ON fx_companies FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_branches_updated_at ON fx_branches;
 CREATE TRIGGER trg_fx_branches_updated_at
   BEFORE UPDATE ON fx_branches FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_users_profiles_updated_at ON fx_users_profiles;
 CREATE TRIGGER trg_fx_users_profiles_updated_at
   BEFORE UPDATE ON fx_users_profiles FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_roles_updated_at ON fx_roles;
 CREATE TRIGGER trg_fx_roles_updated_at
   BEFORE UPDATE ON fx_roles FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_currencies_updated_at ON fx_currencies;
 CREATE TRIGGER trg_fx_currencies_updated_at
   BEFORE UPDATE ON fx_currencies FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_accounts_updated_at ON fx_accounts;
 CREATE TRIGGER trg_fx_accounts_updated_at
   BEFORE UPDATE ON fx_accounts FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_parties_updated_at ON fx_parties;
 CREATE TRIGGER trg_fx_parties_updated_at
   BEFORE UPDATE ON fx_parties FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 -- <<<<< END 202606100001_fx_foundation.sql
@@ -389,9 +400,11 @@ CREATE INDEX IF NOT EXISTS idx_fx_transactions_status ON fx_transactions (status
 CREATE INDEX IF NOT EXISTS idx_fx_journal_entries_branch_date ON fx_journal_entries (branch_id, entry_date DESC);
 CREATE INDEX IF NOT EXISTS idx_fx_journal_lines_account ON fx_journal_lines (account_id);
 
+DROP TRIGGER IF EXISTS trg_fx_transactions_updated_at ON fx_transactions;
 CREATE TRIGGER trg_fx_transactions_updated_at
   BEFORE UPDATE ON fx_transactions FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_fx_journal_entries_updated_at ON fx_journal_entries;
 CREATE TRIGGER trg_fx_journal_entries_updated_at
   BEFORE UPDATE ON fx_journal_entries FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
@@ -431,7 +444,8 @@ CREATE TYPE fx_audit_action AS ENUM (
   'approved',
   'closed_day'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS fx_daily_closings (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -491,6 +505,7 @@ CREATE INDEX IF NOT EXISTS idx_fx_daily_closings_branch_date ON fx_daily_closing
 CREATE INDEX IF NOT EXISTS idx_fx_audit_logs_entity ON fx_audit_logs (entity_type, entity_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_fx_attachments_transaction ON fx_attachments (transaction_id);
 
+DROP TRIGGER IF EXISTS trg_fx_daily_closings_updated_at ON fx_daily_closings;
 CREATE TRIGGER trg_fx_daily_closings_updated_at
   BEFORE UPDATE ON fx_daily_closings FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
 
@@ -892,16 +907,17 @@ ON CONFLICT (code) DO NOTHING;
 -- ---------------------------------------------------------------------------
 
 INSERT INTO fx_companies (id, name, code, base_currency_code)
-VALUES ('00000000-0000-4000-8000-000000000001', 'FX Cash Ledger Dev', 'FXDEV', 'PKR')
+SELECT '00000000-0000-4000-8000-000000000001', 'FX Cash Ledger Dev', 'FXDEV', 'PKR'
+WHERE current_setting('fx_reconciliation.allow_dev_seed', true) = '1'
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO fx_branches (id, company_id, name, code)
-VALUES (
+SELECT
   '00000000-0000-4000-8000-000000000002',
   '00000000-0000-4000-8000-000000000001',
   'Main Branch',
   'MAIN'
-)
+WHERE current_setting('fx_reconciliation.allow_dev_seed', true) = '1'
 ON CONFLICT (company_id, code) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
@@ -909,39 +925,42 @@ ON CONFLICT (company_id, code) DO NOTHING;
 -- ---------------------------------------------------------------------------
 
 INSERT INTO fx_roles (id, company_id, name, permissions)
-VALUES
+SELECT v.id, v.company_id, v.name, v.permissions
+FROM (VALUES
   (
-    '00000000-0000-4000-8000-000000000010',
-    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000010'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
     'admin',
     ARRAY[
       'can_access_fx_ledger', 'can_manage_fx_rates', 'can_post_fx_transaction',
       'can_edit_fx_transaction', 'can_delete_fx_transaction', 'can_view_fx_reports',
       'can_view_fx_audit', 'can_manage_chart_of_accounts', 'can_close_day'
-    ]
+    ]::text[]
   ),
   (
-    '00000000-0000-4000-8000-000000000011',
-    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000011'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
     'manager',
     ARRAY[
       'can_access_fx_ledger', 'can_manage_fx_rates', 'can_post_fx_transaction',
       'can_edit_fx_transaction', 'can_delete_fx_transaction', 'can_view_fx_reports',
       'can_view_fx_audit', 'can_close_day'
-    ]
+    ]::text[]
   ),
   (
-    '00000000-0000-4000-8000-000000000012',
-    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000012'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
     'cashier',
-    ARRAY['can_access_fx_ledger']
+    ARRAY['can_access_fx_ledger']::text[]
   ),
   (
-    '00000000-0000-4000-8000-000000000013',
-    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000013'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
     'auditor',
-    ARRAY['can_view_fx_reports', 'can_view_fx_audit']
+    ARRAY['can_view_fx_reports', 'can_view_fx_audit']::text[]
   )
+) AS v(id, company_id, name, permissions)
+WHERE current_setting('fx_reconciliation.allow_dev_seed', true) = '1'
 ON CONFLICT (company_id, name) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
@@ -955,6 +974,10 @@ DECLARE
   v_assets UUID; v_liabilities UUID; v_equity UUID;
   v_income UUID; v_expenses UUID; v_adjustment UUID;
 BEGIN
+  IF current_setting('fx_reconciliation.allow_dev_seed', true) IS DISTINCT FROM '1' THEN
+    RAISE NOTICE 'Skipping FXDEV COA seed';
+    RETURN;
+  END IF;
   SELECT id INTO v_pkr FROM fx_currencies WHERE code = 'PKR';
   SELECT id INTO v_usd FROM fx_currencies WHERE code = 'USD';
   SELECT id INTO v_aed FROM fx_currencies WHERE code = 'AED';
@@ -2763,68 +2786,54 @@ GRANT EXECUTE ON FUNCTION fx_deactivate_currency(TEXT) TO authenticated;
 -- ---------------------------------------------------------------------------
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_deal_status AS ENUM (
     'draft', 'quoted', 'booked', 'customer_partially_paid', 'customer_paid',
     'sourcing_required', 'sourcing_in_progress', 'agent_partially_paid', 'agent_paid',
     'currency_received', 'delivered', 'completed', 'cancelled', 'voided'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_deal_leg_type AS ENUM (
     'customer_order', 'customer_payment', 'sourcing_requirement', 'agent_source',
     'cross_currency_source', 'agent_payment', 'currency_receipt', 'delivery', 'adjustment'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_deal_leg_status AS ENUM (
     'pending', 'partial', 'completed', 'failed', 'reversed'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_delivery_method AS ENUM (
     'own_balance', 'agent', 'tt', 'later'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_commitment_type AS ENUM (
     'customer_sale', 'sourcing_required', 'on_order_inbound'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_delivery_target AS ENUM (
     'our_account', 'direct_to_customer', 'tt'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_settlement_link_type AS ENUM (
     'aed_to_agent', 'pkr_settlement', 'tt_reference'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -3726,7 +3735,7 @@ GRANT EXECUTE ON FUNCTION fx_get_party_deal_open_items(UUID) TO authenticated;
 -- <<<<< END 202606170001_fx_deals_workflow.sql
 
 -- >>>>> BEGIN 202606170002_fx_deals_coa_fix_completion.sql
-﻿-- FX Deals completion patch: fixed COA (currency_id) + RPCs/RLS/grants
+-- FX Deals completion patch: fixed COA (currency_id) + RPCs/RLS/grants
 -- Safe when 202606170001 partially applied via SQL Editor (enums/tables exist, COA/RPCs missing)
 -- Cloud only: ygidlcqhupmxvsdjmvnf
 -- ---------------------------------------------------------------------------
@@ -5775,7 +5784,8 @@ GRANT EXECUTE ON FUNCTION fx_generate_deal_no(UUID) TO authenticated;
 
 DO $$ BEGIN
 CREATE TYPE fx_opening_balance_batch_status AS ENUM ('draft', 'posted', 'voided');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 DO $$ BEGIN
 CREATE TYPE fx_opening_balance_line_kind AS ENUM (
@@ -5784,7 +5794,8 @@ CREATE TYPE fx_opening_balance_line_kind AS ENUM (
   'party_receivable',
   'party_payable'
 );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- Tables
@@ -5848,6 +5859,7 @@ ALTER TABLE fx_branches
   ADD COLUMN IF NOT EXISTS opening_balance_batch_id UUID
     REFERENCES fx_opening_balance_batches (id) ON DELETE SET NULL;
 
+DROP TRIGGER IF EXISTS trg_fx_ob_batches_updated_at ON fx_opening_balance_batches;
 CREATE TRIGGER trg_fx_ob_batches_updated_at
   BEFORE UPDATE ON fx_opening_balance_batches
   FOR EACH ROW EXECUTE FUNCTION fx_set_updated_at();
@@ -7032,40 +7044,32 @@ NOTIFY pgrst, 'reload schema';
 -- ---------------------------------------------------------------------------
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_remittance_status AS ENUM (
     'draft', 'booked', 'customer_paid', 'sent_to_agent', 'ready_for_payout',
     'paid_out', 'cancelled', 'refunded', 'disputed', 'completed'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_remittance_settlement_status AS ENUM (
     'pending', 'partial', 'settled'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_remittance_event_type AS ENUM (
     'created', 'customer_payment', 'sent_to_agent', 'payout_confirmed',
     'agent_settlement', 'refund', 'note', 'status_change'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_remittance_tx_purpose AS ENUM (
     'customer_payment', 'agent_payout', 'agent_settlement', 'refund', 'commission'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -7176,8 +7180,10 @@ BEGIN
 END;
 $$;
 
--- Seed for default demo company
-SELECT fx_seed_remittance_coa('00000000-0000-4000-8000-000000000001');
+-- Seed remittance COA only when disposable seed company is enabled
+SELECT fx_seed_remittance_coa('00000000-0000-4000-8000-000000000001')
+WHERE current_setting('fx_reconciliation.allow_dev_seed', true) = '1'
+  AND EXISTS (SELECT 1 FROM fx_companies WHERE id = '00000000-0000-4000-8000-000000000001');
 
 -- ---------------------------------------------------------------------------
 -- Number sequence
@@ -7813,21 +7819,17 @@ GRANT EXECUTE ON FUNCTION fx_cancel_remittance(UUID, TEXT) TO authenticated;
 -- FX Internal messaging module
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_conversation_type AS ENUM (
     'direct', 'deal', 'party', 'transaction', 'company'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  DO $$ BEGIN
 CREATE TYPE fx_message_type AS ENUM (
     'text', 'image', 'file', 'link', 'voice',
     'deal_ref', 'transaction_ref', 'party_ref', 'system'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 

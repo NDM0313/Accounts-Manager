@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
@@ -106,17 +107,30 @@ class RemittanceRepository {
     String? notes,
     String? clientOperationId,
   }) async {
-    final txId = await supabase.rpc(
-      'fx_record_remittance_customer_payment',
-      params: {
-        'p_remittance_id': remittanceId,
-        'p_amount': amount,
-        'p_cash_account_code': cashAccountCode,
-        'p_notes': notes,
-        'p_client_operation_id': ?clientOperationId,
-      },
-    );
-    return txId as String;
+    final opId =
+        clientOperationId ??
+        await ClientOperationId.beginAmounted(
+          'remit_pay',
+          remittanceId,
+          amount,
+        );
+    try {
+      final txId = await supabase.rpc(
+        'fx_record_remittance_customer_payment',
+        params: {
+          'p_remittance_id': remittanceId,
+          'p_amount': amount,
+          'p_cash_account_code': cashAccountCode,
+          'p_notes': notes,
+          'p_client_operation_id': opId,
+        },
+      );
+      await ClientOperationId.completeAmounted('remit_pay', remittanceId);
+      return txId as String;
+    } catch (_) {
+      // Preserve opId for retry; do not complete.
+      rethrow;
+    }
   }
 
   Future<void> sendToAgent({
@@ -179,17 +193,61 @@ class RemittanceRepository {
     String? notes,
     String? clientOperationId,
   }) async {
-    final txId = await supabase.rpc(
-      'fx_settle_remittance_agent',
-      params: {
-        'p_remittance_id': remittanceId,
-        'p_amount': amount,
-        'p_cash_account_code': cashAccountCode,
-        'p_notes': notes,
-        'p_client_operation_id': ?clientOperationId,
-      },
-    );
-    return txId as String;
+    final opId =
+        clientOperationId ??
+        await ClientOperationId.beginAmounted(
+          'remit_settle',
+          remittanceId,
+          amount,
+        );
+    try {
+      final txId = await supabase.rpc(
+        'fx_settle_remittance_agent',
+        params: {
+          'p_remittance_id': remittanceId,
+          'p_amount': amount,
+          'p_cash_account_code': cashAccountCode,
+          'p_notes': notes,
+          'p_client_operation_id': opId,
+        },
+      );
+      await ClientOperationId.completeAmounted('remit_settle', remittanceId);
+      return txId as String;
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<String> refundRemittance({
+    required String remittanceId,
+    required double amount,
+    String? cashAccountCode,
+    String? notes,
+    String? clientOperationId,
+  }) async {
+    final opId =
+        clientOperationId ??
+        await ClientOperationId.beginAmounted(
+          'remit_refund',
+          remittanceId,
+          amount,
+        );
+    try {
+      final txId = await supabase.rpc(
+        'fx_refund_remittance',
+        params: {
+          'p_remittance_id': remittanceId,
+          'p_amount': amount,
+          'p_cash_account_code': cashAccountCode,
+          'p_notes': notes,
+          'p_client_operation_id': opId,
+        },
+      );
+      await ClientOperationId.completeAmounted('remit_refund', remittanceId);
+      return txId as String;
+    } catch (_) {
+      rethrow;
+    }
   }
 
   Future<void> cancel(String remittanceId, {String? notes}) async {

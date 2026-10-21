@@ -101,6 +101,7 @@ class FxRemittance {
     required this.totalPayable,
     required this.paidAmount,
     required this.balanceDue,
+    this.refundedAmount = 0,
     required this.status,
     required this.payoutStatus,
     required this.settlementStatus,
@@ -138,6 +139,7 @@ class FxRemittance {
   final double totalPayable;
   final double paidAmount;
   final double balanceDue;
+  final double refundedAmount;
   final FxRemittanceStatus status;
   final String payoutStatus;
   final FxRemittanceSettlementStatus settlementStatus;
@@ -152,6 +154,9 @@ class FxRemittance {
   final DateTime? updatedAt;
 
   bool get isFullyPaid => paidAmount >= totalPayable - 0.001;
+
+  double get refundableAmount =>
+      (paidAmount - refundedAmount).clamp(0, double.infinity);
 
   factory FxRemittance.fromJson(Map<String, dynamic> json) {
     final total = (json['total_payable'] as num?)?.toDouble() ?? 0;
@@ -184,6 +189,7 @@ class FxRemittance {
       balanceDue:
           (json['balance_due'] as num?)?.toDouble() ??
           (total - paid).clamp(0, double.infinity),
+      refundedAmount: (json['refunded_amount_pkr'] as num?)?.toDouble() ?? 0,
       status:
           FxRemittanceStatus.fromDb(json['status'] as String?) ??
           FxRemittanceStatus.draft,

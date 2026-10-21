@@ -206,10 +206,37 @@ class RemittanceDetailScreen extends ConsumerWidget {
             ),
           );
           if (ok == true && context.mounted) {
-            await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
-            ref.read(remittancesRefreshProvider.notifier).refresh();
+            try {
+              await ref.read(remittanceRepositoryProvider).cancel(remittanceId);
+              ref.read(remittancesRefreshProvider.notifier).refresh();
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('$e')));
+              }
+            }
           }
         },
+      );
+    }
+
+    final canRefund =
+        r.refundableAmount > 0.001 &&
+        r.status != FxRemittanceStatus.cancelled &&
+        r.status != FxRemittanceStatus.refunded &&
+        (r.status == FxRemittanceStatus.customerPaid ||
+            r.status == FxRemittanceStatus.booked ||
+            r.status == FxRemittanceStatus.sentToAgent ||
+            r.status == FxRemittanceStatus.readyForPayout ||
+            r.status == FxRemittanceStatus.paidOut ||
+            r.status == FxRemittanceStatus.completed);
+    if (canRefund) {
+      addTile(
+        'Refund',
+        'Refundable ${r.refundableAmount.toStringAsFixed(2)} ${r.receiveCurrency}',
+        Icons.undo_outlined,
+        () => _promptRefund(context, ref, r),
       );
     }
 
@@ -253,6 +280,92 @@ class RemittanceDetailScreen extends ConsumerWidget {
             : (e.attachmentCount > 0 ? () {} : null),
       ),
     );
+  }
+
+  Future<void> _promptRefund(
+    BuildContext context,
+    WidgetRef ref,
+    FxRemittance r,
+  ) async {
+    final amountCtrl = TextEditingController(
+      text: r.refundableAmount.toStringAsFixed(2),
+    );
+    final notesCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Refund remittance'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Max refundable: ${r.refundableAmount.toStringAsFixed(2)} ${r.receiveCurrency}',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: amountCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Refund amount'),
+            ),
+            TextField(
+              controller: notesCtrl,
+              decoration: const InputDecoration(labelText: 'Notes'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Post refund'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    final amt = double.tryParse(amountCtrl.text);
+    if (amt == null || amt <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a valid refund amount')));
+      return;
+    }
+    if (amt > r.refundableAmount + 0.0001) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Amount exceeds refundable ${r.refundableAmount.toStringAsFixed(2)}',
+          ),
+        ),
+      );
+      return;
+    }
+    try {
+      await ref
+          .read(remittanceRepositoryProvider)
+          .refundRemittance(
+            remittanceId: remittanceId,
+            amount: amt,
+            notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
+          );
+      ref.read(remittancesRefreshProvider.notifier).refresh();
+      ref.invalidate(remittanceDetailProvider(remittanceId));
+      ref.invalidate(remittanceTimelineProvider(remittanceId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Refund posted')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Refund failed: $e')));
+      }
+    }
   }
 
   Future<void> _showExportPicker(BuildContext context, FxRemittance? r) async {

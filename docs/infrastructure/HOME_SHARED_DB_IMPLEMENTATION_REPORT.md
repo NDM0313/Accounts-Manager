@@ -1,71 +1,46 @@
-# Home shared-DB implementation report (updated)
+# Home shared-DB implementation report
 
 **Branch:** `feat/home-shared-db-reconciliation`  
-**HEAD (uncommitted work on):** `4b6bb759e858a63b76231c29443727f211b68a6a`  
-**Updated:** 2026-10-21 (completion pass)  
+**Updated:** 2026-10-21 (E2E execution pass)
 
 | Gate | Value |
 |---|---|
-| SQL on production/staging | **NO** |
-| New DBs/containers | **0** |
-| ERP objects changed | **0** |
-| Credential values printed | **NO** |
-| Production readiness claim | **NONE** |
+| Disposable PG17 clean+reconcile scenarios | **PASS** |
+| Production G→H→I apply | **PASS** (stamp `20261021T192804Z`) |
+| ERP purchase/settlement row counts | **unchanged** (5 / 3) |
+| FX user bootstrap | **PASS** (`ndm313@yahoo.com` only) |
+| Public FX hostname | **NOT configured** — `fx.ndmcore.com` already maps to API (conflict) |
+| App static deploy | **PASS** on `127.0.0.1:3099` (`accounts-manager-web`) |
 
 ---
 
-## Implemented vs proposed
+## Package
 
-### Implemented (local)
-
-- Flutter API allowlist + privileged-secret exclusion from client env
-- Client asset split (`assets/config/client.env`)
-- Migration runner fail-closed for home
-- **Complete** reconciliation package: **G** (41 migration files, demos excluded) + **H** accounting repairs
-- Synthetic DB scenarios 01–05 (executable SQL, not run on prod)
-- App/DB contract matrix
-- Backend readiness messaging (Settings)
-- Currency receipt UI requires `parent_leg_id`
-- Remittance repo accepts optional `client_operation_id`
-
-### Proposed / NOT RUN
-
-- Disposable PG17 Docker validation (documented only)
-- Applying G/H to any live database
-- Auth URL changes on shared GoTrue
-- Credential rotation
-- Policy decisions P1–P6
-- Full delivery RPC proportional rewrite (A8 partial)
-- Currency↔PKR recon report RPC (A6)
-- Flutter refund button wiring to `fx_refund_remittance`
-
----
-
-## Key artifacts
-
-- `docs/infrastructure/APP_DATABASE_CONTRACT_MATRIX.md`
-- `docs/infrastructure/ACCOUNTING_POLICY_DECISIONS.md`
-- `supabase/reconciliation/home/G_bundled_am_modules.sql` (~396KB)
-- `supabase/reconciliation/home/H_accounting_repairs.sql`
-- `supabase/reconciliation/home/tests/*`
-- `supabase/reconciliation/home/TEMPORARY_VALIDATION_PROPOSAL.md`
-- `supabase/reconciliation/home/APPLY_ORDER.md`
-
----
-
-## Local verification (this pass)
-
-| Check | Result |
+| File | Role |
 |---|---|
-| `flutter analyze` (changed paths) | PASS |
-| Focused config/readiness tests | PASS (17) |
-| Full `flutter test` | PASS |
-| Client env privileged keys | none |
-| Web bundle DB password value | absent (deny-list **names** only, from validation constants) |
-| Database scenario SQL | prepared; **NOT RUN** |
+| `G_bundled_am_modules.sql` | Softened AM modules; FXDEV seed gated by `allow_dev_seed` |
+| `H_accounting_repairs.sql` | A1–A11 repairs |
+| `I_remaining_fixes.sql` | A6 recon, A8 partial delivery, policy table, cost never=sale |
+| `J_prod_bootstrap_company.sql` | NDMFX company + baseline COA when empty |
+| `K_bootstrap_fx_user.sql` | Single-email FX membership |
+| `run_disposable_validation.sh` | Local Docker `am-fx-validate-pg17` |
+| `apply_production_reconcile.sh` | Gated production apply + backup |
+
+Backups: `/home/ndm313/fx_reconcile_backups/` (mode 700).
 
 ---
 
-## Next required action
+## Client
 
-Authorize **Mac localhost PG17 disposable container** (proposal doc), apply G→H→fixtures→scenarios, then decide whether production apply is warranted. Still no automatic prod apply.
+- `assets/config/client.env` → `https://api.ndmcore.com` + home anon key (**gitignored**)
+- Refund UI + `ClientOperationId` + required delivery cost wired
+- Fresh web build scanned: no service_role JWT; no DB URL; deny-list **names** only in JS
+
+---
+
+## Limitations
+
+- Full browser Auth login smoke **NOT RUN** (no password automation).
+- Auth/Storage HTTP checks: GoTrue health/settings **PASS**; Storage bucket list as anon **PASS** (`[]`).
+- Public Flutter URL pending non-conflicting Cloudflare tunnel hostname (do not steal `fx.ndmcore.com` from API).
+- P1/P3–P6 unresolved; commission-reversing refund and revaluation **disabled**.

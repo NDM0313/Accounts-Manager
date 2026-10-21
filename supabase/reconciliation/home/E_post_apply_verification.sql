@@ -32,7 +32,7 @@ FROM unnest(ARRAY[
   'fx_settle_remittance_agent(uuid,numeric,text,text,text)',
   'fx_refund_remittance(uuid,numeric,text,text,text)',
   'fx_list_conversations(uuid)',
-  'fx_get_trial_balance(uuid,date,date)'
+  'fx_get_trial_balance(uuid,date)'
 ]) r;
 
 -- Demo seed functions should remain absent (excluded from G)
