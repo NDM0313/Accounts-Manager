@@ -2,47 +2,45 @@
 
 [![Flutter CI](https://github.com/NDM0313/Accounts-Manager/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/NDM0313/Accounts-Manager/actions/workflows/flutter_ci.yml)
 
-Private internal multi-currency accounting ledger — Flutter + **Supabase Cloud**.
+Private internal multi-currency accounting ledger — Flutter + Supabase.
 
 **Repository:** [github.com/NDM0313/Accounts-Manager](https://github.com/NDM0313/Accounts-Manager)
+
+**Intended home API:** `https://api.ndmcore.com` (Studio `db.ndmcore.com` is rejected by the app).  
+Shared-DB reconciliation SQL is prepared under `supabase/reconciliation/home/` and is **not** auto-applied.
 
 ## Quick start
 
 ```bash
 git clone https://github.com/NDM0313/Accounts-Manager.git
 cd Accounts-Manager
-cp .env.example .env   # fill in Supabase keys
+cp assets/config/client.env.example assets/config/client.env   # public keys only
+# Optional: copy supabase/.env.migrations.example for CLI tooling (never in Flutter assets)
 flutter pub get && flutter run -d chrome
 ```
 
-## Supabase Cloud (required)
-
-This project uses **only** the new Supabase Cloud project:
+## Supabase targets
 
 | Setting | Value |
 |---------|-------|
-| Project ref | `ygidlcqhupmxvsdjmvnf` |
-| API URL | `https://ygidlcqhupmxvsdjmvnf.supabase.co` |
-| Dashboard | `https://supabase.com/dashboard/project/ygidlcqhupmxvsdjmvnf` |
-| Session pooler (migrations, IPv4) | `aws-1-ap-southeast-1.pooler.supabase.com:5432` |
+| Home API (allowlisted) | `https://api.ndmcore.com` |
+| Studio (not for Flutter) | `https://db.ndmcore.com` |
+| Legacy Cloud host (explicit only) | `https://ygidlcqhupmxvsdjmvnf.supabase.co` |
 
-**Do not use** `supabase.dincouture.pk` or any old ERP VPS Supabase for this app.
+**Do not use** `supabase.dincouture.pk`, Studio URLs as API, or unknown hosts.  
+Flutter loads `assets/config/client.env` (URL + publishable/anon key only).
 
 ## Setup
 
-1. Copy [`.env.example`](.env.example) to `.env` and fill in secrets (never commit `.env`).
-2. Required variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_DB_PASSWORD`, `SUPABASE_DB_POOLER_HOST`.
-3. Run `flutter pub get` then `flutter run`.
+1. Create `assets/config/client.env` from the example (public client keys only).
+2. Required Flutter variables: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`.
+3. DB passwords / service_role belong in `supabase/.env.migrations` — never in Flutter assets.
+4. Run `flutter pub get` then `flutter run`.
 
 ## Migrations
 
-Apply `fx_*` migrations to the cloud project only:
-
-```bash
-./scripts/apply_migrations.sh
-```
-
-The script aborts if project ref or URL does not match `ygidlcqhupmxvsdjmvnf`, or if the old VPS domain is detected.
+- **Home shared DB:** do **not** run `./scripts/apply_migrations.sh`. Use reviewed packages in `supabase/reconciliation/home/` after disposable PG17 validation.
+- **Legacy Cloud only:** `FX_MIGRATION_TARGET=legacy_cloud ./scripts/apply_migrations.sh` (still fails closed on host/ref mismatch).
 
 ## Admin bootstrap (first user)
 

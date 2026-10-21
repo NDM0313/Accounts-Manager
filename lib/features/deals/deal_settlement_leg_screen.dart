@@ -37,6 +37,7 @@ class _DealSettlementLegScreenState
   final _notesCtrl = TextEditingController();
 
   String? _partyId;
+  String? _parentSourceLegId;
   String _currency = 'PKR';
   bool _busy = false;
   bool _loadingLeg = false;
@@ -73,6 +74,7 @@ class _DealSettlementLegScreenState
       if (!mounted || leg == null) return;
       setState(() {
         _partyId = leg.counterpartyPartyId;
+        _parentSourceLegId = leg.parentLegId;
         _currency = _isReceipt
             ? (leg.receiveCurrency ?? 'USD')
             : (leg.payCurrency ?? 'PKR');
@@ -110,6 +112,7 @@ class _DealSettlementLegScreenState
   @override
   Widget build(BuildContext context) {
     final agentsAsync = ref.watch(partiesProvider(FxPartyType.agent));
+    final legsAsync = ref.watch(dealTimelineProvider(widget.dealId));
     final title = _isEdit
         ? 'Edit ${widget.legType.label}'
         : widget.legType.label;
@@ -130,6 +133,48 @@ class _DealSettlementLegScreenState
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (_isReceipt) ...[
+              const FxSectionLabel(label: 'Source agent leg'),
+              legsAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text('$e'),
+                data: (legs) {
+                  final sources = legs
+                      .where(
+                        (l) =>
+                            l.legType == FxDealLegType.agentSource &&
+                            (l.status == FxDealLegStatus.pending ||
+                                l.status == FxDealLegStatus.partial),
+                      )
+                      .toList();
+                  return DropdownButtonFormField<String>(
+                    initialValue: _parentSourceLegId,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      helperText:
+                          'Receipt must allocate to one specific agent_source leg',
+                    ),
+                    items: sources
+                        .map(
+                          (l) => DropdownMenuItem(
+                            value: l.id,
+                            child: Text(
+                              'Leg #${l.legNo} · ${l.receiveCurrency ?? '?'} '
+                              '${l.receiveAmount} · remaining ${l.remainingAmount}',
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _isEdit
+                        ? null
+                        : (v) => setState(() => _parentSourceLegId = v),
+                    validator: (v) =>
+                        v == null ? 'Select sourcing leg' : null,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
             const FxSectionLabel(label: 'Counterparty'),
             agentsAsync.when(
               loading: () => const LinearProgressIndicator(),
@@ -195,6 +240,7 @@ class _DealSettlementLegScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _partyId == null) return;
+    if (_isReceipt && !_isEdit && _parentSourceLegId == null) return;
     final amount = double.parse(_amountCtrl.text);
     setState(() => _busy = true);
     try {
@@ -224,6 +270,7 @@ class _DealSettlementLegScreenState
               receiveAmount: _isReceipt ? amount : 0,
               payCurrency: _isReceipt ? null : _currency,
               payAmount: _isReceipt ? 0 : amount,
+              parentLegId: _isReceipt ? _parentSourceLegId : null,
               notes: notes,
             );
         final profile = await ref.read(currentProfileProvider.future);

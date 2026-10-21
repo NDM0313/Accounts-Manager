@@ -1,5 +1,12 @@
-# Environment
+# Environment / secrets
 .env
+.env.*
+!.env.example
+supabase/.env.migrations
+assets/config/client.env
+# Keep committed example only:
+!assets/config/client.env.example
+!supabase/.env.migrations.example
 
 # Graphify (regenerate with `graphify update .`)
 graphify-out/

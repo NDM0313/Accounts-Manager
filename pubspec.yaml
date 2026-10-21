@@ -75,7 +75,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - .env
+    # Public client config only (API URL + publishable/anon key).
+    # Never list root .env here — it may contain migration DB secrets.
+    - assets/config/client.env
     - assets/branding/
 
   fonts:

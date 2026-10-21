@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/config/backend_readiness.dart';
 import 'package:accounts_manager/core/config/env.dart';
 import 'package:accounts_manager/core/utils/report_export.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
@@ -268,8 +269,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               FxStitchSettingsTile(
                 icon: Icons.cloud_outlined,
-                title: 'Supabase project',
-                subtitle: Env.supabaseProjectRef,
+                title: 'API host',
+                subtitle: Env.supabaseApiHost,
+                trailing: const SizedBox.shrink(),
+              ),
+              FxStitchSettingsTile(
+                icon: Icons.health_and_safety_outlined,
+                title: 'Backend readiness',
+                subtitle: () {
+                  final r = BackendReadiness.evaluate();
+                  final gate = r.blocksMoneyOperations
+                      ? 'Money ops gated'
+                      : 'Schema marked ready';
+                  return '$gate — ${r.messages.first}';
+                }(),
                 trailing: const SizedBox.shrink(),
               ),
             ],

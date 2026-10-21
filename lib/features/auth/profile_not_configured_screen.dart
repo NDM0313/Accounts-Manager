@@ -112,7 +112,8 @@ class ProfileNotConfiguredScreen extends ConsumerWidget {
                   const SizedBox(height: 8),
                   const Text(
                     '• Flutter uses publishable key only — no service_role\n'
-                    '• Do not use supabase.dincouture.pk or old ERP VPS\n'
+                    '• API host must be allowlisted (https://api.ndmcore.com)\n'
+                    '• Do not use Studio URLs (db.ndmcore.com) or old ERP VPS\n'
                     '• Posting/transactions remain disabled until Phase 3',
                   ),
                 ],

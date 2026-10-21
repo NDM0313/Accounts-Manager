@@ -104,6 +104,7 @@ class RemittanceRepository {
     required double amount,
     String? cashAccountCode,
     String? notes,
+    String? clientOperationId,
   }) async {
     final txId = await supabase.rpc(
       'fx_record_remittance_customer_payment',
@@ -112,6 +113,7 @@ class RemittanceRepository {
         'p_amount': amount,
         'p_cash_account_code': cashAccountCode,
         'p_notes': notes,
+        'p_client_operation_id': ?clientOperationId,
       },
     );
     return txId as String;
@@ -175,6 +177,7 @@ class RemittanceRepository {
     required double amount,
     String? cashAccountCode,
     String? notes,
+    String? clientOperationId,
   }) async {
     final txId = await supabase.rpc(
       'fx_settle_remittance_agent',
@@ -183,6 +186,7 @@ class RemittanceRepository {
         'p_amount': amount,
         'p_cash_account_code': cashAccountCode,
         'p_notes': notes,
+        'p_client_operation_id': ?clientOperationId,
       },
     );
     return txId as String;

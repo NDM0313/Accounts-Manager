@@ -7,7 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+
+  // Public client config only (API URL + publishable/anon key).
+  // Never bundle DB passwords / service_role / JWT secrets in this asset.
+  await dotenv.load(fileName: 'assets/config/client.env');
+  Env.assertNoPrivilegedSecretsInClientEnv();
 
   await Supabase.initialize(
     url: Env.supabaseUrl,
