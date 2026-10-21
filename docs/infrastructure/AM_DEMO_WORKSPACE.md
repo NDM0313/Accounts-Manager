@@ -13,6 +13,8 @@ Isolated demo company on the **existing** home Supabase DB (`code = AM_DEMO`).
 
 ## Access
 
+Public mobile web: **https://fx.ndmcore.com** (origin `http://127.0.0.1:3099` on dinserver).
+
 1. Sign in as your real FX admin (`ndm313@yahoo.com`) — password unchanged.
 2. Open **Settings → Switch company / demo**, or the company chip in the top bar.
 3. Select **FX DEMO — SAMPLE DATA** (`AM_DEMO`).
@@ -20,6 +22,8 @@ Isolated demo company on the **existing** home Supabase DB (`code = AM_DEMO`).
 5. Open **Demo walkthrough** for scenario links.
 
 Real `NDMFX` membership is preserved; switching updates server-side active workspace only.
+
+After each web deploy, `deploy/bust_web_cache.sh` stamps `flutter_bootstrap.js?v=<commit>` so Safari/Cloudflare do not keep a week-old `main.dart.js`.
 
 ## Seed
 
