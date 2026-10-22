@@ -1,4 +1,5 @@
 import 'package:accounts_manager/app/main_shell.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_authenticated_chrome.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
@@ -94,451 +95,406 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(
-        path: '/branch',
-        builder: (context, state) =>
-            const AuthGate(child: BranchSelectScreen()),
-      ),
-      GoRoute(
-        path: '/demo/walkthrough',
-        builder: (context, state) =>
-            const AuthGate(child: DemoWalkthroughScreen()),
-      ),
       GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
-      GoRoute(
-        path: '/transactions/receive-payment',
-        builder: (context, state) => AuthGate(
-          child: ReceivePaymentScreen(
-            initialPartyId: state.uri.queryParameters['partyId'],
+      ShellRoute(
+        builder: (context, state, child) {
+          return AuthGate(child: FxAuthenticatedChrome(child: child));
+        },
+        routes: [
+          GoRoute(
+            path: '/branch',
+            builder: (context, state) => const BranchSelectScreen(),
           ),
-        ),
-      ),
-      GoRoute(
-        path: '/attachments/:id/preview',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          final q = state.uri.queryParameters;
-          return AuthGate(
-            child: AttachmentPreviewScreen(
-              attachmentId: id,
-              dealId: q['dealId'],
-              entityType: q['entityType'],
-              entityId: q['entityId'],
+          GoRoute(
+            path: '/demo/walkthrough',
+            builder: (context, state) => const DemoWalkthroughScreen(),
+          ),
+          GoRoute(
+            path: '/transactions/receive-payment',
+            builder: (context, state) => ReceivePaymentScreen(
+              initialPartyId: state.uri.queryParameters['partyId'],
             ),
-          );
-        },
+          ),
+          GoRoute(
+            path: '/attachments/:id/preview',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final q = state.uri.queryParameters;
+              return AttachmentPreviewScreen(
+                attachmentId: id,
+                dealId: q['dealId'],
+                entityType: q['entityType'],
+                entityId: q['entityId'],
+              );
+            },
+          ),
+          GoRoute(
+            path: '/share/configure',
+            builder: (context, state) {
+              final q = state.uri.queryParameters;
+              return ShareSecureLinkScreen(
+                entityType: q['entityType'] ?? 'party_ledger',
+                entityId: q['entityId'] ?? '',
+                title: q['title'],
+                subtitle: q['subtitle'],
+              );
+            },
+          ),
+          GoRoute(
+            path: '/settings/security',
+            builder: (context, state) => const SettingsSecurityScreen(),
+          ),
+          GoRoute(
+            path: '/transactions/new',
+            builder: (context, state) {
+              final q = state.uri.queryParameters;
+              final type = _transactionTypeFromQuery(q['type']);
+              final currency = q['currency'];
+              final rateStr = q['rate'];
+              final rate = rateStr != null ? double.tryParse(rateStr) : null;
+              return DraftTransactionScreen(
+                type: type,
+                initialCurrency: currency,
+                suggestedRate: rate,
+                initialPartyId: q['partyId'],
+                draftMode: TransactionDraftMode.fromQuery(q['mode']),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id/audit',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return TransactionAuditScreen(transactionId: id);
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id/complete',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final mode = TransactionDraftMode.fromQuery(
+                state.uri.queryParameters['mode'],
+              );
+              return TransactionCompleteScreen(
+                transactionId: id,
+                draftMode: mode,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id/edit',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return DraftTransactionScreen(editDraftId: id);
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return TransactionDetailScreen(transactionId: id);
+            },
+          ),
+          GoRoute(
+            path: '/transactions/chained-exchange',
+            builder: (context, state) => const ChainedExchangeWizardScreen(),
+          ),
+          GoRoute(
+            path: '/deals/new',
+            builder: (context, state) => const NewCustomerFxOrderScreen(),
+          ),
+          GoRoute(
+            path: '/deals/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return DealDetailScreen(dealId: id);
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/sourcing',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return SourcingRequirementScreen(dealId: id);
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/legs/agent-source',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final legId = state.uri.queryParameters['legId'];
+              return AgentSourceLegScreen(dealId: id, legId: legId);
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/legs/cross-source',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return CrossCurrencySourceScreen(dealId: id);
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/legs/agent-payment',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final legId = state.uri.queryParameters['legId'];
+              return DealSettlementLegScreen(
+                dealId: id,
+                legType: FxDealLegType.agentPayment,
+                legId: legId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/legs/currency-receipt',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final legId = state.uri.queryParameters['legId'];
+              return DealSettlementLegScreen(
+                dealId: id,
+                legType: FxDealLegType.currencyReceipt,
+                legId: legId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/deals/:id/delivery',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return DeliveryConfirmationScreen(dealId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance',
+            builder: (context, state) => const RemittanceListScreen(),
+          ),
+          GoRoute(
+            path: '/remittance/new',
+            builder: (context, state) => const NewRemittanceOrderScreen(),
+          ),
+          GoRoute(
+            path: '/remittance/reports',
+            builder: (context, state) => const RemittanceReportsScreen(),
+          ),
+          GoRoute(
+            path: '/remittance/agent',
+            builder: (context, state) => const AgentRemittanceInboxScreen(),
+          ),
+          GoRoute(
+            path: '/remittance/agent/:id/confirm',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return AgentConfirmPayoutScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance/agent/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return AgentRemittanceDetailScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/notifications',
+            builder: (context, state) => const NotificationsInboxScreen(),
+          ),
+          GoRoute(
+            path: '/remittance/:id/payment',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RemittanceCustomerPaymentScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance/:id/assign-agent',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RemittanceAssignAgentScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance/:id/payout',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RemittanceConfirmPayoutScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance/:id/settlement',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RemittanceAgentSettlementScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/remittance/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RemittanceDetailScreen(remittanceId: id);
+            },
+          ),
+          GoRoute(
+            path: '/messages',
+            builder: (context, state) => const MessagesInboxScreen(),
+          ),
+          GoRoute(
+            path: '/messages/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return ConversationRoomScreen(conversationId: id);
+            },
+          ),
+          GoRoute(
+            path: '/settings/currency-settings',
+            builder: (context, state) => const CurrencySettingsScreen(),
+          ),
+          GoRoute(
+            path: '/guide/fx-workflow',
+            builder: (context, state) => const FxWorkflowGuideScreen(),
+          ),
+          GoRoute(
+            path: '/settings/currencies',
+            builder: (context, state) => const CurrencyManagementScreen(),
+          ),
+          GoRoute(
+            path: '/rates',
+            builder: (context, state) => const RateBoardScreen(),
+          ),
+          GoRoute(
+            path: '/rates/new',
+            builder: (context, state) {
+              final q = state.uri.queryParameters;
+              return RateFormScreen(duplicateFromId: q['from']);
+            },
+          ),
+          GoRoute(
+            path: '/rates/edit/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return RateFormScreen(rateId: id);
+            },
+          ),
+          GoRoute(
+            path: '/rates/history/:currency',
+            builder: (context, state) {
+              final currency = state.pathParameters['currency']!;
+              return RateHistoryScreen(currencyCode: currency);
+            },
+          ),
+          GoRoute(
+            path: '/accounts',
+            builder: (context, state) => const ChartOfAccountsScreen(),
+          ),
+          GoRoute(
+            path: '/accounts/new-cash',
+            builder: (context, state) {
+              final kind = state.uri.queryParameters['kind'] ?? 'cash';
+              return CashBankAccountFormScreen(initialKind: kind);
+            },
+          ),
+          GoRoute(
+            path: '/slips/import',
+            builder: (context, state) {
+              final dealId = state.uri.queryParameters['dealId'];
+              return ImportPaymentSlipScreen(dealId: dealId);
+            },
+          ),
+          GoRoute(
+            path: '/accounts-hub',
+            builder: (context, state) => const GeneralHubScreen(),
+          ),
+          GoRoute(
+            path: '/audit',
+            builder: (context, state) => const AuditLogScreen(inShell: false),
+          ),
+          GoRoute(
+            path: '/reports/general-ledger',
+            builder: (context, state) => const GeneralLedgerScreen(),
+          ),
+          GoRoute(
+            path: '/reports/profit-loss',
+            builder: (context, state) => const ProfitLossScreen(),
+          ),
+          GoRoute(
+            path: '/reports/balance-sheet',
+            builder: (context, state) => const BalanceSheetScreen(),
+          ),
+          GoRoute(
+            path: '/reports/currency-position',
+            builder: (context, state) => const CurrencyPositionScreen(),
+          ),
+          GoRoute(
+            path: '/closing',
+            builder: (context, state) => const DailyClosingScreen(),
+          ),
+          GoRoute(
+            path: '/reports/trial-balance',
+            builder: (context, state) => const TrialBalanceScreen(),
+          ),
+          GoRoute(
+            path: '/reports/account-journal',
+            builder: (context, state) {
+              final code = state.uri.queryParameters['code'] ?? '';
+              final asOfStr = state.uri.queryParameters['asOf'];
+              final asOf = asOfStr != null ? DateTime.tryParse(asOfStr) : null;
+              final now = DateTime.now();
+              return AccountJournalLinesScreen(
+                accountCode: code,
+                asOf: asOf ?? DateTime(now.year, now.month, now.day),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/reports/audit-log',
+            builder: (context, state) => const AuditLogScreen(),
+          ),
+          GoRoute(
+            path: '/journal/new',
+            builder: (context, state) => const ManualJournalScreen(),
+          ),
+          GoRoute(
+            path: '/parties',
+            builder: (context, state) => const PartiesListScreen(),
+          ),
+          GoRoute(
+            path: '/parties/agents',
+            builder: (context, state) => const AgentLedgerScreen(),
+          ),
+          GoRoute(
+            path: '/parties/new',
+            builder: (context, state) => const PartyFormScreen(),
+          ),
+          GoRoute(
+            path: '/parties/:partyId/edit',
+            builder: (context, state) {
+              final partyId = state.pathParameters['partyId']!;
+              return PartyFormScreen(partyId: partyId);
+            },
+          ),
+          GoRoute(
+            path: '/parties/:partyId/ledger',
+            builder: (context, state) {
+              final partyId = state.pathParameters['partyId']!;
+              return PartyLedgerScreen(partyId: partyId);
+            },
+          ),
+          GoRoute(
+            path: '/opening-balances',
+            builder: (context, state) => const OpeningBalanceHubScreen(),
+          ),
+          GoRoute(
+            path: '/opening-balances/wizard',
+            builder: (context, state) => const OpeningBalanceWizardScreen(),
+          ),
+          GoRoute(
+            path: '/journal/:entryId',
+            builder: (context, state) {
+              final entryId = state.pathParameters['entryId']!;
+              return JournalEntryDetailScreen(entryId: entryId);
+            },
+          ),
+        ],
       ),
-      GoRoute(
-        path: '/share/configure',
-        builder: (context, state) {
-          final q = state.uri.queryParameters;
-          return AuthGate(
-            child: ShareSecureLinkScreen(
-              entityType: q['entityType'] ?? 'party_ledger',
-              entityId: q['entityId'] ?? '',
-              title: q['title'],
-              subtitle: q['subtitle'],
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/settings/security',
-        builder: (context, state) =>
-            const AuthGate(child: SettingsSecurityScreen()),
-      ),
-      GoRoute(
-        path: '/transactions/new',
-        builder: (context, state) {
-          final q = state.uri.queryParameters;
-          final type = _transactionTypeFromQuery(q['type']);
-          final currency = q['currency'];
-          final rateStr = q['rate'];
-          final rate = rateStr != null ? double.tryParse(rateStr) : null;
-          return AuthGate(
-            child: DraftTransactionScreen(
-              type: type,
-              initialCurrency: currency,
-              suggestedRate: rate,
-              initialPartyId: q['partyId'],
-              draftMode: TransactionDraftMode.fromQuery(q['mode']),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/transactions/:id/audit',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: TransactionAuditScreen(transactionId: id));
-        },
-      ),
-      GoRoute(
-        path: '/transactions/:id/complete',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          final mode = TransactionDraftMode.fromQuery(
-            state.uri.queryParameters['mode'],
-          );
-          return AuthGate(
-            child: TransactionCompleteScreen(
-              transactionId: id,
-              draftMode: mode,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/transactions/:id/edit',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: DraftTransactionScreen(editDraftId: id));
-        },
-      ),
-      GoRoute(
-        path: '/transactions/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: TransactionDetailScreen(transactionId: id));
-        },
-      ),
-      GoRoute(
-        path: '/transactions/chained-exchange',
-        builder: (context, state) =>
-            const AuthGate(child: ChainedExchangeWizardScreen()),
-      ),
-      GoRoute(
-        path: '/deals/new',
-        builder: (context, state) =>
-            const AuthGate(child: NewCustomerFxOrderScreen()),
-      ),
-      GoRoute(
-        path: '/deals/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: DealDetailScreen(dealId: id));
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/sourcing',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: SourcingRequirementScreen(dealId: id));
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/legs/agent-source',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          final legId = state.uri.queryParameters['legId'];
-          return AuthGate(
-            child: AgentSourceLegScreen(dealId: id, legId: legId),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/legs/cross-source',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: CrossCurrencySourceScreen(dealId: id));
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/legs/agent-payment',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          final legId = state.uri.queryParameters['legId'];
-          return AuthGate(
-            child: DealSettlementLegScreen(
-              dealId: id,
-              legType: FxDealLegType.agentPayment,
-              legId: legId,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/legs/currency-receipt',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          final legId = state.uri.queryParameters['legId'];
-          return AuthGate(
-            child: DealSettlementLegScreen(
-              dealId: id,
-              legType: FxDealLegType.currencyReceipt,
-              legId: legId,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/deals/:id/delivery',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: DeliveryConfirmationScreen(dealId: id));
-        },
-      ),
-      GoRoute(
-        path: '/remittance',
-        builder: (context, state) =>
-            const AuthGate(child: RemittanceListScreen()),
-      ),
-      GoRoute(
-        path: '/remittance/new',
-        builder: (context, state) =>
-            const AuthGate(child: NewRemittanceOrderScreen()),
-      ),
-      GoRoute(
-        path: '/remittance/reports',
-        builder: (context, state) =>
-            const AuthGate(child: RemittanceReportsScreen()),
-      ),
-      GoRoute(
-        path: '/remittance/agent',
-        builder: (context, state) =>
-            const AuthGate(child: AgentRemittanceInboxScreen()),
-      ),
-      GoRoute(
-        path: '/remittance/agent/:id/confirm',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: AgentConfirmPayoutScreen(remittanceId: id));
-        },
-      ),
-      GoRoute(
-        path: '/remittance/agent/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: AgentRemittanceDetailScreen(remittanceId: id));
-        },
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) =>
-            const AuthGate(child: NotificationsInboxScreen()),
-      ),
-      GoRoute(
-        path: '/remittance/:id/payment',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(
-            child: RemittanceCustomerPaymentScreen(remittanceId: id),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/remittance/:id/assign-agent',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: RemittanceAssignAgentScreen(remittanceId: id));
-        },
-      ),
-      GoRoute(
-        path: '/remittance/:id/payout',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(
-            child: RemittanceConfirmPayoutScreen(remittanceId: id),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/remittance/:id/settlement',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(
-            child: RemittanceAgentSettlementScreen(remittanceId: id),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/remittance/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: RemittanceDetailScreen(remittanceId: id));
-        },
-      ),
-      GoRoute(
-        path: '/messages',
-        builder: (context, state) =>
-            const AuthGate(child: MessagesInboxScreen()),
-      ),
-      GoRoute(
-        path: '/messages/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: ConversationRoomScreen(conversationId: id));
-        },
-      ),
-      GoRoute(
-        path: '/settings/currency-settings',
-        builder: (context, state) =>
-            const AuthGate(child: CurrencySettingsScreen()),
-      ),
-      GoRoute(
-        path: '/guide/fx-workflow',
-        builder: (context, state) =>
-            const AuthGate(child: FxWorkflowGuideScreen()),
-      ),
-      GoRoute(
-        path: '/settings/currencies',
-        builder: (context, state) =>
-            const AuthGate(child: CurrencyManagementScreen()),
-      ),
-      GoRoute(
-        path: '/rates',
-        builder: (context, state) => const AuthGate(child: RateBoardScreen()),
-      ),
-      GoRoute(
-        path: '/rates/new',
-        builder: (context, state) {
-          final q = state.uri.queryParameters;
-          return AuthGate(child: RateFormScreen(duplicateFromId: q['from']));
-        },
-      ),
-      GoRoute(
-        path: '/rates/edit/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return AuthGate(child: RateFormScreen(rateId: id));
-        },
-      ),
-      GoRoute(
-        path: '/rates/history/:currency',
-        builder: (context, state) {
-          final currency = state.pathParameters['currency']!;
-          return AuthGate(child: RateHistoryScreen(currencyCode: currency));
-        },
-      ),
-      GoRoute(
-        path: '/accounts',
-        builder: (context, state) =>
-            const AuthGate(child: ChartOfAccountsScreen()),
-      ),
-      GoRoute(
-        path: '/accounts/new-cash',
-        builder: (context, state) {
-          final kind = state.uri.queryParameters['kind'] ?? 'cash';
-          return AuthGate(
-            child: CashBankAccountFormScreen(initialKind: kind),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/slips/import',
-        builder: (context, state) {
-          final dealId = state.uri.queryParameters['dealId'];
-          return AuthGate(
-            child: ImportPaymentSlipScreen(dealId: dealId),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/accounts-hub',
-        builder: (context, state) =>
-            const AuthGate(child: GeneralHubScreen()),
-      ),
-      GoRoute(
-        path: '/audit',
-        builder: (context, state) =>
-            const AuthGate(child: AuditLogScreen(inShell: false)),
-      ),
-      GoRoute(
-        path: '/reports/general-ledger',
-        builder: (context, state) =>
-            const AuthGate(child: GeneralLedgerScreen()),
-      ),
-      GoRoute(
-        path: '/reports/profit-loss',
-        builder: (context, state) => const AuthGate(child: ProfitLossScreen()),
-      ),
-      GoRoute(
-        path: '/reports/balance-sheet',
-        builder: (context, state) =>
-            const AuthGate(child: BalanceSheetScreen()),
-      ),
-      GoRoute(
-        path: '/reports/currency-position',
-        builder: (context, state) =>
-            const AuthGate(child: CurrencyPositionScreen()),
-      ),
-      GoRoute(
-        path: '/closing',
-        builder: (context, state) =>
-            const AuthGate(child: DailyClosingScreen()),
-      ),
-      GoRoute(
-        path: '/reports/trial-balance',
-        builder: (context, state) =>
-            const AuthGate(child: TrialBalanceScreen()),
-      ),
-      GoRoute(
-        path: '/reports/account-journal',
-        builder: (context, state) {
-          final code = state.uri.queryParameters['code'] ?? '';
-          final asOfStr = state.uri.queryParameters['asOf'];
-          final asOf = asOfStr != null ? DateTime.tryParse(asOfStr) : null;
-          final now = DateTime.now();
-          return AuthGate(
-            child: AccountJournalLinesScreen(
-              accountCode: code,
-              asOf: asOf ?? DateTime(now.year, now.month, now.day),
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/reports/audit-log',
-        builder: (context, state) => const AuthGate(child: AuditLogScreen()),
-      ),
-      GoRoute(
-        path: '/journal/new',
-        builder: (context, state) =>
-            const AuthGate(child: ManualJournalScreen()),
-      ),
-      GoRoute(
-        path: '/parties',
-        builder: (context, state) => const AuthGate(child: PartiesListScreen()),
-      ),
-      GoRoute(
-        path: '/parties/agents',
-        builder: (context, state) => const AuthGate(child: AgentLedgerScreen()),
-      ),
-      GoRoute(
-        path: '/parties/new',
-        builder: (context, state) => const AuthGate(child: PartyFormScreen()),
-      ),
-      GoRoute(
-        path: '/parties/:partyId/edit',
-        builder: (context, state) {
-          final partyId = state.pathParameters['partyId']!;
-          return AuthGate(child: PartyFormScreen(partyId: partyId));
-        },
-      ),
-      GoRoute(
-        path: '/parties/:partyId/ledger',
-        builder: (context, state) {
-          final partyId = state.pathParameters['partyId']!;
-          return AuthGate(child: PartyLedgerScreen(partyId: partyId));
-        },
-      ),
-      GoRoute(
-        path: '/opening-balances',
-        builder: (context, state) =>
-            const AuthGate(child: OpeningBalanceHubScreen()),
-      ),
-      GoRoute(
-        path: '/opening-balances/wizard',
-        builder: (context, state) =>
-            const AuthGate(child: OpeningBalanceWizardScreen()),
-      ),
-      GoRoute(
-        path: '/journal/:entryId',
-        builder: (context, state) {
-          final entryId = state.pathParameters['entryId']!;
-          return AuthGate(child: JournalEntryDetailScreen(entryId: entryId));
-        },
-      ),
+
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AuthGate(child: MainShell(navigationShell: navigationShell));

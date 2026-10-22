@@ -28,50 +28,6 @@ class GeneralHubScreen extends StatelessWidget {
           onPressed: () => context.go('/'),
         ),
       ],
-      bottomBar: NavigationBar(
-        selectedIndex: 2,
-        onDestinationSelected: (i) {
-          switch (i) {
-            case 0:
-              context.go('/');
-            case 1:
-              context.go('/deals');
-            case 2:
-              break; // already on accounts hub
-            case 3:
-              context.go('/ledger');
-            case 4:
-              context.go('/settings');
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.handshake_outlined),
-            selectedIcon: Icon(Icons.handshake),
-            label: 'Deals',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_outlined),
-            selectedIcon: Icon(Icons.account_balance),
-            label: 'Accounts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Ledger',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
       body: FxObsidianPage(
         child: ListView(
           children: [
@@ -99,7 +55,8 @@ class GeneralHubScreen extends StatelessWidget {
             FxResponsiveHubGrid(
               itemCount: generalHubEntries.length,
               itemBuilder: (context, i) {
-                final entry = generalHubEntries[i];                return FxHubTile(
+                final entry = generalHubEntries[i];
+                return FxHubTile(
                   title: entry.title,
                   subtitle: entry.subtitle,
                   icon: entry.icon,

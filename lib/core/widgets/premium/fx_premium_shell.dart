@@ -1,27 +1,21 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/demo_workspace_banner.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_main_nav_bar.dart';
 import 'package:accounts_manager/core/widgets/workspace_switcher.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-enum PremiumNav { home, deals, ledger, reports, settings }
+export 'package:accounts_manager/core/widgets/premium/fx_main_nav_bar.dart'
+    show PremiumNav;
 
 /// Main app shell: Stitch 64px top bar + 5-tab bottom navigation.
 class FxPremiumShell extends ConsumerWidget {
   const FxPremiumShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
-
-  static const _tabs = [
-    (Icons.home_outlined, Icons.home, 'Home'),
-    (Icons.sync_alt, Icons.sync_alt, 'Deals'),
-    (Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Ledger'),
-    (Icons.bar_chart_outlined, Icons.bar_chart, 'Reports'),
-    (Icons.settings_outlined, Icons.settings, 'Settings'),
-  ];
 
   PremiumNav get _currentNav => PremiumNav.values[navigationShell.currentIndex];
 
@@ -78,10 +72,7 @@ class FxPremiumShell extends ConsumerWidget {
                           style: AppTypography.headlineSm(
                             context.fx.primary,
                             context: context,
-                          ).copyWith(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          ).copyWith(fontSize: 17, fontWeight: FontWeight.w700),
                         ),
                       ),
                     if (isDesktop) ...[
@@ -134,64 +125,9 @@ class FxPremiumShell extends ConsumerWidget {
       ),
       bottomNavigationBar: isDesktop
           ? null
-          : Container(
-              decoration: BoxDecoration(
-                color: context.fx.surface,
-                border: Border(
-                  top: BorderSide(color: context.fx.outlineVariant),
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  height: 56,
-                  child: Row(
-                    children: List.generate(_tabs.length, (i) {
-                      final tab = _tabs[i];
-                      final active = navigationShell.currentIndex == i;
-                      return Expanded(
-                        child: InkWell(
-                          onTap: () => _goBranch(i),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                top: BorderSide(
-                                  color: active
-                                      ? context.fx.secondary
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  active ? tab.$2 : tab.$1,
-                                  size: 22,
-                                  color: active
-                                      ? context.fx.secondary
-                                      : context.fx.onSurfaceVariant,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  tab.$3.toUpperCase(),
-                                  style: AppTypography.labelCaps(
-                                    active
-                                        ? context.fx.secondary
-                                        : context.fx.onSurfaceVariant,
-                                    context: context,
-                                  ).copyWith(fontSize: 9),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
+          : FxMainNavBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: _goBranch,
             ),
     );
   }
@@ -205,13 +141,14 @@ class FxPremiumShell extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: AppTypography.bodyMd(
-              active ? context.fx.secondary : context.fx.onSurfaceVariant,
-              context: context,
-            ).copyWith(
-              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-              fontSize: 13,
-            ),
+            style:
+                AppTypography.bodyMd(
+                  active ? context.fx.secondary : context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 13,
+                ),
           ),
           const SizedBox(height: 4),
           Container(
