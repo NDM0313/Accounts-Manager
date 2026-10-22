@@ -1,70 +1,114 @@
 # Accounts-Manager — office handoff
 
-**Date:** 2026-10-22  
+**Date:** 2026-10-22 (closing)  
 **Repo:** NDM0313/Accounts-Manager  
 **Branch:** `feat/home-shared-db-reconciliation`  
 **Do not merge to main as part of this handoff.**
 
-## Status
-
-Implementation on this branch covers (among earlier shared-DB work):
-
-- Party / cash-bank profiles, optional auto codes, inline openings via `fx_post_entity_opening`
-- Accounts Hub Home/back + app-wide bottom nav chrome (`FxAuthenticatedChrome`)
-- Cancel/Back deep-link traps fixed via `fxSafePop` fallbacks
-- Party statement Simple/Detailed professional PDF + export sheet
-- Slip OCR / deal payment / currency receipt / profile access restores (earlier commits)
-
-## Deployed (production web)
+## Identities (closing snapshot)
 
 | Item | Value |
 |------|--------|
+| Code tip (local/remote after this handoff commit) | see git after push |
+| Prior code tip at start of closing | `2d01e6b` |
+| Deployed production web | `d0c726c` (`flutter_bootstrap.js?v=d0c726c`) |
 | URL | https://fx.ndmcore.com |
-| API | https://api.ndmcore.com (existing home Supabase) |
-| Deployed commit (last handoff) | `a83abca` |
-| Cache-bust | `flutter_bootstrap.js?v=a83abca` |
-| Host path | `/home/ndm313/fx_app_web` on dinserver |
-| Rollback example | `/home/ndm313/fx_app_web_rollback_20261022T131007Z` |
-| SQL after T | `U_party_balances_roznamcha` · `V_agent_custody_party_currencies` (do not re-run) |
+| API | https://api.ndmcore.com |
 
-ERP (`din-couture-portal` / erp.ndmcore.com) was not redeployed; leave it alone.
+Deployed web (`d0c726c`) is **behind** tip `2d01e6b` by the OCR script-only commit (`ensure_ocr_assets.sh`). Lang packs were copied onto the host separately; a full web redeploy of tip is optional and **not** part of this closing task.
 
-## Applied home SQL (do NOT re-run on production)
+## Status (payment workflow + verification)
 
-Scripts under `supabase/reconciliation/home/` already applied on shared postgres (order matters; only add **new** letters):
+On this branch (among earlier shared-DB / UI work):
 
-- Through foundation / demo: `B` … `M` (existing prior work)
-- `N_deal_payment_coa_workflow.sql`
-- `O_party_accounts_attachments_ocr.sql`
-- `P_slip_ocr_gaps_fix.sql`
-- `Q_currency_receipt_currency_guard.sql`
-- `R_profile_self_select.sql`
-- `S_party_profile_openings.sql` (party profile columns, allocate/upsert, openings; rate-required fix live)
-- `T_transaction_void_deal_unwind.sql` (office 2026-10-22) — `fx_preview_void_transaction`, deal payment unwind on void; backup `T_pre_*_fx_delete_transaction.sql`
+- Shared **Receive Money / Pay Money** composer; settlement entry points unified
+- Optional **deal allocation** via `fx_record_deal_customer_payment` (no second generic settlement when allocated)
+- Action picker Primary / More; Buy Currency labelled Pay now / Pay later + custody notes
+- Migration **W** — `fx_users_profiles` fix for party directory / custody / currency balance RPCs
+- Party directory balances reconcile to control ledgers under authenticated AM_DEMO context
 
-**Warning:** Re-applying these on the live shared DB can fail or double-apply privileges. Prefer new additive scripts (`U_…`) for any further schema work. Backups were taken under `/home/ndm313/sql_backups` / `fx_sql_backups` on the home server when changes were applied.
+## OCR language assets
 
-Financial test writes: **AM_DEMO only**. Do not invent balances on real NDMFX parties.
+- **Manually deployed** to `/home/ndm313/fx_app_web/ocr/lang/`:
+  - `eng.traineddata` (~23 MB)
+  - `eng.traineddata.gz` (~10.9 MB)
+- Public HEAD checks returned **HTTP 200** for those paths after deploy.
+- **Actual OCR extraction remains unverified** after the lang-pack fix (prior run: 404 then 90s timeout). Do not treat upload→composer alone as OCR PASS.
 
-## Pending / NOT RUN
+### `ensure_ocr_assets.sh`
 
-- GitHub push may have been blocked earlier by SSH agent; this handoff uses HTTPS/`gh` credential helper when available
-- Live authenticated browser click-through of statement export (PDF sheet) — unit/PDF fixture PASS; UI click NOT fully automated
-- Party statement: optional attachment appendix pages; 50+ row multi-page stress; Urdu RTL
-- Agent custody inventory opening (currency_position) — ordinary openings done; custody double-count avoided by design limitation note
-- Photo upload path on party profile still thin
-- Physical iPhone verification of nav/chrome
+- Path: `deploy/ensure_ocr_assets.sh`
+- Populates `web/ocr/` (+ `web/ocr/lang/`) including gzipped `eng.traineddata.gz` (tesseract.js fetches `.gz`).
+- **Deployment verification required:** after any web deploy, confirm:
+  - `https://fx.ndmcore.com/ocr/tesseract.min.js`
+  - `https://fx.ndmcore.com/ocr/lang/eng.traineddata.gz` (non-zero `Content-Length`)
+- Large tessdata files under `web/ocr/lang/` are **not** committed to git; regenerate/copy via the script or host copy.
+
+## Successful AM_DEMO E2E references (preserve)
+
+| Ref / note | TX id (short) | Effect |
+|------------|---------------|--------|
+| `E2E-BANK-RCPT-20261022` | `9ea899ff…` | Sara receive PKR 2,500 → Dr **1210** / Cr **1190** |
+| `E2E-AGENT-PAY-20261022` | `864fcc5b…` | Dubai Agent pay PKR 500 → Dr **2100** / Cr **1210** |
+| `E2E-DEAL-ALLOC-20261022` | `db7afe0c…` | Ali deal DL-20261021-0005 partial PKR 7,500 → Dr **1210** / Cr **1160**; outstanding −7,500 once |
+| `E2E-ATTACH-20261022` | `8760ec59…` | Sara receive PKR 100 + proof attachment; signed URL opened |
+
+### Bank / cash reconciliation (AM_DEMO, as reported)
+
+| Account | Start (session) | End (after listed posts) |
+|---------|-----------------|---------------------------|
+| **1210** SYNTH Bank PKR Meezan | 100 | **19,700** |
+| **1110** Cash PKR | 1,323,900 | **1,323,900** (unchanged) |
+
+Deal **DL-20261021-0005:** receivable **1,575,000 → 1,567,500**; paid **500,000 → 507,500**.
+
+## Mistaken generic demo transaction (preserve — do not delete/reverse in closing)
+
+| Field | Value |
+|-------|--------|
+| TX id | `33c28e39-ae32-491e-9046-32bb454cf9f3` |
+| Ref | `E2E-DEAL-PARTIAL-20261022` |
+| Amount | PKR **10,000** |
+| Nature | Generic `settlement_receive` (deal outstanding **not** reduced) |
+| Cause | Composer cleared `dealId` while deals list still loading (fixed in `d0c726c`) |
+
+**Preserve** this row for audit trail. No hard deletion or void/reversal as part of this office closing task. Optional later: labelled void on AM_DEMO only if product owners request cleanup.
+
+## Remaining work (home / next session)
+
+1. **Clean upload → OCR extraction → composer** — confirm fields (amount/ref/date) after lang packs; then action → composer → review/post.
+2. **Labelled AM_DEMO Buy Currency posting** — verify payment-now/later vs agent custody / vault effects **without double-counting** the same quantity.
+3. Optional: redeploy tip web so cache-bust matches `2d01e6b`+ if OCR script changes must ship in the built tree (lang packs already on host).
+
+## Rollbacks and SQL backups
+
+| Kind | Location |
+|------|----------|
+| Web rollback (deal-alloc deploy) | `/home/ndm313/fx_app_web_rollback_20261022T202356Z` |
+| Earlier web rollback example | `/home/ndm313/fx_app_web_rollback_20261022T191314Z` / `…T131007Z` |
+| Persistent SQL backups | `/home/ndm313/sql_backups/` |
+| Pre-W function defs (copied from `/tmp`) | `backup_fx_*_before_W_copied_20261022T1941Z.sql` in `sql_backups` |
+| Broader reconcile dumps | `/home/ndm313/fx_reconcile_backups/` |
+
+### Applied home SQL (do NOT re-run)
+
+Through `T_…`; then **U** party balances/roznamcha, **V** agent custody/currency balances, **W** profile table refs. Prefer new additive letters only. Financial writes: **AM_DEMO only**.
+
+## Home browser / auth
+
+- Home PC browser may need a **fresh manual login** to https://fx.ndmcore.com; select **AM_DEMO** for write tests.
+- **Never** save browser tokens, cookies, passwords, or Playwright storage state into Git.
+- Do not commit `.env`, `client.env`, dumps, or `tmp/` evidence trees.
 
 ## Office PC setup (existing home Supabase)
 
-1. Clone/pull this branch: `feat/home-shared-db-reconciliation`
-2. Flutter stable matching project (recent builds used Flutter 3.41.x / Dart 3.11.x)
-3. Use **existing** client config pointing at `https://api.ndmcore.com` — do not invent a new Supabase project
-4. `flutter pub get` then `flutter run -d chrome` or build web as usual
-5. Sign in with your real FX user; switch to **AM_DEMO** for any financial write tests
-6. Deploy path (if needed): `flutter build web --release --no-tree-shake-icons` → `deploy/bust_web_cache.sh` → rsync to `dinserver-local:/home/ndm313/fx_app_web` with rollback copy first
-7. SSH host alias on home Mac: `dinserver-local` (not available on office PC unless configured)
+1. Pull `feat/home-shared-db-reconciliation`
+2. Flutter stable matching project
+3. Existing client config → `https://api.ndmcore.com` only
+4. `flutter pub get` → `flutter run -d chrome` or web build
+5. Sign in; **AM_DEMO** for financial tests
+6. If redeploying: build → `deploy/ensure_ocr_assets.sh` → bust cache → tar/rsync to `fx_app_web` with rollback copy first
 
 ## Secrets
 
-No secrets belong in this doc or in git. Do not commit `.env`, `client.env`, dumps, or customer files. `tmp/` is local evidence only and should stay untracked.
+No secrets in this doc or in git. `tmp/` and large `web/ocr/lang/*traineddata*` stay local/untracked unless an explicit asset-hosting decision is made later.
