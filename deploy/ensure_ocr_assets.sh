@@ -11,6 +11,12 @@ if [[ ! -s "$OCR/tesseract.min.js" ]]; then
   curl -fsSL -o "$OCR/tesseract-core.wasm.js" "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/tesseract-core.wasm.js"
 fi
 if [[ ! -s "$LANGD/eng.traineddata" ]]; then
-  curl -fsSL -o "$LANGD/eng.traineddata" "https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/eng.traineddata"
+  curl -fsSL -o "$LANGD/eng.traineddata" \
+    "https://raw.githubusercontent.com/tesseract-ocr/tessdata/4.1.0/eng.traineddata"
+fi
+# tesseract.js fetches eng.traineddata.gz from langPath
+if [[ ! -s "$LANGD/eng.traineddata.gz" ]]; then
+  gzip -c -n "$LANGD/eng.traineddata" > "$LANGD/eng.traineddata.gz"
 fi
 echo "OCR assets ready under web/ocr"
+ls -la "$OCR" "$LANGD"
