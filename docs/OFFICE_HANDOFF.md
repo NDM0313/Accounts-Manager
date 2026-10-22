@@ -21,10 +21,11 @@ Implementation on this branch covers (among earlier shared-DB work):
 |------|--------|
 | URL | https://fx.ndmcore.com |
 | API | https://api.ndmcore.com (existing home Supabase) |
-| Deployed commit (last handoff) | `589f882` |
-| Cache-bust | `flutter_bootstrap.js?v=589f882` |
+| Deployed commit (last handoff) | `a83abca` |
+| Cache-bust | `flutter_bootstrap.js?v=a83abca` |
 | Host path | `/home/ndm313/fx_app_web` on dinserver |
-| Rollback example | `/home/ndm313/fx_app_web_rollback_20261022T013922Z` |
+| Rollback example | `/home/ndm313/fx_app_web_rollback_20261022T131007Z` |
+| SQL after T | `U_party_balances_roznamcha` · `V_agent_custody_party_currencies` (do not re-run) |
 
 ERP (`din-couture-portal` / erp.ndmcore.com) was not redeployed; leave it alone.
 
