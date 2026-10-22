@@ -3,18 +3,41 @@ import 'package:accounts_manager/domain/models/fx_user_profile.dart';
 import 'package:accounts_manager/domain/models/fx_workspace.dart';
 
 class ProfileRepository {
+  /// Prefer SECURITY DEFINER RPC (overlays active workspace). Fall back to
+  /// direct select (requires self-select RLS). Distinguishes true absence from
+  /// query failures by rethrowing unexpected errors.
   Future<FxUserProfile?> fetchCurrentProfile() async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
-    final response = await supabase
-        .from('fx_users_profiles')
-        .select('id, company_id, branch_id, full_name, email, is_active')
-        .eq('id', userId)
-        .maybeSingle();
+    try {
+      final rpc = await supabase.rpc('fx_current_profile');
+      if (rpc == null) return null;
+      if (rpc is Map) {
+        final map = Map<String, dynamic>.from(rpc);
+        if (map['id'] == null) return null;
+        return FxUserProfile.fromJson(map);
+      }
+    } catch (_) {
+      // Fall through to table select — older backends or transient RPC issues.
+    }
 
-    if (response == null) return null;
-    return FxUserProfile.fromJson(response);
+    try {
+      final response = await supabase
+          .from('fx_users_profiles')
+          .select('id, company_id, branch_id, full_name, email, is_active')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return FxUserProfile.fromJson(response);
+    } catch (e) {
+      // Do not convert network/RLS/schema failures into "missing profile".
+      throw ProfileLookupException(
+        'Could not load your FX profile. Check connection and try again.',
+        cause: e,
+      );
+    }
   }
 
   Future<List<FxWorkspace>> listMyWorkspaces() async {
@@ -74,26 +97,34 @@ class ProfileRepository {
   }
 
   Future<BranchContext?> fetchBranchContext() async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) return null;
+    final profile = await fetchCurrentProfile();
+    if (profile == null) return null;
 
     final response = await supabase
-        .from('fx_users_profiles')
-        .select('branch_id, fx_branches(name, code, fx_companies(name, code))')
-        .eq('id', userId)
+        .from('fx_branches')
+        .select('name, code, fx_companies(name, code)')
+        .eq('id', profile.branchId)
         .maybeSingle();
 
     if (response == null) return null;
-    final branch = response['fx_branches'] as Map<String, dynamic>?;
-    if (branch == null) return null;
-    final company = branch['fx_companies'] as Map<String, dynamic>?;
+    final company = response['fx_companies'] as Map<String, dynamic>?;
     return BranchContext(
       companyName: company?['name'] as String? ?? '',
       companyCode: company?['code'] as String? ?? '',
-      branchName: branch['name'] as String? ?? '',
-      branchCode: branch['code'] as String? ?? '',
+      branchName: response['name'] as String? ?? '',
+      branchCode: response['code'] as String? ?? '',
     );
   }
+}
+
+class ProfileLookupException implements Exception {
+  ProfileLookupException(this.message, {this.cause});
+
+  final String message;
+  final Object? cause;
+
+  @override
+  String toString() => message;
 }
 
 class BranchContext {
