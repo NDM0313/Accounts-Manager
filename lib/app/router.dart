@@ -125,6 +125,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialMethod: q['method'],
                 initialReference: q['reference'],
                 initialDescription: q['description'],
+                initialDealId: q['dealId'],
               );
             },
           ),
@@ -151,6 +152,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialMethod: q['method'],
                 initialReference: q['reference'],
                 initialDescription: q['description'],
+                initialDealId: q['dealId'],
               );
             },
           ),

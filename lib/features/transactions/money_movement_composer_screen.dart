@@ -1,9 +1,13 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/config/feature_flags.dart';
+import 'package:accounts_manager/core/utils/client_operation_id.dart';
+import 'package:accounts_manager/core/utils/deal_posting_errors.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/cash_bank_account.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
+import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
@@ -29,6 +33,7 @@ class MoneyMovementComposerScreen extends ConsumerStatefulWidget {
     this.initialReference,
     this.initialDescription,
     this.initialDate,
+    this.initialDealId,
     this.attachmentImportId,
   });
 
@@ -43,6 +48,7 @@ class MoneyMovementComposerScreen extends ConsumerStatefulWidget {
   final String? initialReference;
   final String? initialDescription;
   final DateTime? initialDate;
+  final String? initialDealId;
   final String? attachmentImportId;
 
   static const leaveFallback = '/accounts-hub';
@@ -64,14 +70,23 @@ class _MoneyMovementComposerScreenState
   String _currencyCode = 'PKR';
   String _method = 'bank'; // bank | cash
   String? _vaultAccountCode;
+  String? _dealId;
+  String _dealSearch = '';
   DateTime _date = DateTime.now();
   bool _autoDescription = true;
   bool _reviewing = false;
   bool _busy = false;
+  String? _postedTxId;
   String? _partySearch;
   final List<PlatformFile> _pendingFiles = [];
 
   static const _supportedCodes = ['PKR', 'USD', 'AED', 'CNY'];
+
+  bool get _supportsDealAllocation =>
+      FeatureFlags.dealsWorkflowEnabled &&
+      _isReceiveFlow &&
+      (widget.mode == TransactionDraftMode.customerReceipt ||
+          widget.mode == TransactionDraftMode.standard);
 
   bool get _isReceiveFlow {
     if (widget.forceReceive != null) return widget.forceReceive!;
@@ -112,6 +127,7 @@ class _MoneyMovementComposerScreenState
       _manualDescCtrl.text = widget.initialDescription!;
     }
     if (widget.initialDate != null) _date = widget.initialDate!;
+    _dealId = widget.initialDealId;
     _amountCtrl.addListener(() => setState(() {}));
     _notesCtrl.addListener(() => setState(() {}));
     _manualDescCtrl.addListener(() => setState(() {}));
@@ -180,7 +196,11 @@ class _MoneyMovementComposerScreenState
     return _isReceiveFlow ? 'Receive Money' : 'Pay Money';
   }
 
-  String _generatedDescription(FxParty? party, FxAccount? vault) {
+  String _generatedDescription(
+    FxParty? party,
+    FxAccount? vault, {
+    String? dealLabel,
+  }) {
     return MoneyMovementDescription.build(
       mode: widget.mode == TransactionDraftMode.standard
           ? (_isReceiveFlow
@@ -192,13 +212,41 @@ class _MoneyMovementComposerScreenState
       partyName: party?.name ?? 'party',
       vaultAccount: vault,
       reference: _referenceCtrl.text,
+      dealLabel: dealLabel,
       extraNotes: _notesCtrl.text,
     );
   }
 
-  String _finalDescription(FxParty? party, FxAccount? vault) {
-    if (_autoDescription) return _generatedDescription(party, vault);
+  String _finalDescription(
+    FxParty? party,
+    FxAccount? vault, {
+    String? dealLabel,
+  }) {
+    if (_autoDescription) {
+      return _generatedDescription(party, vault, dealLabel: dealLabel);
+    }
     return _manualDescCtrl.text.trim();
+  }
+
+  List<FxDeal> _allocatableDeals(List<FxDeal> all) {
+    if (_partyId == null) return const [];
+    final q = _dealSearch.trim().toLowerCase();
+    return all.where((d) {
+      if (d.customerPartyId != _partyId) return false;
+      if (!d.status.isOpen) return false;
+      if (d.customerReceivablePkr <= 0.005) return false;
+      // Deal customer payments are PKR settlement via existing engine.
+      if (_currencyCode != 'PKR') return false;
+      if (q.isEmpty) return true;
+      final no = (d.dealNo ?? '').toLowerCase();
+      return no.contains(q) || d.id.toLowerCase().contains(q);
+    }).toList();
+  }
+
+  String _dealLabel(FxDeal? deal) {
+    if (deal == null) return '';
+    final no = deal.dealNo ?? deal.id.substring(0, 8);
+    return '$no · due PKR ${NumberFormat('#,##0.##').format(deal.customerReceivablePkr)}';
   }
 
   void _invalidateVaultIfNeeded(List<FxAccount> accounts) {
@@ -233,34 +281,88 @@ class _MoneyMovementComposerScreenState
     required FxParty party,
     required FxAccount vault,
     required List<FxAccount> accounts,
+    FxDeal? allocatedDeal,
   }) async {
-    final desc = _finalDescription(party, vault);
-    if (!_autoDescription && desc.isEmpty) {
+    if (_postedTxId != null) {
+      if (!mounted) return;
+      context.go('/transactions/$_postedTxId');
+      return;
+    }
+    final dealLabel =
+        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final desc = _finalDescription(party, vault, dealLabel: dealLabel);
+    if (desc.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a description or turn Auto on')),
+        const SnackBar(content: Text('Description cannot be empty')),
       );
       return;
+    }
+    if (allocatedDeal != null) {
+      if (_currencyCode != 'PKR') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Deal allocation posts PKR settlement only'),
+          ),
+        );
+        return;
+      }
+      if (_amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Amount cannot exceed deal outstanding'),
+          ),
+        );
+        return;
+      }
     }
     setState(() => _busy = true);
     try {
       final profile = await ref.read(currentProfileProvider.future);
       if (profile == null) throw StateError('Profile not configured');
-      final repo = ref.read(transactionRepositoryProvider);
-      final tx = await repo.createDraft(
-        companyId: profile.companyId,
-        branchId: profile.branchId,
-        type: _txType,
-        currencyCode: _currencyCode,
-        foreignAmount: _amount,
-        rateUsed: 1,
-        baseAmountPkr: _currencyCode == 'PKR' ? _amount : _amount,
-        accounts: accounts,
-        description: desc,
-        transactionDate: _date,
-        fromAccountCode: vault.code,
-        partyId: party.id,
-        settlementAccountCode: _settlementControlCodeFor(party),
-      );
+
+      late final String txId;
+      if (allocatedDeal != null) {
+        // Deal-linked receipt uses the deal payment engine only — no second
+        // generic settlement draft.
+        final opId = await ClientOperationId.beginAmounted(
+          'composer_deal_receipt',
+          allocatedDeal.id,
+          _amount,
+        );
+        txId = await ref.read(dealRepositoryProvider).recordCustomerPayment(
+              dealId: allocatedDeal.id,
+              amountPkr: _amount,
+              notes: desc,
+              cashAccountId: vault.id,
+              clientOperationId: opId,
+            );
+        await ClientOperationId.completeAmounted(
+          'composer_deal_receipt',
+          allocatedDeal.id,
+        );
+        ref.read(dealsRefreshProvider.notifier).refresh();
+      } else {
+        // Generic settlement has no RPC client_operation_id; guard repeats via
+        // [_postedTxId] so Confirm cannot create a second draft after success.
+        final repo = ref.read(transactionRepositoryProvider);
+        final tx = await repo.createDraft(
+          companyId: profile.companyId,
+          branchId: profile.branchId,
+          type: _txType,
+          currencyCode: _currencyCode,
+          foreignAmount: _amount,
+          rateUsed: 1,
+          baseAmountPkr: _amount,
+          accounts: accounts,
+          description: desc,
+          transactionDate: _date,
+          fromAccountCode: vault.code,
+          partyId: party.id,
+          settlementAccountCode: _settlementControlCodeFor(party),
+        );
+        final posted = await repo.postTransaction(tx.id);
+        txId = posted.id;
+      }
 
       for (final f in _pendingFiles) {
         if (f.bytes == null) continue;
@@ -268,7 +370,7 @@ class _MoneyMovementComposerScreenState
           await ref.read(attachmentRepositoryProvider).upload(
                 companyId: profile.companyId,
                 branchId: profile.branchId,
-                transactionId: tx.id,
+                transactionId: txId,
                 fileName: f.name,
                 bytes: f.bytes!,
                 attachmentType: 'proof',
@@ -278,20 +380,26 @@ class _MoneyMovementComposerScreenState
         }
       }
 
-      final posted = await repo.postTransaction(tx.id);
+      _postedTxId = txId;
       ref.invalidate(partyDirectoryBalancesProvider);
       if (_partyId != null) {
         ref.invalidate(partyStatementProvider(_partyId!));
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.mode.successTitle)),
+        SnackBar(
+          content: Text(
+            allocatedDeal == null
+                ? widget.mode.successTitle
+                : 'Deal receipt posted (no extra settlement)',
+          ),
+        ),
       );
-      context.go('/transactions/${posted.id}');
+      context.go('/transactions/$txId');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Posting failed: $e')),
+        SnackBar(content: Text(friendlyDealPostingError(e))),
       );
       setState(() => _reviewing = true);
     } finally {
@@ -304,6 +412,9 @@ class _MoneyMovementComposerScreenState
     final profileAsync = ref.watch(currentProfileProvider);
     final accountsAsync = ref.watch(accountsProvider);
     final partiesAsync = ref.watch(partiesProvider(null));
+    final dealsAsync = _supportsDealAllocation
+        ? ref.watch(dealsListProvider)
+        : const AsyncValue<List<FxDeal>>.data([]);
     final fmt = NumberFormat('#,##0.##');
     final isWide = MediaQuery.sizeOf(context).width >= 900;
 
@@ -356,6 +467,19 @@ class _MoneyMovementComposerScreenState
                       .toList();
                   final party =
                       allParties.where((p) => p.id == _partyId).firstOrNull;
+                  final allDeals = dealsAsync.asData?.value ?? const <FxDeal>[];
+                  final deals = _allocatableDeals(allDeals);
+                  if (_dealId != null &&
+                      !deals.any((d) => d.id == _dealId)) {
+                    // Keep selection only while still eligible; otherwise clear.
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted && _dealId != null) {
+                        setState(() => _dealId = null);
+                      }
+                    });
+                  }
+                  final selectedDeal =
+                      deals.where((d) => d.id == _dealId).firstOrNull;
 
                   if (_reviewing) {
                     return _buildReview(
@@ -363,6 +487,7 @@ class _MoneyMovementComposerScreenState
                       party: party,
                       vault: vault,
                       accounts: accounts,
+                      allocatedDeal: selectedDeal,
                       fmt: fmt,
                       isWide: isWide,
                     );
@@ -374,6 +499,10 @@ class _MoneyMovementComposerScreenState
                     party: party,
                     eligible: eligible,
                     vault: vault,
+                    deals: deals,
+                    dealsLoading: dealsAsync.isLoading,
+                    dealsError: dealsAsync.hasError,
+                    allocatedDeal: selectedDeal,
                     fmt: fmt,
                     isWide: isWide,
                   );
@@ -392,6 +521,10 @@ class _MoneyMovementComposerScreenState
     required FxParty? party,
     required List<FxAccount> eligible,
     required FxAccount? vault,
+    required List<FxDeal> deals,
+    required bool dealsLoading,
+    required bool dealsError,
+    required FxDeal? allocatedDeal,
     required NumberFormat fmt,
     required bool isWide,
   }) {
@@ -432,10 +565,80 @@ class _MoneyMovementComposerScreenState
                   .toList(),
               onChanged: _busy
                   ? null
-                  : (v) => setState(() => _partyId = v),
+                  : (v) => setState(() {
+                        _partyId = v;
+                        _dealId = null;
+                      }),
             ),
           ],
         ),
+        if (_supportsDealAllocation &&
+            party?.partyType == FxPartyType.customer) ...[
+          const SizedBox(height: 20),
+          FxFormSection(
+            title: 'Deal allocation',
+            optional: true,
+            subtitle:
+                'Optional. Allocating posts via the deal payment engine only — '
+                'not a second generic settlement. Leave empty for a general '
+                'party receipt.',
+            children: [
+              if (dealsLoading) const LinearProgressIndicator(),
+              if (dealsError)
+                Text(
+                  'Could not load deals. Retry or leave unallocated.',
+                  style: AppTypography.bodySm(fx.error, context: context),
+                ),
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Search deal number',
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (v) => setState(() => _dealSearch = v),
+              ),
+              DropdownButtonFormField<String?>(
+                key: ValueKey('deal-$_partyId-$_dealId'),
+                initialValue: _dealId,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Allocate to deal (optional)',
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('None — general party receipt'),
+                  ),
+                  ...deals.map(
+                    (d) => DropdownMenuItem<String?>(
+                      value: d.id,
+                      child: Text(_dealLabel(d)),
+                    ),
+                  ),
+                ],
+                onChanged: _busy
+                    ? null
+                    : (v) => setState(() {
+                          _dealId = v;
+                          if (v != null && _currencyCode != 'PKR') {
+                            _currencyCode = 'PKR';
+                            _vaultAccountCode = null;
+                          }
+                        }),
+              ),
+              if (allocatedDeal != null)
+                Text(
+                  'Outstanding PKR ${fmt.format(allocatedDeal.customerReceivablePkr)} '
+                  '(paid ${fmt.format(allocatedDeal.customerPaidPkr)} of '
+                  '${fmt.format(allocatedDeal.customerPayablePkr)}). '
+                  'Partial receipts allowed; overpayment blocked.',
+                  style: AppTypography.bodySm(
+                    fx.onSurfaceVariant,
+                    context: context,
+                  ),
+                ),
+            ],
+          ),
+        ],
         const SizedBox(height: 20),
         FxFormSection(
           title: 'Amount',
@@ -669,11 +872,25 @@ class _MoneyMovementComposerScreenState
                     );
                     return;
                   }
-                  if (!_autoDescription &&
-                      _manualDescCtrl.text.trim().isEmpty) {
+                  if (_finalDescription(
+                    party,
+                    vault,
+                    dealLabel: allocatedDeal == null
+                        ? null
+                        : _dealLabel(allocatedDeal),
+                  ).isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Description is required when Auto is off'),
+                        content: Text('Description cannot be empty'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (allocatedDeal != null &&
+                      _amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Amount cannot exceed deal outstanding'),
                       ),
                     );
                     return;
@@ -696,7 +913,12 @@ class _MoneyMovementComposerScreenState
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(0, 16, 24, 16),
-            child: _sideSummary(party: party, vault: vault, fmt: fmt),
+            child: _sideSummary(
+              party: party,
+              vault: vault,
+              allocatedDeal: allocatedDeal,
+              fmt: fmt,
+            ),
           ),
         ),
       ],
@@ -706,6 +928,7 @@ class _MoneyMovementComposerScreenState
   Widget _sideSummary({
     required FxParty? party,
     required FxAccount? vault,
+    required FxDeal? allocatedDeal,
     required NumberFormat fmt,
   }) {
     final fx = context.fx;
@@ -733,6 +956,13 @@ class _MoneyMovementComposerScreenState
             ),
             style: AppTypography.bodyMd(fx.onSurface, context: context),
           ),
+          const SizedBox(height: 8),
+          Text(
+            allocatedDeal == null
+                ? 'Type: general party receipt'
+                : 'Type: deal allocation — ${_dealLabel(allocatedDeal)}',
+            style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
+          ),
         ],
       ),
     );
@@ -743,6 +973,7 @@ class _MoneyMovementComposerScreenState
     required FxParty? party,
     required FxAccount? vault,
     required List<FxAccount> accounts,
+    required FxDeal? allocatedDeal,
     required NumberFormat fmt,
     required bool isWide,
   }) {
@@ -754,15 +985,28 @@ class _MoneyMovementComposerScreenState
       partyName: party?.name ?? '—',
       vaultAccount: vault,
     );
+    final dealLabel =
+        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         Text(sentence, style: AppTypography.headlineSm(fx.onSurface, context: context)),
+        const SizedBox(height: 12),
+        Text(
+          allocatedDeal == null
+              ? 'General party receipt (not allocated to a deal).'
+              : 'Deal-allocated receipt — posts once via deal payment engine.',
+          style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context),
+        ),
+        if (dealLabel != null) ...[
+          const SizedBox(height: 8),
+          Text('Deal: $dealLabel'),
+        ],
         const SizedBox(height: 16),
         Text('Description', style: AppTypography.headlineSm(fx.onSurface, context: context)),
         const SizedBox(height: 8),
         Text(
-          _finalDescription(party, vault),
+          _finalDescription(party, vault, dealLabel: dealLabel),
           style: AppTypography.bodyMd(fx.onSurface, context: context),
         ),
         if (_referenceCtrl.text.trim().isNotEmpty) ...[
@@ -789,6 +1033,7 @@ class _MoneyMovementComposerScreenState
                           party: party,
                           vault: vault,
                           accounts: accounts,
+                          allocatedDeal: allocatedDeal,
                         ),
                 child: _busy
                     ? const SizedBox(
