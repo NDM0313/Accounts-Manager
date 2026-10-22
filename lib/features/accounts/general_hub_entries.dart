@@ -53,14 +53,14 @@ const generalHubEntries = [
   ),
   GeneralHubEntry(
     title: 'Add Cash / Bank',
-    subtitle: 'Create accounts (zero opening)',
-    icon: Icons.add_card_outlined,
+    subtitle: 'Create with optional opening',
+    icon: Icons.credit_card,
     route: '/accounts/new-cash',
   ),
   GeneralHubEntry(
     title: 'Import Payment Slip',
     subtitle: 'OCR review → confirm post',
-    icon: Icons.document_scanner_outlined,
+    icon: Icons.photo_camera_outlined,
     route: '/slips/import',
   ),
   GeneralHubEntry(
@@ -70,10 +70,10 @@ const generalHubEntries = [
     route: '/parties',
   ),
   GeneralHubEntry(
-    title: 'Party Statements',
-    subtitle: 'Tap party → ledger',
-    icon: Icons.receipt_long_outlined,
-    route: '/parties',
+    title: 'New Party',
+    subtitle: 'Profile + optional opening',
+    icon: Icons.person_add_outlined,
+    route: '/parties/new',
   ),
   GeneralHubEntry(
     title: 'Journal Entries',

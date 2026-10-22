@@ -4,7 +4,7 @@ import 'package:accounts_manager/domain/models/fx_account.dart';
 class AccountRepository {
   Future<List<FxAccount>> fetchChartOfAccounts({bool activeOnly = true}) async {
     var query = supabase.from('fx_accounts').select(
-          'id, code, name, account_type, is_active, parent_id, currency_id, fx_currencies(code)',
+          'id, code, name, account_type, is_active, parent_id, currency_id, fx_currencies(code), bank_name, account_title, account_number, iban',
         );
     if (activeOnly) {
       query = query.eq('is_active', true);
@@ -26,7 +26,8 @@ class AccountRepository {
       final isCashBank = code.startsWith('11') || code.startsWith('12');
       if (!isCashBank) return false;
       if (currencyCode == null) return true;
-      return (a.currencyCode ?? 'PKR').toUpperCase() == currencyCode.toUpperCase();
+      return (a.currencyCode ?? 'PKR').toUpperCase() ==
+          currencyCode.toUpperCase();
     }).toList();
   }
 
@@ -39,6 +40,13 @@ class AccountRepository {
     String? accountIdentifier,
     String? branchId,
     String? code,
+    String? iban,
+    String? branchName,
+    String? branchCode,
+    String? swiftBic,
+    String? metadataNotes,
+    Map<String, dynamic>? opening,
+    String? clientOperationId,
   }) async {
     final row = await supabase.rpc(
       'fx_create_cash_bank_account',
@@ -51,6 +59,13 @@ class AccountRepository {
         'p_account_identifier': accountIdentifier,
         'p_branch_id': branchId,
         'p_code': code,
+        'p_iban': iban,
+        'p_branch_name': branchName,
+        'p_branch_code': branchCode,
+        'p_swift_bic': swiftBic,
+        'p_metadata_notes': metadataNotes,
+        'p_opening': opening,
+        'p_client_operation_id': clientOperationId,
       },
     );
     return Map<String, dynamic>.from(row as Map);
