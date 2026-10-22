@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/deal_posting_errors.dart';
 import 'package:accounts_manager/core/utils/deal_statement.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_app_bar.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_bottom_bar.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_widgets.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
@@ -37,7 +38,9 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
+      appBar: FxAppBar.child(
+        context: context,
+        fallbackRoute: '/deals',
         backgroundColor: context.fx.background,
         title: dealAsync.when(
           data: (d) => Text(d?.dealNo ?? 'Deal'),

@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_locked_closing_banner.
 import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_dialog.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_transaction_actions_sheet.dart';
 import 'package:accounts_manager/core/export/fx_document_export.dart';
 import 'package:accounts_manager/core/export/report_pdf_builder.dart';
 import 'package:accounts_manager/core/utils/transaction_receipt.dart';
@@ -279,6 +280,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 _ActionRow(
                   tx: tx,
                   dayClosed: isClosed,
+                  onActions: () => _openActions(context, ref, tx, isClosed),
                   onEdit: () =>
                       context.push('/transactions/$transactionId/edit'),
                   onDelete: () => _voidTransaction(context, ref, tx),
@@ -290,6 +292,36 @@ class TransactionDetailScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Future<void> _openActions(
+    BuildContext context,
+    WidgetRef ref,
+    FxTransaction tx,
+    bool dayClosed,
+  ) async {
+    final action = await showFxTransactionActionsSheet(
+      context,
+      tx: tx,
+      dayClosed: dayClosed,
+    );
+    if (action == null || !context.mounted) return;
+    switch (action) {
+      case FxTransactionUiAction.viewDetails:
+        return;
+      case FxTransactionUiAction.editDraft:
+      case FxTransactionUiAction.editReferenceNotes:
+      case FxTransactionUiAction.correctEntry:
+        context.push('/transactions/$transactionId/edit');
+        return;
+      case FxTransactionUiAction.deleteDraft:
+      case FxTransactionUiAction.voidReverse:
+        await _voidTransaction(context, ref, tx);
+        return;
+      case FxTransactionUiAction.viewAudit:
+        context.push('/transactions/$transactionId/audit');
+        return;
+    }
   }
 
   void _stub(BuildContext context, String msg) {
@@ -354,6 +386,55 @@ class TransactionDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     FxTransaction tx,
   ) async {
+    String impactSummary =
+        tx.isDraft
+            ? 'This permanently deletes the unposted draft. No journals are affected.'
+            : 'This voids posted journals for this entry. The original row stays as Voided.';
+    try {
+      final preview = await ref
+          .read(transactionRepositoryProvider)
+          .previewVoidTransaction(transactionId: transactionId);
+      final summary = preview['summary']?.toString();
+      if (summary != null && summary.isNotEmpty) {
+        impactSummary = summary;
+      }
+      final canProceed = preview['can_proceed'] != false;
+      final blockers = preview['blockers'];
+      if (!canProceed) {
+        final reason = blockers is List && blockers.isNotEmpty
+            ? blockers.join('; ')
+            : 'Void is blocked for this transaction.';
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(reason)));
+        }
+        return;
+      }
+    } catch (_) {
+      // Preview RPC may be missing until T_ is applied — fall back to generic copy.
+    }
+
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(tx.isDraft ? 'Delete draft?' : 'Void/reverse?'),
+        content: Text(impactSummary),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(tx.isDraft ? 'Continue' : 'Continue to reason'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
     final reason = await showFxDeleteTransactionDialog(
       context,
       isDraft: tx.isDraft,
@@ -364,6 +445,9 @@ class TransactionDetailScreen extends ConsumerWidget {
           .read(transactionRepositoryProvider)
           .deleteTransaction(transactionId: transactionId, reason: reason);
       _invalidateAll(ref);
+      ref.invalidate(dealsListProvider);
+      ref.invalidate(currencyPositionProvider);
+      ref.invalidate(dashboardKpiProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -666,6 +750,7 @@ class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.tx,
     required this.dayClosed,
+    required this.onActions,
     required this.onEdit,
     required this.onDelete,
     required this.onAudit,
@@ -673,12 +758,17 @@ class _ActionRow extends StatelessWidget {
 
   final FxTransaction tx;
   final bool dayClosed;
+  final VoidCallback onActions;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onAudit;
 
   @override
   Widget build(BuildContext context) {
+    final primaryLabel = tx.isDraft
+        ? 'Edit draft'
+        : 'Correct / edit';
+    final dangerLabel = tx.isDraft ? 'Delete draft' : 'Void/reverse';
     return Container(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.marginMobile,
@@ -697,7 +787,7 @@ class _ActionRow extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: dayClosed ? null : onEdit,
               icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(tx.isDraft ? 'Edit draft' : 'Edit'),
+              label: Text(primaryLabel),
               style: FilledButton.styleFrom(
                 backgroundColor: context.fx.primary,
                 foregroundColor: context.fx.onPrimary,
@@ -709,8 +799,11 @@ class _ActionRow extends StatelessWidget {
           Expanded(
             child: FilledButton.icon(
               onPressed: dayClosed ? null : onDelete,
-              icon: const Icon(Icons.delete_outline, size: 18),
-              label: const Text('Delete'),
+              icon: Icon(
+                tx.isDraft ? Icons.delete_outline : Icons.undo,
+                size: 18,
+              ),
+              label: Text(dangerLabel),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),
                 foregroundColor: Colors.white,
@@ -719,17 +812,15 @@ class _ActionRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onAudit,
-              icon: const Icon(Icons.history, size: 18),
-              label: const Text('Audit'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: context.fx.onSurface,
-                side: BorderSide(color: context.fx.outlineVariant),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
+          IconButton.outlined(
+            tooltip: 'More actions',
+            onPressed: onActions,
+            icon: const Icon(Icons.more_horiz),
+          ),
+          IconButton.outlined(
+            tooltip: 'View audit history',
+            onPressed: onAudit,
+            icon: const Icon(Icons.history),
           ),
         ],
       ),

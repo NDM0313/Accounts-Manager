@@ -361,6 +361,8 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                       showDivider: i < dayItems.length - 1,
                       onTap: () =>
                           context.push('/transactions/${dayItems[i].id}'),
+                      onLongPress: () =>
+                          context.push('/transactions/${dayItems[i].id}'),
                     ),
                 ],
               ),

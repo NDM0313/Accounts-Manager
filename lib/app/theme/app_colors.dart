@@ -309,6 +309,7 @@ abstract final class AppSpacing {
   static const stackMd = 16.0;
   static const stackLg = 24.0;
   static const gutter = 12.0;
+  static const chipGap = 6.0;
   static const marginMobile = 16.0;
   static const marginDesktop = 32.0;
   static const containerMax = 1140.0;
@@ -318,4 +319,27 @@ abstract final class AppSpacing {
   static const radiusXl = 16.0;
   static const buttonHeight = 48.0;
   static const appBarHeight = 64.0;
+  /// Bottom nav (56) + safe padding buffer for scroll content.
+  static const shellBottomInset = 88.0;
+}
+
+/// Canonical layout breakpoints (CSS-ish widths).
+abstract final class FxLayoutBreakpoints {
+  static const compact = 600.0;
+  static const tablet = 900.0;
+  static const desktopWide = 1200.0;
+
+  static bool isCompact(double width) => width < compact;
+  static bool isTablet(double width) =>
+      width >= compact && width < tablet;
+  static bool isDesktop(double width) => width >= tablet;
+}
+
+extension FxResponsiveInsets on BuildContext {
+  double get fxHorizontalInset {
+    final w = MediaQuery.sizeOf(this).width;
+    return FxLayoutBreakpoints.isDesktop(w)
+        ? AppSpacing.marginDesktop
+        : AppSpacing.marginMobile;
+  }
 }

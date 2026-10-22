@@ -14,12 +14,14 @@ class FxTransactionCard extends StatelessWidget {
     required this.onTap,
     this.compact = false,
     this.showDivider = false,
+    this.onLongPress,
   });
 
   final FxTransaction transaction;
   final VoidCallback onTap;
   final bool compact;
   final bool showDivider;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class FxTransactionCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: padding,
           child: Row(
@@ -64,7 +67,7 @@ class FxTransactionCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      maxLines: 1,
+                      maxLines: compact ? 2 : 1,
                       overflow: TextOverflow.ellipsis,
                       style:
                           AppTypography.bodyMd(
@@ -78,23 +81,25 @@ class FxTransactionCard extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 3),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 2,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    Row(
                       children: [
-                        FxTypeBadge(
-                          type: transaction.transactionType,
-                          compact: true,
+                        Flexible(
+                          child: FxTypeBadge(
+                            type: transaction.transactionType,
+                            compact: true,
+                          ),
                         ),
-                        Text(
-                          '$ref · $timeLabel',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.bodyMd(
-                            context.fx.onSurfaceVariant,
-                            context: context,
-                          ).copyWith(fontSize: 11),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '$ref · $timeLabel',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodyMd(
+                              context.fx.onSurfaceVariant,
+                              context: context,
+                            ).copyWith(fontSize: 11),
+                          ),
                         ),
                       ],
                     ),
@@ -102,27 +107,33 @@ class FxTransactionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${transaction.currencyCode} ${fmt.format(transaction.totalForeignAmount)}',
-                    style:
-                        AppTypography.dataMd(
-                          context.fx.onSurface,
-                          context: context,
-                        ).copyWith(
-                          decoration: isVoided
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  FxStatusBadge(
-                    label: transaction.status,
-                    tone: FxStatusBadge.fromString(transaction.status),
-                  ),
-                ],
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${transaction.currencyCode} ${fmt.format(transaction.totalForeignAmount)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style:
+                          AppTypography.dataMd(
+                            context.fx.onSurface,
+                            context: context,
+                          ).copyWith(
+                            decoration: isVoided
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    FxStatusBadge(
+                      label: transaction.status,
+                      tone: FxStatusBadge.fromString(transaction.status),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 4),
               Icon(Icons.chevron_right, size: 18, color: context.fx.outline),

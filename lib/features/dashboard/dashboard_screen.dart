@@ -4,6 +4,7 @@ import 'package:accounts_manager/core/widgets/premium/fx_currency_position_card.
 import 'package:accounts_manager/core/widgets/premium/fx_marquee_rate_strip.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_next_action_row.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_quick_action_button.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_responsive_grid.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
@@ -14,6 +15,7 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -24,11 +26,10 @@ class DashboardScreen extends ConsumerWidget {
     final todayPlAsync = ref.watch(todayProfitLossProvider);
     final positionAsync = ref.watch(currencyPositionProvider);
     final dealsAsync = ref.watch(dealsListProvider);
-    final horizontal = MediaQuery.sizeOf(context).width >= 900
-        ? AppSpacing.marginDesktop
-        : AppSpacing.marginMobile;
+    final horizontal = context.fxHorizontalInset;
 
-    final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.shellBottomInset;
     return ColoredBox(
       color: context.fx.background,
       child: ListView(
@@ -40,60 +41,73 @@ class DashboardScreen extends ConsumerWidget {
             error: (_, _) => const SizedBox.shrink(),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 0),
+            padding: EdgeInsets.fromLTRB(
+              horizontal,
+              AppSpacing.stackMd,
+              horizontal,
+              0,
+            ),
             child: DashboardKpiRow(
               kpi: kpiAsync.whenOrNull(data: (v) => v),
               todayPl: todayPlAsync.whenOrNull(data: (v) => v),
             ),
           ),
-          const SizedBox(height: 16),
-          _quickActions(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.stackMd),
+          _quickActions(context, horizontal),
+          const SizedBox(height: AppSpacing.stackLg),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontal),
             child: _currencyPositionSection(context, positionAsync),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.stackLg),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontal),
             child: _nextActionsSection(context, dealsAsync),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.stackLg),
         ],
       ),
     );
   }
 
-  Widget _quickActions(BuildContext context) {
+  Widget _quickActions(BuildContext context, double horizontal) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.marginMobile),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          FxQuickActionButton(
-            icon: Icons.add_card,
-            label: 'New Deal',
-            onTap: () => context.push('/deals/new'),
-          ),
-          FxQuickActionButton(
-            icon: Icons.call_received,
-            label: 'Receive Pay',
-            backgroundColor: context.fx.secondary,
-            onTap: () => context.push('/transactions/receive-payment'),
-          ),
-          FxQuickActionButton(
-            icon: Icons.person_pin_outlined,
-            label: 'Pay Agent',
-            outlined: true,
-            onTap: () => context.push('/parties/agents'),
-          ),
-          FxQuickActionButton(
-            icon: Icons.currency_exchange,
-            label: 'Buy Currency',
-            outlined: true,
-            onTap: () => FxTransactionMenuSheet.show(context),
-          ),
-        ],
+      padding: EdgeInsets.symmetric(horizontal: horizontal),
+      child: FxStitchCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.stackSm,
+          vertical: AppSpacing.stackMd,
+        ),
+        child: Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          spacing: AppSpacing.stackSm,
+          runSpacing: AppSpacing.stackMd,
+          children: [
+            FxQuickActionButton(
+              icon: Icons.add_card,
+              label: 'New Deal',
+              onTap: () => context.push('/deals/new'),
+            ),
+            FxQuickActionButton(
+              icon: Icons.call_received,
+              label: 'Receive Pay',
+              backgroundColor: context.fx.secondary,
+              onTap: () => context.push('/transactions/receive-payment'),
+            ),
+            FxQuickActionButton(
+              icon: Icons.person_pin_outlined,
+              label: 'Pay Agent',
+              outlined: true,
+              onTap: () => context.push('/parties/agents'),
+            ),
+            FxQuickActionButton(
+              icon: Icons.currency_exchange,
+              label: 'Buy Currency',
+              outlined: true,
+              onTap: () => FxTransactionMenuSheet.show(context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -118,9 +132,19 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
         ),
+        Text(
+          'Actual = vault stock · Committed = open sale commitments · '
+          'Required = shortfall (max(0, committed − actual − on-order)). '
+          'Negative Actual is shown as-is.',
+          style: AppTypography.bodyMd(
+            context.fx.onSurfaceVariant,
+            context: context,
+          ).copyWith(fontSize: 12),
+        ),
+        const SizedBox(height: AppSpacing.stackSm),
         positionAsync.when(
           loading: () => const Padding(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpacing.stackLg),
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (e, _) => Text('Unable to load position: $e'),
@@ -137,23 +161,13 @@ class DashboardScreen extends ConsumerWidget {
               );
             }
             final preview = rows.take(6).toList();
-            return LayoutBuilder(
-              builder: (context, c) {
-                final cols = c.maxWidth >= 900 ? 3 : 1;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: cols,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: cols == 1 ? 2.4 : 1.35,
-                  ),
-                  itemCount: preview.length,
-                  itemBuilder: (context, i) =>
-                      FxCurrencyPositionCard(row: preview[i]),
-                );
-              },
+            return FxResponsiveGrid(
+              minTileWidth: 260,
+              maxColumns: 3,
+              spacing: AppSpacing.gutter,
+              children: [
+                for (final row in preview) FxCurrencyPositionCard(row: row),
+              ],
             );
           },
         ),

@@ -3,9 +3,15 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-/// Stitch dashboard currency position bento card (Actual / Committed / Required).
+/// Currency position card (Actual / Committed / Required).
+///
+/// Definitions (from `fx_get_currency_position_extended`):
+/// - **Actual** — vault foreign stock on cash accounts (1110–1150); may be negative.
+/// - **Committed** — open customer_sale commitments not yet sourced/released.
+/// - **Required** — max(0, committed − actual − on_order inbound).
 class FxCurrencyPositionCard extends StatelessWidget {
   const FxCurrencyPositionCard({
     super.key,
@@ -17,11 +23,13 @@ class FxCurrencyPositionCard extends StatelessWidget {
   final String? currencyLabel;
 
   static String _compact(double v, NumberFormat fmt) {
-    if (v.abs() >= 1e6) {
-      return '${(v / 1e6).toStringAsFixed(1)}M';
+    final sign = v < 0 ? '-' : '';
+    final abs = v.abs();
+    if (abs >= 1e6) {
+      return '$sign${(abs / 1e6).toStringAsFixed(1)}M';
     }
-    if (v.abs() >= 1e3) {
-      return '${(v / 1e3).toStringAsFixed(0)}K';
+    if (abs >= 1e3) {
+      return '$sign${(abs / 1e3).toStringAsFixed(0)}K';
     }
     return fmt.format(v);
   }
@@ -42,38 +50,32 @@ class FxCurrencyPositionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat('#,##0');
+    final fmt = NumberFormat('#,##0.##');
     final code = row.currencyCode;
     final actual = row.actualBalance ?? row.foreignBalance;
     final committed = row.committedBalance ?? row.onOrderBalance ?? 0;
     final required = row.requiredBalance ?? 0;
     final requiredColor = required > 0
         ? (required > actual ? context.fx.error : context.fx.secondary)
-        : context.fx.error;
+        : context.fx.onSurfaceVariant;
+    final actualColor =
+        actual < 0 ? context.fx.error : context.fx.onSurface;
 
     return FxStitchCard(
-      child: Stack(
-        children: [
-          Positioned(
-            top: -8,
-            right: -8,
-            child: Icon(
-              Icons.account_balance_wallet_outlined,
-              size: 64,
-              color: context.fx.primary.withValues(alpha: 0.06),
-            ),
-          ),
-          Column(
+      padding: const EdgeInsets.all(AppSpacing.stackMd),
+      onTap: () => context.push('/reports/currency-position'),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: _badgeBg(context, code),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -84,45 +86,56 @@ class FxCurrencyPositionCard extends StatelessWidget {
                   ).copyWith(fontSize: 10),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.stackSm),
               Expanded(
                 child: Text(
                   currencyLabel ?? code,
                   style: AppTypography.headlineSm(
                     context.fx.onSurface,
                     context: context,
-                  ).copyWith(fontSize: 16),
+                  ).copyWith(fontSize: 15),
                 ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: context.fx.outline,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.stackSm),
           Divider(color: context.fx.outlineVariant, height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.stackSm),
           Row(
             children: [
               Expanded(
                 child: _Metric(
                   label: 'Actual',
-                  value: _compact(actual, fmt),
+                  compact: _compact(actual, fmt),
+                  exact: fmt.format(actual),
+                  valueColor: actualColor,
+                  hint: 'Vault stock (cash accounts). May be negative.',
                 ),
               ),
               Expanded(
                 child: _Metric(
                   label: 'Committed',
-                  value: _compact(committed, fmt),
+                  compact: _compact(committed, fmt),
+                  exact: fmt.format(committed),
+                  hint: 'Open customer-sale commitments not yet sourced.',
                 ),
               ),
               Expanded(
                 child: _Metric(
                   label: 'Required',
-                  value: _compact(required, fmt),
+                  compact: _compact(required, fmt),
+                  exact: fmt.format(required),
                   valueColor: requiredColor,
+                  hint:
+                      'max(0, committed − actual − on-order). Shortfall to cover.',
                 ),
               ),
             ],
-          ),
-        ],
           ),
         ],
       ),
@@ -133,35 +146,54 @@ class FxCurrencyPositionCard extends StatelessWidget {
 class _Metric extends StatelessWidget {
   const _Metric({
     required this.label,
-    required this.value,
+    required this.compact,
+    required this.exact,
     this.valueColor,
+    this.hint,
   });
 
   final String label;
-  final String value;
+  final String compact;
+  final String exact;
   final Color? valueColor;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: AppTypography.labelCaps(
-            context.fx.onSurfaceVariant,
-            context: context,
-          ).copyWith(fontSize: 9),
+    return Semantics(
+      label: '$label $exact. ${hint ?? ''}',
+      child: Tooltip(
+        message: '$exact${hint != null ? '\n$hint' : ''}',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: AppTypography.labelCaps(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 9),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              compact,
+              style: AppTypography.dataMd(
+                valueColor ?? context.fx.onSurface,
+                context: context,
+              ),
+            ),
+            Text(
+              exact,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 10),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: AppTypography.dataMd(
-            valueColor ?? context.fx.onSurface,
-            context: context,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

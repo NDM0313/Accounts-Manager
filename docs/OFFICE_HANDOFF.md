@@ -39,8 +39,9 @@ Scripts under `supabase/reconciliation/home/` already applied on shared postgres
 - `Q_currency_receipt_currency_guard.sql`
 - `R_profile_self_select.sql`
 - `S_party_profile_openings.sql` (party profile columns, allocate/upsert, openings; rate-required fix live)
+- `T_transaction_void_deal_unwind.sql` (office 2026-10-22) — `fx_preview_void_transaction`, deal payment unwind on void; backup `T_pre_*_fx_delete_transaction.sql`
 
-**Warning:** Re-applying these on the live shared DB can fail or double-apply privileges. Prefer new additive scripts (`T_…`) for any further schema work. Backups were taken under `/home/ndm313/sql_backups` / `fx_sql_backups` on the home server when changes were applied.
+**Warning:** Re-applying these on the live shared DB can fail or double-apply privileges. Prefer new additive scripts (`U_…`) for any further schema work. Backups were taken under `/home/ndm313/sql_backups` / `fx_sql_backups` on the home server when changes were applied.
 
 Financial test writes: **AM_DEMO only**. Do not invent balances on real NDMFX parties.
 

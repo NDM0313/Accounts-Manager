@@ -1,4 +1,5 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,7 +29,7 @@ void fxSafePop(
   }
 }
 
-/// Premium detail/form page — 64px app bar, always-visible back.
+/// Premium detail/form page — 64px app bar, always-visible back + Home.
 class FxPremiumScaffold extends StatelessWidget {
   const FxPremiumScaffold({
     super.key,
@@ -39,6 +40,7 @@ class FxPremiumScaffold extends StatelessWidget {
     this.backgroundColor,
     this.floatingActionButton,
     this.bottomBar,
+    this.showHome = true,
   });
 
   final Widget title;
@@ -48,22 +50,19 @@ class FxPremiumScaffold extends StatelessWidget {
   final Color? backgroundColor;
   final Widget? floatingActionButton;
   final Widget? bottomBar;
+  final bool showHome;
 
   @override
   Widget build(BuildContext context) {
     final bg = backgroundColor ?? context.fx.background;
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        toolbarHeight: AppSpacing.appBarHeight,
-        backgroundColor: bg,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
-          onPressed: () => fxSafePop(context, fallbackRoute: fallbackRoute),
-        ),
+      appBar: FxAppBar.child(
+        context: context,
         title: title,
+        fallbackRoute: fallbackRoute,
+        backgroundColor: bg,
+        showHome: showHome,
         actions: actions,
       ),
       body: body,

@@ -250,6 +250,19 @@ class TransactionRepository {
     );
   }
 
+  /// Preview impact of draft delete / posted void (deal unwind included when T applied).
+  Future<Map<String, dynamic>> previewVoidTransaction({
+    required String transactionId,
+  }) async {
+    final raw = await supabase.rpc(
+      'fx_preview_void_transaction',
+      params: {'p_transaction_id': transactionId},
+    );
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return {'summary': 'Unable to preview void impact.', 'can_proceed': true};
+  }
+
   Future<void> restoreTransaction({
     required String transactionId,
     required String reason,

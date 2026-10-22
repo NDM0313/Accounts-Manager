@@ -1,5 +1,6 @@
 export 'fx_action_tile.dart';
 export 'fx_amount_card.dart';
+export 'fx_app_bar.dart';
 export 'fx_bottom_action_bar.dart';
 export 'fx_chat_bubble.dart';
 export 'fx_confirm_transaction_dialog.dart';
@@ -28,5 +29,6 @@ export 'fx_section_header.dart';
 export 'fx_statement_row.dart';
 export 'fx_status_badge.dart';
 export 'fx_timeline_step_card.dart';
+export 'fx_transaction_actions_sheet.dart';
 export 'fx_transaction_card.dart';
 export 'fx_transaction_menu_sheet.dart';
