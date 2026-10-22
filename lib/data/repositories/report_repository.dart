@@ -1,4 +1,5 @@
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
+import 'package:accounts_manager/domain/models/agent_custody.dart';
 import 'package:accounts_manager/domain/models/roznamcha.dart';
 
 class TrialBalanceRow {
@@ -440,6 +441,49 @@ class ReportRepository {
       map[id] = (row['balance_pkr'] as num?)?.toDouble() ?? 0;
     }
     return map;
+  }
+
+  /// Agent FX custody rows from balance book (`fx_list_agent_custody`).
+  Future<List<AgentCustodyRow>> fetchAgentCustody({
+    String? companyId,
+    String? agentPartyId,
+  }) async {
+    try {
+      final rows = await supabase.rpc(
+        'fx_list_agent_custody',
+        params: {
+          'p_company_id': companyId,
+          'p_agent_party_id': agentPartyId,
+        },
+      );
+      return (rows as List)
+          .cast<Map<String, dynamic>>()
+          .map(AgentCustodyRow.fromJson)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Per-party foreign control nets by currency (`fx_party_directory_currency_balances`).
+  Future<Map<String, List<PartyCurrencyBalance>>>
+      fetchPartyDirectoryCurrencyBalances({
+    String? companyId,
+  }) async {
+    try {
+      final rows = await supabase.rpc(
+        'fx_party_directory_currency_balances',
+        params: {'p_company_id': companyId},
+      );
+      final map = <String, List<PartyCurrencyBalance>>{};
+      for (final row in (rows as List).cast<Map<String, dynamic>>()) {
+        final balance = PartyCurrencyBalance.fromJson(row);
+        map.putIfAbsent(balance.partyId, () => []).add(balance);
+      }
+      return map;
+    } catch (_) {
+      return {};
+    }
   }
 
   Future<List<RoznamchaLine>> fetchRoznamcha(

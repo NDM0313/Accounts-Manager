@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/export/roznamcha_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -29,6 +30,34 @@ class RoznamchaScreen extends ConsumerWidget {
         fallbackRoute: '/reports',
         title: const Text('Roznamcha'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share),
+            tooltip: 'Export',
+            onPressed: () async {
+              final view = await ref.read(roznamchaProvider.future);
+              if (!context.mounted) return;
+              final workspaces =
+                  ref.read(myWorkspacesProvider).asData?.value;
+              final ws =
+                  workspaces?.where((w) => w.isActiveWorkspace).firstOrNull;
+              final companyName = (ws?.companyName.isNotEmpty == true)
+                  ? ws!.companyName
+                  : null;
+              final branchName = (ws?.branchName.isNotEmpty == true)
+                  ? ws!.branchName
+                  : null;
+              final scopeLabel =
+                  accountFilter ?? 'All cash/bank accounts';
+              await exportRoznamchaReport(
+                context,
+                view: view,
+                companyName: companyName,
+                branchName: branchName,
+                accountScopeLabel: scopeLabel,
+                isDemo: ref.read(isDemoWorkspaceProvider),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Today',
             icon: const Icon(Icons.today_outlined),

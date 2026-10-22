@@ -3,6 +3,7 @@ import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/parties/widgets/party_directory_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +31,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
     final balancesAsync = ref.watch(partyDirectoryBalancesProvider);
+    final currencyBalancesAsync =
+        ref.watch(partyDirectoryCurrencyBalancesProvider);
     final fmt = NumberFormat('#,##0.00');
 
     final fallback = widget.initialFilter == FxPartyType.agent
@@ -90,6 +93,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                     return const FxEmptyState(message: 'No parties found.');
                   }
                   final balances = balancesAsync.asData?.value ?? const {};
+                  final currencyByParty =
+                      currencyBalancesAsync.asData?.value ?? const {};
                   return ListView.separated(
                     itemCount: parties.length,
                     separatorBuilder: (_, _) =>
@@ -102,66 +107,13 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                           : bal.abs() < 0.005
                               ? 'Settled'
                               : _balanceMeaning(p.partyType, bal, fmt);
-                      return Material(
-                        color: context.fx.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusLg,
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusLg,
-                          ),
-                          onTap: () => context.push('/parties/${p.id}/ledger'),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        p.name,
-                                        style: AppTypography.bodyMd(
-                                          context.fx.onSurface,
-                                          context: context,
-                                        ).copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${p.code} · ${p.partyType.label}'
-                                        '${p.primaryPhone.isNotEmpty ? ' · ${p.primaryPhone}' : ''}'
-                                        '${p.isActive ? '' : ' · Inactive'}',
-                                        style: AppTypography.bodyMd(
-                                          context.fx.onSurfaceVariant,
-                                          context: context,
-                                        ).copyWith(fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      balanceLabel,
-                                      textAlign: TextAlign.end,
-                                      style: AppTypography.dataMd(
-                                        context.fx.onSurface,
-                                        context: context,
-                                      ).copyWith(fontSize: 13),
-                                    ),
-                                  ],
-                                ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  color: context.fx.outline,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      return PartyDirectoryListTile(
+                        party: p,
+                        pkrBalanceLabel: balanceLabel,
+                        currencyBalances: currencyByParty[p.id] ?? const [],
+                        fmt: fmt,
+                        onOpenLedger: () =>
+                            context.push('/parties/${p.id}/ledger'),
                       );
                     },
                   );

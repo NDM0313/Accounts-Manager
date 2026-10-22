@@ -1,11 +1,11 @@
 import 'package:accounts_manager/core/export/fx_document_export.dart';
 import 'package:accounts_manager/core/export/remittance_receipt_builder.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_action_tile.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_timeline_step_card.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_remittance_widgets.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/domain/models/fx_remittance_event.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
@@ -31,15 +31,10 @@ class RemittanceDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.surface,
-        title: Text(
-          'FX Cash Ledger',
-          style: AppTypography.headlineSm(
-            context.fx.primary,
-            context: context,
-          ).copyWith(fontWeight: FontWeight.w700),
-        ),
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: '/remittance',
+        title: const Text('Remittance detail'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -55,15 +50,14 @@ class RemittanceDetailScreen extends ConsumerWidget {
               remAsync.whenOrNull(data: (v) => v),
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: remAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        loading: () => const FxLoadingState(),
+        error: (e, _) => FxErrorState(message: '$e'),
         data: (r) {
           if (r == null) {
-            return const Center(child: Text('Remittance not found.'));
+            return const FxEmptyState(message: 'Remittance not found.');
           }
           final tracking =
               r.trackingId.isNotEmpty ? r.trackingId : (r.remittanceNo ?? '—');

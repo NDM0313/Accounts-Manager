@@ -1,50 +1,25 @@
-# Route coverage checklist — accounting workspace completion
+# Route coverage — accounting completion (post-4408c6d)
 
-Branch: `feat/home-shared-db-reconciliation`  
-Legend: **Done** = working workflow · **Partial** = usable but incomplete · **Pending** = placeholder/missing
+Branch: `feat/home-shared-db-reconciliation`
 
-| Path | Group | Status |
-|------|-------|--------|
-| `/` | Dashboard | **Partial** — compact KPIs; fake GL “net worth” claims removed from GL header |
-| `/accounts` | Chart of Accounts | **Done** — structure/management |
-| `/reports/general-ledger` | Account Ledger | **Done** — no viewport truncation; scrollable full account list; honest cash metrics |
-| `/parties` | Party Directory | **Done** — role filters + batch PKR balances (`fx_party_directory_balances`) |
-| `/parties/:id/ledger` | Party Ledger | **Done** — month groups + running balance + attachments column |
-| `/parties/agents` | Party Directory | **Done** — agents filter |
-| `/reports/roznamcha` | Roznamcha | **Done** — cash/bank book Opening+In−Out=Closing; internal transfer labeling |
-| `/expenses` | Expenses | **Done** — list + new expense → existing draft/post engine; unpaid not faked |
-| `/reports/*` | Reports | **Partial** — TB/P&L/BS/currency/audit wired; PDF/CSV for Roznamcha NOT RUN |
-| `/audit` · `/reports/audit-log` | Audit | **Done** — existing server audit UI + PageHeader |
-| `/messages` | Team Messages | **Partial** — real inbox when feature flag on; never posts journals |
-| `/slips/import` | OCR | **Partial** — form container; workflow pre-existing |
-| Remittance / rates | Mixed | **Partial** — shell only |
+| Path | Status |
+|------|--------|
+| `/reports/general-ledger` | **Done** — no viewport truncation; honest cash metrics |
+| `/parties` | **Done** — PKR balances + expandable per-currency control nets |
+| `/parties/:id/ledger` (agent) | **Done** — PKR statement + FX custody from `fx_list_agent_custody` |
+| `/reports/roznamcha` | **Done** — screen + Preview/Print/PDF/CSV export (same builder) |
+| `/expenses` | **Done** — list + draft/post via existing engine |
+| `/remittance` | **Partial** — list/detail on shared PageHeader/ContentContainer; body cards preserved |
+| `/remittance/:id` | **Partial** — FxPageHeader Back/Home; workflow unchanged |
+| `/audit` · `/messages` | **Partial** — real implementations; E2E browser limited |
 
-## Shell
+## SQL
 
-| Width | Behavior | Status |
-|-------|----------|--------|
-| `< 600` | Bottom nav | Done |
-| `600–1023` | Bottom nav + denser content | Done |
-| `≥ 1024` | 232px sidebar | Done |
+| Script | Applied | Backup |
+|--------|---------|--------|
+| `U_party_balances_roznamcha.sql` | `APPLY_OK_20261022T120351Z` | `fx_sql_backups/U_pre_*` |
+| `V_agent_custody_party_currencies.sql` | `APPLY_OK_20261022T130106Z` | `fx_sql_backups/V_pre_20261022T130106Z_agent_custody.sql` |
 
-## Defect fixed
+## Unit tests (focused)
 
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| Accounts missing on phone, visible on tablet | GL `filtered.take(4)` when width&lt;900; column `take(12)` | `visibleGlAccounts()` + scrollable full list; breakpoint 1024 |
-
-## SQL applied (home)
-
-| Script | Backup | Status |
-|--------|--------|--------|
-| `U_party_balances_roznamcha.sql` | `/home/ndm313/fx_sql_backups/U_pre_20261022T120351Z_party_roznamcha.sql` | Applied `APPLY_OK_20261022T120351Z` |
-
-## Tests
-
-| Suite | Result |
-|-------|--------|
-| `visibleGlAccounts` + GL list scroll visibility | PASS (after scrollUntilVisible) |
-| `roznamcha_builder_test` | PASS |
-| `ledger_month_groups_test` | PASS |
-| `party_statement_running_balance_test` | PASS |
-| Live AM_DEMO E2E / physical phone / Roznamcha PDF | **NOT RUN** |
+PASS: GL visibility, running balance, month groups, Roznamcha builder/export, agent custody labels.

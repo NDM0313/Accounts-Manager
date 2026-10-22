@@ -12,6 +12,7 @@ import 'package:accounts_manager/data/repositories/profile_repository.dart';
 import 'package:accounts_manager/data/repositories/rate_repository.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
+import 'package:accounts_manager/domain/models/agent_custody.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
 import 'package:accounts_manager/domain/models/roznamcha.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
@@ -301,6 +302,27 @@ final partyDirectoryBalancesProvider =
   } catch (_) {
     return {};
   }
+});
+
+/// Agent custody inventory; [agentPartyId] null loads all agents for the company.
+final agentCustodyProvider =
+    FutureProvider.family<List<AgentCustodyRow>, String?>((ref, agentPartyId) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return [];
+  return ref.read(reportRepositoryProvider).fetchAgentCustody(
+        companyId: profile.companyId,
+        agentPartyId: agentPartyId,
+      );
+});
+
+/// Party foreign control nets by currency (not summed across currencies).
+final partyDirectoryCurrencyBalancesProvider =
+    FutureProvider<Map<String, List<PartyCurrencyBalance>>>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return {};
+  return ref.read(reportRepositoryProvider).fetchPartyDirectoryCurrencyBalances(
+        companyId: profile.companyId,
+      );
 });
 
 final roznamchaAccountFilterProvider =

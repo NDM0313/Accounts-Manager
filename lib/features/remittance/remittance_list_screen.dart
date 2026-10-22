@@ -2,8 +2,8 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_amount_card.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_search_field.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_remittance.dart';
 import 'package:accounts_manager/features/auth/providers/remittance_providers.dart';
 import 'package:accounts_manager/features/remittance/widgets/fx_remittance_card.dart';
@@ -63,10 +63,14 @@ class _RemittanceListScreenState extends ConsumerState<RemittanceListScreen> {
   @override
   Widget build(BuildContext context) {
     if (!FeatureFlags.remittanceWorkflowEnabled) {
-      return FxPremiumScaffold(
-        title: const Text('Remittance'),
-        fallbackRoute: '/',
-        body: const Center(child: Text('Remittance module is disabled.')),
+      return Scaffold(
+        backgroundColor: context.fx.background,
+        appBar: FxPageHeader.appBar(
+          context: context,
+          fallbackRoute: '/',
+          title: const Text('Remittance'),
+        ),
+        body: const FxEmptyState(message: 'Remittance module is disabled.'),
       );
     }
 
@@ -74,54 +78,50 @@ class _RemittanceListScreenState extends ConsumerState<RemittanceListScreen> {
     final fmt = NumberFormat('#,##0.00');
     final q = _search.text.trim();
 
-    return FxPremiumScaffold(
-      fallbackRoute: '/',
-      title: const Text('Remittance'),
-      actions: [
-        Consumer(
-          builder: (context, ref, _) {
-            final unread = ref.watch(unreadNotificationsCountProvider);
-            final count = unread.value ?? 0;
-            return IconButton(
-              icon: Badge(
-                isLabelVisible: count > 0,
-                label: Text('$count'),
-                child: const Icon(Icons.notifications_outlined),
-              ),
-              onPressed: () => context.push('/notifications'),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.support_agent_outlined),
-          tooltip: 'Agent workspace',
-          onPressed: () => context.push('/remittance/agent'),
-        ),
-        IconButton(
-          icon: const Icon(Icons.assessment_outlined),
-          tooltip: 'Reports',
-          onPressed: () => context.push('/remittance/reports'),
-        ),
-      ],
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: '/',
+        title: const Text('Remittance'),
+        actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final unread = ref.watch(unreadNotificationsCountProvider);
+              final count = unread.value ?? 0;
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: count > 0,
+                  label: Text('$count'),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => context.push('/notifications'),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.support_agent_outlined),
+            tooltip: 'Agent workspace',
+            onPressed: () => context.push('/remittance/agent'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.assessment_outlined),
+            tooltip: 'Reports',
+            onPressed: () => context.push('/remittance/reports'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/remittance/new'),
         icon: const Icon(Icons.add),
         label: const Text('New Order'),
       ),
-      body: listAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Unable to load remittances.\nApply migration 202606230001 if tables are missing.\n\n$e',
-              textAlign: TextAlign.center,
-              style: AppTypography.bodyMd(
-                context.fx.onSurfaceVariant,
-                context: context,
-              ),
-            ),
-          ),
+      body: FxContentContainer(
+        child: listAsync.when(
+        loading: () => const FxLoadingState(),
+        error: (e, _) => FxErrorState(
+          message: 'Unable to load remittances.\n$e',
+          onRetry: () => ref.invalidate(remittancesListProvider),
         ),
         data: (items) {
           final filtered = items
@@ -203,6 +203,7 @@ class _RemittanceListScreenState extends ConsumerState<RemittanceListScreen> {
             ],
           );
         },
+        ),
       ),
     );
   }
