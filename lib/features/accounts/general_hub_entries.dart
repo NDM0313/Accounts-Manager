@@ -54,13 +54,13 @@ const generalHubEntries = [
   GeneralHubEntry(
     title: 'Add Cash / Bank',
     subtitle: 'Create with optional opening',
-    icon: Icons.credit_card,
+    icon: Icons.add_card_outlined,
     route: '/accounts/new-cash',
   ),
   GeneralHubEntry(
     title: 'Import Payment Slip',
     subtitle: 'OCR review → confirm post',
-    icon: Icons.photo_camera_outlined,
+    icon: Icons.receipt_long_outlined,
     route: '/slips/import',
   ),
   GeneralHubEntry(

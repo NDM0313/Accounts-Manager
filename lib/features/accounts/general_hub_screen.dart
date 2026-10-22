@@ -15,8 +15,8 @@ class GeneralHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Must run in release too — tree-shake-icons only keeps Icon(Icons.x) AST refs.
-    keepAccountsHubIcons();
+    // Keep hub tile glyphs in the release MaterialIcons subset (see hub_icon_keep).
+    final iconKeep = keepAccountsHubIcons();
 
     return FxPremiumScaffold(
       title: const Text('Accounts'),
@@ -75,6 +75,8 @@ class GeneralHubScreen extends StatelessWidget {
       body: FxObsidianPage(
         child: ListView(
           children: [
+            // Offstage so release DCE cannot drop keepAccountsHubIcons() Icons.
+            Offstage(child: Row(children: iconKeep)),
             Text(
               'Chart of accounts, parties, journals, and reports.',
               style: AppTypography.bodyMd(
@@ -97,8 +99,7 @@ class GeneralHubScreen extends StatelessWidget {
             FxResponsiveHubGrid(
               itemCount: generalHubEntries.length,
               itemBuilder: (context, i) {
-                final entry = generalHubEntries[i];
-                return FxHubTile(
+                final entry = generalHubEntries[i];                return FxHubTile(
                   title: entry.title,
                   subtitle: entry.subtitle,
                   icon: entry.icon,
