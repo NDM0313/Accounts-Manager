@@ -54,7 +54,9 @@ const generalHubEntries = [
   GeneralHubEntry(
     title: 'Add Cash / Bank',
     subtitle: 'Create with optional opening',
-    icon: Icons.add_card_outlined,
+    // Prefer BMP MaterialIcons codepoints — some supplemental PUA glyphs
+    // render blank on Flutter web/CanvasKit even when present in the font.
+    icon: Icons.account_balance,
     route: '/accounts/new-cash',
   ),
   GeneralHubEntry(
