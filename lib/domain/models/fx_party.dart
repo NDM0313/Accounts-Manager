@@ -130,8 +130,8 @@ class FxParty {
   }) {
     final map = <String, dynamic>{
       if (id.isNotEmpty) 'id': id,
-      if (companyId != null) 'company_id': companyId,
-      if (branchId != null) 'branch_id': branchId,
+      'company_id': ?companyId,
+      'branch_id': ?branchId,
       'party_type': partyType.dbValue,
       'name': name,
       if (code.trim().isNotEmpty) 'code': code.trim(),
@@ -154,8 +154,8 @@ class FxParty {
       'notes': notes,
       'photo_attachment_id': photoAttachmentId,
       'social_links': socialLinks,
-      if (clientOperationId != null) 'client_operation_id': clientOperationId,
-      if (opening != null) 'opening': opening,
+      'client_operation_id': ?clientOperationId,
+      'opening': ?opening,
     };
     return map;
   }

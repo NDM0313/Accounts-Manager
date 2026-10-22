@@ -75,7 +75,7 @@ class PartyBankRepository {
     bool isPrimary = false,
   }) async {
     final payload = <String, dynamic>{
-      if (id != null) 'id': id,
+      'id': ?id,
       'company_id': companyId,
       'party_id': partyId,
       'bank_name': bankName,
