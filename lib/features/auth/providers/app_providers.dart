@@ -580,7 +580,7 @@ final partiesProvider = FutureProvider.family<List<FxParty>, FxPartyType?>((
   if (profile == null) return [];
   return ref
       .read(partyRepositoryProvider)
-      .fetchParties(companyId: profile.companyId, partyType: filter);
+      .fetchParties(companyId: profile.companyId, type: filter);
 });
 
 class CustomerOrderPartyChoices {
