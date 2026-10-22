@@ -297,40 +297,39 @@ class _MoneyMovementComposerScreenState
       );
       return;
     }
-    if (allocatedDeal != null) {
-      if (_currencyCode != 'PKR') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Deal allocation posts PKR settlement only'),
-          ),
-        );
-        return;
-      }
-      if (_amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Amount cannot exceed deal outstanding'),
-          ),
-        );
-        return;
-      }
-    }
     setState(() => _busy = true);
     try {
       final profile = await ref.read(currentProfileProvider.future);
       if (profile == null) throw StateError('Profile not configured');
 
+      // Resolve deal by id if UI selection was lost while the list loaded.
+      FxDeal? deal = allocatedDeal;
+      if (deal == null && _dealId != null) {
+        deal = await ref.read(dealRepositoryProvider).fetchDeal(_dealId!);
+      }
+      if (deal != null) {
+        if (deal.customerPartyId != party.id) {
+          throw StateError('Selected deal does not belong to this party');
+        }
+        if (_currencyCode != 'PKR') {
+          throw StateError('Deal allocation posts PKR settlement only');
+        }
+        if (_amount > deal.customerReceivablePkr + 0.0000001) {
+          throw StateError('Amount cannot exceed deal outstanding');
+        }
+      }
+
       late final String txId;
-      if (allocatedDeal != null) {
+      if (deal != null) {
         // Deal-linked receipt uses the deal payment engine only — no second
         // generic settlement draft.
         final opId = await ClientOperationId.beginAmounted(
           'composer_deal_receipt',
-          allocatedDeal.id,
+          deal.id,
           _amount,
         );
         txId = await ref.read(dealRepositoryProvider).recordCustomerPayment(
-              dealId: allocatedDeal.id,
+              dealId: deal.id,
               amountPkr: _amount,
               notes: desc,
               cashAccountId: vault.id,
@@ -338,7 +337,7 @@ class _MoneyMovementComposerScreenState
             );
         await ClientOperationId.completeAmounted(
           'composer_deal_receipt',
-          allocatedDeal.id,
+          deal.id,
         );
         ref.read(dealsRefreshProvider.notifier).refresh();
       } else {
@@ -389,7 +388,7 @@ class _MoneyMovementComposerScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            allocatedDeal == null
+            deal == null
                 ? widget.mode.successTitle
                 : 'Deal receipt posted (no extra settlement)',
           ),
@@ -469,17 +468,27 @@ class _MoneyMovementComposerScreenState
                       allParties.where((p) => p.id == _partyId).firstOrNull;
                   final allDeals = dealsAsync.asData?.value ?? const <FxDeal>[];
                   final deals = _allocatableDeals(allDeals);
-                  if (_dealId != null &&
+                  // Only clear after deals finished loading — never wipe
+                  // initialDealId while the list is still in flight.
+                  if (!dealsAsync.isLoading &&
+                      dealsAsync.hasValue &&
+                      _dealId != null &&
                       !deals.any((d) => d.id == _dealId)) {
-                    // Keep selection only while still eligible; otherwise clear.
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && _dealId != null) {
+                      if (mounted &&
+                          _dealId != null &&
+                          !_allocatableDeals(
+                            ref.read(dealsListProvider).asData?.value ??
+                                const <FxDeal>[],
+                          ).any((d) => d.id == _dealId)) {
                         setState(() => _dealId = null);
                       }
                     });
                   }
-                  final selectedDeal =
-                      deals.where((d) => d.id == _dealId).firstOrNull;
+                  final selectedDeal = _dealId == null
+                      ? null
+                      : (deals.where((d) => d.id == _dealId).firstOrNull ??
+                          allDeals.where((d) => d.id == _dealId).firstOrNull);
 
                   if (_reviewing) {
                     return _buildReview(
