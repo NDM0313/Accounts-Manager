@@ -11,6 +11,10 @@ import 'package:intl/intl.dart';
 
 enum _GlFilter { all, primary, settlement, custody }
 
+/// Returns every filtered account for GL — never truncates the list.
+List<FxAccount> visibleGlAccounts(List<FxAccount> filtered) =>
+    List<FxAccount>.from(filtered);
+
 class GeneralLedgerScreen extends ConsumerStatefulWidget {
   const GeneralLedgerScreen({super.key});
 
@@ -35,7 +39,6 @@ class _GeneralLedgerScreenState extends ConsumerState<GeneralLedgerScreen> {
         NumberFormat.compactCurrency(symbol: 'PKR ', decimalDigits: 0);
     final fromLabel = range.from.toIso8601String().split('T').first;
     final toLabel = range.to.toIso8601String().split('T').first;
-    final wide = MediaQuery.sizeOf(context).width >= 900;
     final days = range.to.difference(range.from).inDays;
     final dateLabel = days <= 31 ? 'Last 30 Days' : '$fromLabel → $toLabel';
 
@@ -49,136 +52,129 @@ class _GeneralLedgerScreenState extends ConsumerState<GeneralLedgerScreen> {
       body: FxContentContainer(
         padding: const EdgeInsets.only(top: AppSpacing.stackMd),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: cashAsync.when(
-              data: (rows) {
-                final net = rows.fold<double>(0, (s, r) => s + r.balancePkr);
-                final currencyCount =
-                    positionAsync.whenOrNull(data: (p) => p.length) ?? 0;
-                return FxStitchGlBentoHeader(
-                  netWorthLabel: compactFmt.format(net),
-                  netWorthTrend: '+2.4% vs last week',
-                  activeLedgerLabel: '$currencyCount Currencies',
-                  activeLedgerSubtitle: 'Global exposure active',
-                  lastSettlementLabel: toLabel,
-                  syncComplete: true,
-                );
-              },
-              loading: () => const SizedBox(height: 120),
-              error: (_, _) => const SizedBox.shrink(),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: cashAsync.when(
+                data: (rows) {
+                  final net = rows.fold<double>(0, (s, r) => s + r.balancePkr);
+                  final currencyCount =
+                      positionAsync.whenOrNull(data: (p) => p.length) ?? 0;
+                  return FxStitchGlBentoHeader(
+                    netWorthLabel: compactFmt.format(net),
+                    activeLedgerLabel: '$currencyCount',
+                    lastSettlementLabel: toLabel,
+                  );
+                },
+                loading: () => const FxLoadingState(),
+                error: (e, _) => FxErrorState(message: 'Unable to load cash balances: $e'),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: FxStitchGlFilterBar(
-              dateRangeLabel: dateLabel,
-              onDateTap: () => _pickRange(context, ref, range),
-              onMoreFiltersTap: () => _pickRange(context, ref, range),
-              chips: [
-                FxStitchGlFilterChip(
-                  label: 'All Accounts',
-                  selected: _chipFilter == _GlFilter.all,
-                  onTap: () => setState(() => _chipFilter = _GlFilter.all),
-                ),
-                FxStitchGlFilterChip(
-                  label: 'Primary',
-                  selected: _chipFilter == _GlFilter.primary,
-                  onTap: () => setState(() => _chipFilter = _GlFilter.primary),
-                ),
-                FxStitchGlFilterChip(
-                  label: 'Settlement',
-                  selected: _chipFilter == _GlFilter.settlement,
-                  onTap: () =>
-                      setState(() => _chipFilter = _GlFilter.settlement),
-                ),
-                FxStitchGlFilterChip(
-                  label: 'Custody',
-                  selected: _chipFilter == _GlFilter.custody,
-                  onTap: () => setState(() => _chipFilter = _GlFilter.custody),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: FxStitchGlFilterBar(
+                dateRangeLabel: dateLabel,
+                onDateTap: () => _pickRange(context, ref, range),
+                onMoreFiltersTap: () => _pickRange(context, ref, range),
+                chips: [
+                  FxStitchGlFilterChip(
+                    label: 'All Accounts',
+                    selected: _chipFilter == _GlFilter.all,
+                    onTap: () => setState(() => _chipFilter = _GlFilter.all),
+                  ),
+                  FxStitchGlFilterChip(
+                    label: 'Primary',
+                    selected: _chipFilter == _GlFilter.primary,
+                    onTap: () => setState(() => _chipFilter = _GlFilter.primary),
+                  ),
+                  FxStitchGlFilterChip(
+                    label: 'Settlement',
+                    selected: _chipFilter == _GlFilter.settlement,
+                    onTap: () =>
+                        setState(() => _chipFilter = _GlFilter.settlement),
+                  ),
+                  FxStitchGlFilterChip(
+                    label: 'Custody',
+                    selected: _chipFilter == _GlFilter.custody,
+                    onTap: () => setState(() => _chipFilter = _GlFilter.custody),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: accountsAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
-                data: (accounts) {
-                  final filtered = _filterAccounts(accounts);
-                  if (wide) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 300,
-                          child: FxStitchAccountListColumn(
-                            accounts: filtered,
-                            selectedCode: accountFilter,
-                            onSelected: (code) => ref
-                                .read(
-                                  generalLedgerAccountFilterProvider.notifier,
-                                )
-                                .set(code),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: accountsAsync.when(
+                  loading: () => const FxLoadingState(),
+                  error: (e, _) =>
+                      FxErrorState(message: 'Unable to load accounts: $e'),
+                  data: (accounts) {
+                    final filtered =
+                        visibleGlAccounts(_filterAccounts(accounts));
+                    if (filtered.isEmpty) {
+                      return const FxEmptyState(
+                        message: 'No accounts match this filter.',
+                      );
+                    }
+
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final wide = FxLayoutBreakpoints.isDesktop(
+                          constraints.maxWidth,
+                        );
+                        final accountColumn = FxStitchAccountListColumn(
+                          accounts: filtered,
+                          accountCount: filtered.length,
+                          selectedCode: accountFilter,
+                          scrollable: true,
+                          onSelected: (code) => ref
+                              .read(
+                                generalLedgerAccountFilterProvider.notifier,
+                              )
+                              .set(code),
+                        );
+                        final activity = rowsAsync.when(
+                          loading: () => const FxLoadingState(),
+                          error: (e, _) => FxErrorState(
+                            message: 'Unable to load ledger activity: $e',
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: rowsAsync.when(
-                            loading: () => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            error: (e, _) =>
-                                Center(child: Text('Unable to load: $e')),
-                            data: (rows) => SingleChildScrollView(
-                              child: FxStitchGlActivityTable(
-                                rows: rows,
-                                fmt: fmt,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FxStitchAccountListColumn(
-                        accounts: filtered.take(4).toList(),
-                        selectedCode: accountFilter,
-                        onSelected: (code) => ref
-                            .read(generalLedgerAccountFilterProvider.notifier)
-                            .set(code),
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: rowsAsync.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (e, _) =>
-                              Center(child: Text('Unable to load: $e')),
                           data: (rows) => SingleChildScrollView(
                             child: FxStitchGlActivityTable(
                               rows: rows,
                               fmt: fmt,
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                        );
+
+                        if (wide) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: 300,
+                                child: accountColumn,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(child: activity),
+                            ],
+                          );
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(flex: 2, child: accountColumn),
+                            const SizedBox(height: 16),
+                            Expanded(flex: 3, child: activity),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );

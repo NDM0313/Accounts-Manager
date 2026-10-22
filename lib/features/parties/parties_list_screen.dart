@@ -6,6 +6,7 @@ import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class PartiesListScreen extends ConsumerStatefulWidget {
   const PartiesListScreen({super.key, this.initialFilter});
@@ -28,13 +29,15 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   @override
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
+    final balancesAsync = ref.watch(partyDirectoryBalancesProvider);
+    final fmt = NumberFormat('#,##0.00');
 
     final fallback = widget.initialFilter == FxPartyType.agent
         ? '/accounts-hub'
-        : '/parties';
+        : '/accounts-hub';
     final pageTitle = widget.initialFilter == FxPartyType.agent
-        ? 'Agent Ledger'
-        : 'Parties';
+        ? 'Agents'
+        : 'Party directory';
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -70,7 +73,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
             ),
             const SizedBox(height: AppSpacing.stackSm),
             Text(
-              'Tap a party to view settlement history. Link parties when creating Settlement Send/Receive.',
+              'Current PKR balance uses control accounts (not a currency sum). '
+              'Tap a row to open the party ledger. Zero = Settled.',
               style: AppTypography.bodyMd(
                 context.fx.onSurfaceVariant,
                 context: context,
@@ -85,12 +89,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                   if (parties.isEmpty) {
                     return const FxEmptyState(message: 'No parties found.');
                   }
+                  final balances = balancesAsync.asData?.value ?? const {};
                   return ListView.separated(
                     itemCount: parties.length,
                     separatorBuilder: (_, _) =>
                         const SizedBox(height: AppSpacing.stackSm),
                     itemBuilder: (context, i) {
                       final p = parties[i];
+                      final bal = balances[p.id];
+                      final balanceLabel = bal == null
+                          ? 'Balance unavailable'
+                          : bal.abs() < 0.005
+                              ? 'Settled'
+                              : _balanceMeaning(p.partyType, bal, fmt);
                       return Material(
                         color: context.fx.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(
@@ -119,7 +130,9 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${p.code} · ${p.partyType.label}',
+                                        '${p.code} · ${p.partyType.label}'
+                                        '${p.primaryPhone.isNotEmpty ? ' · ${p.primaryPhone}' : ''}'
+                                        '${p.isActive ? '' : ' · Inactive'}',
                                         style: AppTypography.bodyMd(
                                           context.fx.onSurfaceVariant,
                                           context: context,
@@ -127,6 +140,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                                       ),
                                     ],
                                   ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      balanceLabel,
+                                      textAlign: TextAlign.end,
+                                      style: AppTypography.dataMd(
+                                        context.fx.onSurface,
+                                        context: context,
+                                      ).copyWith(fontSize: 13),
+                                    ),
+                                  ],
                                 ),
                                 Icon(
                                   Icons.chevron_right,
@@ -146,6 +172,18 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
         ),
       ),
     );
+  }
+
+  String _balanceMeaning(FxPartyType type, double bal, NumberFormat fmt) {
+    final abs = fmt.format(bal.abs());
+    return switch (type) {
+      FxPartyType.customer || FxPartyType.supplier => bal > 0
+          ? 'Receivable PKR $abs'
+          : 'Advance/credit PKR $abs',
+      FxPartyType.agent || FxPartyType.settlement => bal > 0
+          ? 'Payable/custody PKR $abs'
+          : 'Receivable PKR $abs',
+    };
   }
 }
 

@@ -9,18 +9,24 @@ import 'package:intl/intl.dart';
 class FxStitchGlBentoHeader extends StatelessWidget {
   const FxStitchGlBentoHeader({
     super.key,
+    this.primaryMetricTitle = 'Cash & bank (PKR)',
     required this.netWorthLabel,
     this.netWorthTrend,
+    this.activeLedgerTitle = 'Active currencies',
     required this.activeLedgerLabel,
     this.activeLedgerSubtitle,
+    this.lastSettlementTitle = 'Period end',
     required this.lastSettlementLabel,
-    this.syncComplete = true,
+    this.syncComplete = false,
   });
 
+  final String primaryMetricTitle;
   final String netWorthLabel;
   final String? netWorthTrend;
+  final String activeLedgerTitle;
   final String activeLedgerLabel;
   final String? activeLedgerSubtitle;
+  final String lastSettlementTitle;
   final String lastSettlementLabel;
   final bool syncComplete;
 
@@ -33,6 +39,7 @@ class FxStitchGlBentoHeader extends StatelessWidget {
           return Column(
             children: [
               _NetWorthCard(
+                title: primaryMetricTitle,
                 label: netWorthLabel,
                 trend: netWorthTrend,
               ),
@@ -41,7 +48,7 @@ class FxStitchGlBentoHeader extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _SideCard(
-                      title: 'ACTIVE LEDGER',
+                      title: activeLedgerTitle.toUpperCase(),
                       value: activeLedgerLabel,
                       subtitle: activeLedgerSubtitle,
                     ),
@@ -49,7 +56,7 @@ class FxStitchGlBentoHeader extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _SideCard(
-                      title: 'LAST SETTLEMENT',
+                      title: lastSettlementTitle.toUpperCase(),
                       value: lastSettlementLabel,
                       syncComplete: syncComplete,
                     ),
@@ -66,15 +73,15 @@ class FxStitchGlBentoHeader extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: _NetWorthCard(
+                  title: primaryMetricTitle,
                   label: netWorthLabel,
                   trend: netWorthTrend,
-                  minHeight: 160,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _SideCard(
-                  title: 'ACTIVE LEDGER',
+                  title: activeLedgerTitle.toUpperCase(),
                   value: activeLedgerLabel,
                   subtitle: activeLedgerSubtitle,
                 ),
@@ -82,7 +89,7 @@ class FxStitchGlBentoHeader extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _SideCard(
-                  title: 'LAST SETTLEMENT',
+                  title: lastSettlementTitle.toUpperCase(),
                   value: lastSettlementLabel,
                   syncComplete: syncComplete,
                 ),
@@ -97,19 +104,18 @@ class FxStitchGlBentoHeader extends StatelessWidget {
 
 class _NetWorthCard extends StatelessWidget {
   const _NetWorthCard({
+    required this.title,
     required this.label,
     this.trend,
-    this.minHeight,
   });
 
+  final String title;
   final String label;
   final String? trend;
-  final double? minHeight;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(minHeight: minHeight ?? 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: context.fx.primaryContainer,
@@ -124,7 +130,7 @@ class _NetWorthCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'NET WORTH (PKR EQ.)',
+                title.toUpperCase(),
                 style: AppTypography.labelCaps(
                   context.fx.onPrimaryContainer,
                   context: context,
@@ -409,7 +415,7 @@ class FxStitchGlActivityTable extends StatelessWidget {
               ),
             )
           else
-            ...rows.take(20).map((row) => _ActivityRow(row: row, fmt: fmt)),
+            ...rows.map((row) => _ActivityRow(row: row, fmt: fmt)),
         ],
       ),
     );

@@ -181,6 +181,7 @@ class _CustomerLedgerStitchViewState
             return FxResponsiveLedgerView(
               lines: view.lines,
               newestFirst: true,
+              rangeTo: view.to,
               onOpenTransaction: (line) =>
                   context.push('/transactions/${line.transactionId}'),
             );

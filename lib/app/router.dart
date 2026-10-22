@@ -26,9 +26,11 @@ import 'package:accounts_manager/features/reports/account_journal_lines_screen.d
 import 'package:accounts_manager/features/reports/audit_log_screen.dart';
 import 'package:accounts_manager/features/reports/balance_sheet_screen.dart';
 import 'package:accounts_manager/features/reports/currency_position_screen.dart';
+import 'package:accounts_manager/features/expenses/expense_list_screen.dart';
 import 'package:accounts_manager/features/reports/general_ledger_screen.dart';
 import 'package:accounts_manager/features/reports/profit_loss_screen.dart';
 import 'package:accounts_manager/features/reports/reports_hub_screen.dart';
+import 'package:accounts_manager/features/reports/roznamcha_screen.dart';
 import 'package:accounts_manager/features/reports/trial_balance_screen.dart';
 import 'package:accounts_manager/features/guide/fx_workflow_guide_screen.dart';
 import 'package:accounts_manager/features/settings/currency_management_screen.dart';
@@ -409,6 +411,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/reports/general-ledger',
             builder: (context, state) => const GeneralLedgerScreen(),
+          ),
+          GoRoute(
+            path: '/reports/roznamcha',
+            builder: (context, state) => const RoznamchaScreen(),
+          ),
+          GoRoute(
+            path: '/expenses',
+            builder: (context, state) => const ExpenseListScreen(),
           ),
           GoRoute(
             path: '/reports/profit-loss',

@@ -1,30 +1,23 @@
-# Route coverage checklist — unified design system
+# Route coverage checklist — accounting workspace completion
 
 Branch: `feat/home-shared-db-reconciliation`  
-Legend: **Done** = migrated to shared tokens/components · **Partial** = tokens/shell only · **Pending** = still Stitch-era layout
+Legend: **Done** = working workflow · **Partial** = usable but incomplete · **Pending** = placeholder/missing
 
-| Path | Group | Mobile | Tablet | Desktop | Status |
-|------|-------|--------|--------|---------|--------|
-| `/` | Dashboard | ✓ tokens | ✓ | ✓ sidebar | **Partial** — compact KPIs; activity still legacy density |
-| `/deals` | Lists | ✓ | ✓ | ✓ | **Done** — ContentContainer + PageTitleBlock |
-| `/ledger` | Lists | ✓ | ✓ | ✓ | **Done** — hub header + ContentContainer |
-| `/reports` | Reports | ✓ | ✓ | ✓ | **Done** — tab root PageTitleBlock, no duplicate AppBar |
-| `/settings` | Settings | ✓ | ✓ | ✓ | **Done** — ContentContainer + PageTitleBlock |
-| `/parties/:id/ledger` | Ledger | ✓ | ✓ | ✓ | **Done** — reference ResponsiveLedgerView |
-| `/parties/agents` + agent ledger | Ledger | ✓ | ✓ | ✓ | **Done** — shared ledger |
-| `/parties` | Lists | ✓ | ✓ | ✓ | **Done** — PageHeader + FilterToolbar + state views |
-| `/transactions/:id` | Details | ✓ chrome | ✓ | ✓ | **Partial** — FxPageScaffold Back/Home; actions sheet retained |
-| `/deals/:id` | Details | ✓ | ✓ | ✓ | **Done** — FxPageHeader + state views |
-| `/reports/general-ledger` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader |
-| `/reports/trial-balance` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader |
-| `/reports/profit-loss` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader |
-| `/reports/balance-sheet` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader |
-| `/reports/currency-position` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader |
-| `/reports/audit-log` | Reports | ✓ | ✓ | ✓ | **Done** — PageHeader + ContentContainer |
-| `/accounts-hub` | Lists | ✓ | ✓ | ✓ | **Done** — ContentContainer + PageTitleBlock |
-| `/slips/import` | OCR | ✓ | ✓ | ✓ | **Done** — form-width ContentContainer |
-| Forms (`/parties/new`, …) | Forms | ✓ | ✓ | ✓ | **Partial** — party form ContentContainer; FormSection/ActionBar available |
-| Remittance / messaging / rates | Mixed | shell | shell | shell | **Partial** — shared shell/tokens; page bodies mostly unchanged |
+| Path | Group | Status |
+|------|-------|--------|
+| `/` | Dashboard | **Partial** — compact KPIs; fake GL “net worth” claims removed from GL header |
+| `/accounts` | Chart of Accounts | **Done** — structure/management |
+| `/reports/general-ledger` | Account Ledger | **Done** — no viewport truncation; scrollable full account list; honest cash metrics |
+| `/parties` | Party Directory | **Done** — role filters + batch PKR balances (`fx_party_directory_balances`) |
+| `/parties/:id/ledger` | Party Ledger | **Done** — month groups + running balance + attachments column |
+| `/parties/agents` | Party Directory | **Done** — agents filter |
+| `/reports/roznamcha` | Roznamcha | **Done** — cash/bank book Opening+In−Out=Closing; internal transfer labeling |
+| `/expenses` | Expenses | **Done** — list + new expense → existing draft/post engine; unpaid not faked |
+| `/reports/*` | Reports | **Partial** — TB/P&L/BS/currency/audit wired; PDF/CSV for Roznamcha NOT RUN |
+| `/audit` · `/reports/audit-log` | Audit | **Done** — existing server audit UI + PageHeader |
+| `/messages` | Team Messages | **Partial** — real inbox when feature flag on; never posts journals |
+| `/slips/import` | OCR | **Partial** — form container; workflow pre-existing |
+| Remittance / rates | Mixed | **Partial** — shell only |
 
 ## Shell
 
@@ -32,32 +25,26 @@ Legend: **Done** = migrated to shared tokens/components · **Partial** = tokens/
 |-------|----------|--------|
 | `< 600` | Bottom nav | Done |
 | `600–1023` | Bottom nav + denser content | Done |
-| `≥ 1024` | 232px sidebar + top controls | Done |
+| `≥ 1024` | 232px sidebar | Done |
 
-## Verified accounting (unit)
+## Defect fixed
 
-| Case | Result |
-|------|--------|
-| Opening 0 + Dr 77000 + Cr 77000 → 0 | **PASS** `party_statement_running_balance_test.dart` |
-| Receipt-first then sale → credit intermediate then 0 | **PASS** |
-| Newest-first display keeps chronological balance-after | **PASS** + `FxResponsiveLedgerView` |
-| Opening balance carries into period | **PASS** existing builder test |
-| PDF uses same builder lines | Existing export path (unchanged) |
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| Accounts missing on phone, visible on tablet | GL `filtered.take(4)` when width&lt;900; column `take(12)` | `visibleGlAccounts()` + scrollable full list; breakpoint 1024 |
 
-## Visual verification (viewport screenshots)
+## SQL applied (home)
 
-| Capture | Status |
-|---------|--------|
-| Desktop dashboard (sidebar + compact KPIs, AM_DEMO) | Captured after deploy `0918090` → `tmp/ui-redesign-screenshots/` |
-| Desktop ledger list | Captured earlier in session (top chrome / list density) |
-| Mobile 390 / tablet 768 / 1920 suite | Not fully automated this pass |
-| Authenticated party ledger / bank / OCR / forms after redesign | Not captured (Flutter web canvas click/deep-link flaky in automation) |
+| Script | Backup | Status |
+|--------|--------|--------|
+| `U_party_balances_roznamcha.sql` | `/home/ndm313/fx_sql_backups/U_pre_20261022T120351Z_party_roznamcha.sql` | Applied `APPLY_OK_20261022T120351Z` |
 
-## Remaining limitations
+## Tests
 
-- Remittance/messaging/rates body layouts not fully restyled (shell/tokens only)
-- Dashboard recent-activity density polish
-- Deal/new and other form screens not all on `FxFormSection` yet
-- Live AM_DEMO pagination / multi-currency ledger click-through not run
-- Physical device verification not claimed
-- No SQL/schema changes in this redesign deploy
+| Suite | Result |
+|-------|--------|
+| `visibleGlAccounts` + GL list scroll visibility | PASS (after scrollUntilVisible) |
+| `roznamcha_builder_test` | PASS |
+| `ledger_month_groups_test` | PASS |
+| `party_statement_running_balance_test` | PASS |
+| Live AM_DEMO E2E / physical phone / Roznamcha PDF | **NOT RUN** |

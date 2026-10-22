@@ -16,60 +16,40 @@ class GeneralHubEntry {
 
 const generalHubEntries = [
   GeneralHubEntry(
-    title: 'Opening Balances',
-    subtitle: 'Starting balances setup',
-    icon: Icons.account_balance_wallet_outlined,
-    route: '/opening-balances',
-  ),
-  GeneralHubEntry(
-    title: 'Rate Board',
-    subtitle: 'Reference FX rates',
-    icon: Icons.currency_exchange_outlined,
-    route: '/rates',
-  ),
-  GeneralHubEntry(
-    title: 'FX Deals',
-    subtitle: 'Order first, source later',
-    icon: Icons.handshake_outlined,
-    route: '/deals',
-  ),
-  GeneralHubEntry(
-    title: 'Remittance',
-    subtitle: 'Hawala / payout tracking',
-    icon: Icons.public_outlined,
-    route: '/remittance',
-  ),
-  GeneralHubEntry(
-    title: 'Team Messages',
-    subtitle: 'Internal staff chat',
-    icon: Icons.chat_bubble_outline,
-    route: '/messages',
-  ),
-  GeneralHubEntry(
     title: 'Chart of Accounts',
-    subtitle: 'Cash, bank & GL accounts',
+    subtitle: 'Account structure & management',
     icon: Icons.account_tree_outlined,
     route: '/accounts',
   ),
   GeneralHubEntry(
-    title: 'Add Cash / Bank',
-    subtitle: 'Create with optional opening',
-    // Prefer BMP MaterialIcons codepoints — some supplemental PUA glyphs
-    // render blank on Flutter web/CanvasKit even when present in the font.
-    icon: Icons.account_balance,
-    route: '/accounts/new-cash',
+    title: 'Account Ledger (GL)',
+    subtitle: 'Movements for a selected account',
+    icon: Icons.menu_book_outlined,
+    route: '/reports/general-ledger',
   ),
   GeneralHubEntry(
-    title: 'Import Payment Slip',
-    subtitle: 'OCR review → confirm post',
-    icon: Icons.receipt_long_outlined,
-    route: '/slips/import',
-  ),
-  GeneralHubEntry(
-    title: 'Parties',
-    subtitle: 'Customers, agents, suppliers',
+    title: 'Party Directory',
+    subtitle: 'Customers, agents, suppliers + balances',
     icon: Icons.people_outline,
     route: '/parties',
+  ),
+  GeneralHubEntry(
+    title: 'Roznamcha',
+    subtitle: 'Daily cash & bank book',
+    icon: Icons.menu_book,
+    route: '/reports/roznamcha',
+  ),
+  GeneralHubEntry(
+    title: 'Expenses',
+    subtitle: 'Draft → post → reverse expenses',
+    icon: Icons.receipt_long_outlined,
+    route: '/expenses',
+  ),
+  GeneralHubEntry(
+    title: 'Add Cash / Bank',
+    subtitle: 'Create with optional opening',
+    icon: Icons.account_balance,
+    route: '/accounts/new-cash',
   ),
   GeneralHubEntry(
     title: 'New Party',
@@ -78,10 +58,16 @@ const generalHubEntries = [
     route: '/parties/new',
   ),
   GeneralHubEntry(
-    title: 'Journal Entries',
-    subtitle: 'General ledger',
-    icon: Icons.menu_book_outlined,
-    route: '/reports/general-ledger',
+    title: 'Opening Balances',
+    subtitle: 'Starting balances setup',
+    icon: Icons.account_balance_wallet_outlined,
+    route: '/opening-balances',
+  ),
+  GeneralHubEntry(
+    title: 'Import Payment Slip',
+    subtitle: 'OCR review → confirm post',
+    icon: Icons.document_scanner_outlined,
+    route: '/slips/import',
   ),
   GeneralHubEntry(
     title: 'Trial Balance',
@@ -108,10 +94,34 @@ const generalHubEntries = [
     route: '/reports/currency-position',
   ),
   GeneralHubEntry(
-    title: 'Audit Logs',
+    title: 'Audit Log',
     subtitle: 'Change history',
     icon: Icons.history_outlined,
     route: '/audit',
+  ),
+  GeneralHubEntry(
+    title: 'Team Messages',
+    subtitle: 'Internal staff chat',
+    icon: Icons.chat_bubble_outline,
+    route: '/messages',
+  ),
+  GeneralHubEntry(
+    title: 'Rate Board',
+    subtitle: 'Reference FX rates',
+    icon: Icons.currency_exchange_outlined,
+    route: '/rates',
+  ),
+  GeneralHubEntry(
+    title: 'FX Deals',
+    subtitle: 'Order first, source later',
+    icon: Icons.handshake_outlined,
+    route: '/deals',
+  ),
+  GeneralHubEntry(
+    title: 'Remittance',
+    subtitle: 'Hawala / payout tracking',
+    icon: Icons.send_outlined,
+    route: '/remittance',
   ),
   GeneralHubEntry(
     title: 'Currencies',

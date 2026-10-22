@@ -13,6 +13,7 @@ import 'package:accounts_manager/data/repositories/rate_repository.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
+import 'package:accounts_manager/domain/models/roznamcha.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_currency.dart';
@@ -190,6 +191,23 @@ final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((
       .fetchRecentPosted(profile.branchId);
 });
 
+/// Expense drafts + recent posted expenses for the expense workspace.
+final expenseTransactionsProvider = FutureProvider<List<FxTransaction>>((
+  ref,
+) async {
+  final drafts = await ref.watch(draftTransactionsProvider.future);
+  final posted = await ref.watch(todayTransactionsProvider.future);
+  final merged = <String, FxTransaction>{};
+  for (final tx in [...drafts, ...posted]) {
+    if (tx.transactionType == FxTransactionType.expense) {
+      merged[tx.id] = tx;
+    }
+  }
+  final list = merged.values.toList()
+    ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+  return list;
+});
+
 final transactionDetailProvider = FutureProvider.family<FxTransaction, String>((
   ref,
   id,
@@ -269,6 +287,63 @@ final cashBalancesProvider = FutureProvider<List<CashBalanceRow>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(reportRepositoryProvider).fetchCashBalances(profile.branchId);
+});
+
+/// Batch PKR balances for party directory. Empty map if RPC unavailable.
+final partyDirectoryBalancesProvider =
+    FutureProvider<Map<String, double>>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) return {};
+  try {
+    return await ref
+        .read(reportRepositoryProvider)
+        .fetchPartyDirectoryBalances(companyId: profile.companyId);
+  } catch (_) {
+    return {};
+  }
+});
+
+final roznamchaAccountFilterProvider =
+    NotifierProvider<RoznamchaAccountFilterNotifier, String?>(
+  RoznamchaAccountFilterNotifier.new,
+);
+
+class RoznamchaAccountFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? code) => state = code;
+}
+
+final roznamchaProvider = FutureProvider<RoznamchaView>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  final range = ref.watch(reportDateRangeProvider);
+  final accountCode = ref.watch(roznamchaAccountFilterProvider);
+  if (profile == null) {
+    return RoznamchaBuilder.build(
+      from: range.from,
+      to: range.to,
+      openings: const [],
+      rawLines: const [],
+    );
+  }
+  final repo = ref.read(reportRepositoryProvider);
+  final openings = await repo.fetchRoznamchaOpening(
+    profile.branchId,
+    asOf: range.from,
+    accountCode: accountCode,
+  );
+  final lines = await repo.fetchRoznamcha(
+    profile.branchId,
+    from: range.from,
+    to: range.to,
+    accountCode: accountCode,
+  );
+  return RoznamchaBuilder.build(
+    from: range.from,
+    to: range.to,
+    openings: openings,
+    rawLines: lines,
+  );
 });
 
 final trialBalanceProvider = FutureProvider<List<TrialBalanceRow>>((ref) async {

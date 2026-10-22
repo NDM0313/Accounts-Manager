@@ -1,4 +1,5 @@
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
+import 'package:accounts_manager/domain/models/roznamcha.dart';
 
 class TrialBalanceRow {
   const TrialBalanceRow({
@@ -422,5 +423,62 @@ class ReportRepository {
       },
     );
     return DailyClosingResult.fromJson(row as Map<String, dynamic>);
+  }
+
+  /// Current PKR control-account balances for party directory (batch RPC).
+  Future<Map<String, double>> fetchPartyDirectoryBalances({
+    String? companyId,
+  }) async {
+    final rows = await supabase.rpc(
+      'fx_party_directory_balances',
+      params: {'p_company_id': companyId},
+    );
+    final map = <String, double>{};
+    for (final row in (rows as List).cast<Map<String, dynamic>>()) {
+      final id = row['party_id'] as String?;
+      if (id == null) continue;
+      map[id] = (row['balance_pkr'] as num?)?.toDouble() ?? 0;
+    }
+    return map;
+  }
+
+  Future<List<RoznamchaLine>> fetchRoznamcha(
+    String branchId, {
+    required DateTime from,
+    required DateTime to,
+    String? accountCode,
+  }) async {
+    final rows = await supabase.rpc(
+      'fx_get_roznamcha',
+      params: {
+        'p_branch_id': branchId,
+        'p_from': from.toIso8601String().split('T').first,
+        'p_to': to.toIso8601String().split('T').first,
+        'p_account_code': accountCode,
+      },
+    );
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(RoznamchaLine.fromJson)
+        .toList();
+  }
+
+  Future<List<RoznamchaOpening>> fetchRoznamchaOpening(
+    String branchId, {
+    required DateTime asOf,
+    String? accountCode,
+  }) async {
+    final rows = await supabase.rpc(
+      'fx_get_roznamcha_opening',
+      params: {
+        'p_branch_id': branchId,
+        'p_as_of': asOf.toIso8601String().split('T').first,
+        'p_account_code': accountCode,
+      },
+    );
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(RoznamchaOpening.fromJson)
+        .toList();
   }
 }
