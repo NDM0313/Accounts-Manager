@@ -1,20 +1,18 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_exposure_chip_row.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_party_hero_card.dart';
-import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_balance_grid.dart';
-import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_statement_list_container.dart';
-import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_statement_row.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
+import 'package:accounts_manager/domain/services/party_statement_narrative.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-/// Stitch customer_statement exact section layout.
+/// Customer ledger — design-system reference screen.
 class CustomerLedgerStitchView extends ConsumerStatefulWidget {
   const CustomerLedgerStitchView({
     super.key,
@@ -38,7 +36,6 @@ class CustomerLedgerStitchView extends ConsumerStatefulWidget {
 
 class _CustomerLedgerStitchViewState
     extends ConsumerState<CustomerLedgerStitchView> {
-  bool _filtersExpanded = false;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -51,173 +48,143 @@ class _CustomerLedgerStitchViewState
   Widget build(BuildContext context) {
     final view = widget.statementAsync.whenOrNull(data: (v) => v);
     final summary = view?.summary;
+    final closing = summary?.netBalancePkr ?? 0;
+    final balanceText = PartyStatementNarrative.balanceExplanation(
+      partyType: widget.party.partyType,
+      closingPkr: closing,
+    );
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      padding: EdgeInsets.fromLTRB(
+        context.fxHorizontalInset,
+        AppSpacing.stackSm,
+        context.fxHorizontalInset,
+        AppSpacing.shellBottomInset,
+      ),
       children: [
-        FxPartyHeroCard(
-          name: widget.party.name,
-          mode: PartyHeroMode.customer,
-          badgeLabel: 'PREMIUM CLIENT',
-          balanceLabel: 'Net Balance',
-          balanceValue: summary != null
-              ? 'PKR ${widget.fmt.format(summary.netBalancePkr.abs())}'
-              : '—',
-          balanceSuffix: summary != null && summary.netBalancePkr >= 0
-              ? 'Receivable'
-              : 'Payable',
-        ),
-        if (summary != null && summary.balancesByCurrency.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text(
-            'EXPOSURE PORTFOLIO',
-            style: AppTypography.labelCaps(
-              context.fx.onSurfaceVariant,
-              context: context,
-            ),
-          ),
-          const SizedBox(height: 8),
-          FxExposureChipRow(
-            items: summary.balancesByCurrency.entries
-                .map(
-                  (e) => FxExposureItem(
-                    currencyCode: e.key,
-                    amountLabel: widget.fmt.format(e.value),
+        FxStitchCard(
+          padding: const EdgeInsets.all(AppSpacing.stackMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FxPageTitleBlock(
+                title: widget.party.name,
+                subtitle: [
+                  if (widget.party.code.trim().isNotEmpty) widget.party.code,
+                  'Customer',
+                  if (widget.party.phone != null &&
+                      widget.party.phone!.trim().isNotEmpty)
+                    widget.party.phone!,
+                ].join(' · '),
+                trailing: IconButton(
+                  tooltip: 'Export',
+                  onPressed: widget.onExport,
+                  icon: const Icon(Icons.ios_share_outlined),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.stackMd),
+              Text(
+                'Current balance (as of now)',
+                style: AppTypography.bodyMd(
+                  context.fx.onSurfaceVariant,
+                  context: context,
+                ).copyWith(fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              if (closing.abs() < 0.005)
+                Text(
+                  'Settled / No outstanding',
+                  style: AppTypography.headlineSm(
+                    AppColors.lightSuccess,
+                    context: context,
                   ),
                 )
-                .toList(),
-          ),
-        ],
-        if (summary != null && view != null) ...[
-          const SizedBox(height: 16),
-          FxStitchBalanceGrid(
-            cells: [
-              FxStitchBalanceCell(
-                label: 'Opening Balance',
-                value: 'PKR ${widget.fmt.format(view.openingBalancePkr)}',
-              ),
-              FxStitchBalanceCell(
-                label: 'Total Debit',
-                value: 'PKR ${widget.fmt.format(summary.totalDebitPkr)}',
-                valueColor: context.fx.error,
-              ),
-              FxStitchBalanceCell(
-                label: 'Total Credit',
-                value: 'PKR ${widget.fmt.format(summary.totalCreditPkr)}',
-                valueColor: context.fx.tertiaryContainer,
-              ),
-              FxStitchBalanceCell(
-                label: 'Closing Balance',
-                value: 'PKR ${widget.fmt.format(summary.netBalancePkr)}',
-                valueColor: context.fx.primary,
-              ),
-            ],
-          ),
-        ],
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Text(
-              'Statement Activity',
-              style: AppTypography.headlineSm(
-                context.fx.primary,
-                context: context,
-              ).copyWith(fontWeight: FontWeight.bold),
-            ),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: () => setState(() => _filtersExpanded = !_filtersExpanded),
-              icon: const Icon(Icons.filter_list, size: 18),
-              label: const Text('Filter'),
-            ),
-          ],
-        ),
-        if (_filtersExpanded) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pickDateRange(context),
-                  icon: const Icon(Icons.date_range, size: 16),
-                  label: const Text('Dates'),
+              else ...[
+                FxMoneyLabel(
+                  amount: closing.abs(),
+                  bold: true,
+                  fontSize: 22,
+                  align: TextAlign.start,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pickStatus(context),
-                  icon: const Icon(Icons.flag_outlined, size: 16),
-                  label: Text(
-                    ref.read(partyStatementFiltersProvider).status.name,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _searchCtrl,
-            decoration: const InputDecoration(
-              hintText: 'Search txn no, reference…',
-              prefixIcon: Icon(Icons.search, size: 20),
-              isDense: true,
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (v) {
-              ref.read(partyStatementFiltersProvider.notifier).setSearch(v);
-              ref.invalidate(partyStatementProvider(widget.partyId));
-            },
-          ),
-          const SizedBox(height: 8),
-        ],
-        widget.statementAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (e, _) => Text('Error: $e'),
-          data: (view) {
-            if (view == null) return const Text('Unable to load statement.');
-            if (view.lines.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'No transactions in this period.',
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 2),
+                Text(
+                  balanceText.isNotEmpty
+                      ? balanceText
+                      : (closing > 0
+                          ? 'Receivable (customer owes)'
+                          : 'Payable / advance (we owe or hold credit)'),
                   style: AppTypography.bodyMd(
                     context.fx.onSurfaceVariant,
                     context: context,
                   ),
                 ),
-              );
-            }
-            return FxStitchStatementListContainer(
-              children: [
-                for (final line in view.lines)
-                  FxStitchStatementRow(
-                    line: line,
-                    embedded: true,
-                    onTap: () => context.push('/transactions/${line.transactionId}'),
-                  ),
               ],
+            ],
+          ),
+        ),
+        if (view != null && summary != null) ...[
+          const SizedBox(height: AppSpacing.stackMd),
+          FxLedgerSummaryStrip(
+            opening: view.openingBalancePkr,
+            periodDebits: summary.totalDebitPkr,
+            periodCredits: summary.totalCreditPkr,
+            closing: view.closingBalancePkr,
+            periodLabel:
+                'Selected period · Closing for range (may differ from current)',
+          ),
+        ],
+        const SizedBox(height: AppSpacing.stackMd),
+        FxFilterToolbar(
+          searchController: _searchCtrl,
+          searchHint: 'Search txn no, reference…',
+          onSearchSubmitted: (v) {
+            ref.read(partyStatementFiltersProvider.notifier).setSearch(v);
+            ref.invalidate(partyStatementProvider(widget.partyId));
+          },
+          filters: [
+            FxFilterChipButton(
+              label: 'Dates',
+              onPressed: () => _pickDateRange(context),
+            ),
+            FxFilterChipButton(
+              label: ref.watch(partyStatementFiltersProvider).status.name,
+              onPressed: () => _pickStatus(context),
+            ),
+          ],
+          trailing: FilledButton.tonal(
+            onPressed: () => context.push(
+              '/transactions/receive-payment?partyId=${widget.partyId}',
+            ),
+            child: const Text('Receive'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.stackMd),
+        Text(
+          'Activity',
+          style: AppTypography.headlineSm(
+            context.fx.onSurface,
+            context: context,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.stackSm),
+        widget.statementAsync.when(
+          loading: () => const FxLoadingState(),
+          error: (e, _) => FxErrorState(
+            message: 'Error: $e',
+            onRetry: () =>
+                ref.invalidate(partyStatementProvider(widget.partyId)),
+          ),
+          data: (view) {
+            if (view == null) {
+              return const FxEmptyState(message: 'Unable to load statement.');
+            }
+            return FxResponsiveLedgerView(
+              lines: view.lines,
+              newestFirst: true,
+              onOpenTransaction: (line) =>
+                  context.push('/transactions/${line.transactionId}'),
             );
           },
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: OutlinedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Loading earlier transactions…')),
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: context.fx.secondary,
-              side: BorderSide(color: context.fx.secondary),
-            ),
-            child: const Text('Load Earlier Transactions'),
-          ),
         ),
       ],
     );

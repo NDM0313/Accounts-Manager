@@ -1,10 +1,9 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_hub_tile.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_responsive_hub_grid.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_section_label.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/accounts/general_hub_entries.dart';
 import 'package:accounts_manager/features/accounts/hub_icon_keep.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,6 @@ class GeneralHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Keep hub tile glyphs in the release MaterialIcons subset (see hub_icon_keep).
     final iconKeep = keepAccountsHubIcons();
 
     return FxPremiumScaffold(
@@ -28,19 +26,16 @@ class GeneralHubScreen extends StatelessWidget {
           onPressed: () => context.go('/'),
         ),
       ],
-      body: FxObsidianPage(
+      body: FxContentContainer(
         child: ListView(
           children: [
-            // Offstage so release DCE cannot drop keepAccountsHubIcons() Icons.
             Offstage(child: Row(children: iconKeep)),
-            Text(
-              'Chart of accounts, parties, journals, and reports.',
-              style: AppTypography.bodyMd(
-                context.fx.onSurfaceVariant,
-                context: context,
-              ).copyWith(fontSize: 12),
+            const FxPageTitleBlock(
+              title: 'Accounts hub',
+              subtitle:
+                  'Chart of accounts, parties, journals, and reports.',
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.stackSm),
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
@@ -49,7 +44,7 @@ class GeneralHubScreen extends StatelessWidget {
                 label: const Text('Back to Home'),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.stackMd),
             const FxSectionLabel(label: 'General'),
             const SizedBox(height: 12),
             FxResponsiveHubGrid(

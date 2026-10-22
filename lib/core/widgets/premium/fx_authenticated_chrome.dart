@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// Bottom-nav chrome for flat (non-IndexedStack) authenticated routes.
 ///
 /// Does not draw a second AppBar — child screens keep their own scaffold.
-/// Desktop (≥900) hides the bar to match [FxPremiumShell].
+/// Desktop hides the bar to match [FxPremiumShell].
 class FxAuthenticatedChrome extends StatelessWidget {
   const FxAuthenticatedChrome({super.key, required this.child});
 
@@ -13,7 +13,8 @@ class FxAuthenticatedChrome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.sizeOf(context).width >= 900;
+    final isDesktop =
+        FxLayoutBreakpoints.isDesktop(MediaQuery.sizeOf(context).width);
     return Scaffold(
       backgroundColor: context.fx.background,
       body: child,

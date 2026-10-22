@@ -4,6 +4,7 @@ import 'package:accounts_manager/core/config/backend_readiness.dart';
 import 'package:accounts_manager/core/config/env.dart';
 import 'package:accounts_manager/core/utils/report_export.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_settings_section.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/settings/settings_security_screen.dart'
@@ -39,15 +40,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final themeMode = ref.watch(themeModeProvider);
     final profileAsync = ref.watch(currentProfileProvider);
     final branchAsync = ref.watch(branchContextProvider);
-    final horizontal = MediaQuery.sizeOf(context).width >= 900
-        ? AppSpacing.marginDesktop
-        : AppSpacing.marginMobile;
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.shellBottomInset;
 
-    return FxStitchScaffold(
-      padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 88),
-      scrollable: false,
+    return FxContentContainer(
+      padding: EdgeInsets.fromLTRB(
+        context.fxHorizontalInset,
+        AppSpacing.stackMd,
+        context.fxHorizontalInset,
+        bottomInset,
+      ),
       child: ListView(
         children: [
+          const FxPageTitleBlock(
+            title: 'Settings',
+            subtitle: 'Security, workspace, and preferences.',
+          ),
+          const SizedBox(height: AppSpacing.stackLg),
           profileAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => const SizedBox.shrink(),

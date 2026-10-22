@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart'
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/auth/providers/display_currency_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,8 +30,9 @@ class TrialBalanceScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: '/reports',
         title: const Text('Trial Balance'),
         actions: [
           IconButton(

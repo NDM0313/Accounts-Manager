@@ -4,6 +4,7 @@ import 'package:accounts_manager/core/utils/contact_import.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/data/repositories/party_bank_repository.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -242,9 +243,12 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
           child: Column(
             children: [
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
+                child: FxContentContainer(
+                  formWidth: true,
+                  padding: EdgeInsets.zero,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
                     DropdownButtonFormField<FxPartyType>(
                       initialValue: _type,
                       decoration: const InputDecoration(
@@ -540,6 +544,7 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
                       ),
                     ],
                   ],
+                ),
                 ),
               ),
               FxObsidianActionBar(

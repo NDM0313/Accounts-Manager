@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_statement_bottom_bar.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -26,8 +27,9 @@ class PartyLedgerScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: isCustomer ? '/parties' : '/parties/agents',
         title: Text(title),
         actions: [
           IconButton(
@@ -35,31 +37,14 @@ class PartyLedgerScreen extends ConsumerWidget {
             icon: const Icon(Icons.ios_share_outlined),
             onPressed: () => _exportStatement(context, ref),
           ),
-          if (!isCustomer) ...[
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                ref.invalidate(partyStatementProvider(partyId));
-                ref.invalidate(partyDealOpenItemsProvider(partyId));
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundColor: context.fx.primaryContainer,
-                child: Text(
-                  partyAsync.value?.name.isNotEmpty == true
-                      ? partyAsync.value!.name[0].toUpperCase()
-                      : 'A',
-                  style: TextStyle(
-                    color: context.fx.onPrimaryContainer,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          IconButton(
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(partyStatementProvider(partyId));
+              ref.invalidate(partyDealOpenItemsProvider(partyId));
+            },
+          ),
         ],
       ),
       bottomNavigationBar: isCustomer
@@ -74,11 +59,11 @@ class PartyLedgerScreen extends ConsumerWidget {
             )
           : null,
       body: partyAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        loading: () => const FxLoadingState(),
+        error: (e, _) => FxErrorState(message: 'Error: $e'),
         data: (party) {
           if (party == null) {
-            return const Center(child: Text('Party not found.'));
+            return const FxEmptyState(message: 'Party not found.');
           }
           if (party.partyType == FxPartyType.customer) {
             return CustomerLedgerStitchView(

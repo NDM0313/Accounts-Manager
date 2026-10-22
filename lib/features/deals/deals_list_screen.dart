@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -16,13 +17,19 @@ class DealsListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (!FeatureFlags.dealsWorkflowEnabled) {
       return Scaffold(
-        appBar: AppBar(title: const Text('FX Deals')),
-        body: const Center(child: Text('FX Deals workflow is disabled.')),
+        backgroundColor: context.fx.background,
+        body: FxContentContainer(
+          child: const FxEmptyState(
+            message: 'FX Deals workflow is disabled.',
+          ),
+        ),
       );
     }
 
     final dealsAsync = ref.watch(dealsListProvider);
     final fmt = NumberFormat('#,##0.00');
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.shellBottomInset;
 
     return Scaffold(
       backgroundColor: context.fx.background,
@@ -33,28 +40,45 @@ class DealsListScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('New Deal'),
       ),
-      body: dealsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Unable to load deals: $e')),
-        data: (deals) {
-          if (deals.isEmpty) {
-            return Center(
-              child: Text(
-                'No FX deals yet.\nBook a customer order first, source later.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMd(
-                  context.fx.onSurfaceVariant,
-                  context: context,
-                ),
+      body: FxContentContainer(
+        padding: EdgeInsets.fromLTRB(
+          context.fxHorizontalInset,
+          AppSpacing.stackMd,
+          context.fxHorizontalInset,
+          bottomInset,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const FxPageTitleBlock(
+              title: 'FX Deals',
+              subtitle:
+                  'Book customer orders first, then source and settle legs.',
+            ),
+            const SizedBox(height: AppSpacing.stackMd),
+            Expanded(
+              child: dealsAsync.when(
+                loading: () => const FxLoadingState(),
+                error: (e, _) =>
+                    FxErrorState(message: 'Unable to load deals: $e'),
+                data: (deals) {
+                  if (deals.isEmpty) {
+                    return const FxEmptyState(
+                      message:
+                          'No FX deals yet.\nBook a customer order first, source later.',
+                    );
+                  }
+                  return ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: deals.length,
+                    itemBuilder: (context, i) =>
+                        _DealCard(deal: deals[i], fmt: fmt),
+                  );
+                },
               ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: deals.length,
-            itemBuilder: (context, i) => _DealCard(deal: deals[i], fmt: fmt),
-          );
-        },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -69,43 +93,43 @@ class _DealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.stackSm),
       child: FxStitchCard(
         onTap: () => context.push('/deals/${deal.id}'),
         padding: const EdgeInsets.all(16),
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      deal.dealNo ?? deal.id.substring(0, 8),
-                      style: AppTypography.headlineMd(
-                        context.fx.onSurface,
-                        context: context,
-                      ).copyWith(fontSize: 16),
-                    ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    deal.dealNo ?? deal.id.substring(0, 8),
+                    style: AppTypography.headlineMd(
+                      context.fx.onSurface,
+                      context: context,
+                    ).copyWith(fontSize: 16),
                   ),
-                  _StatusChip(status: deal.status),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${deal.customerName ?? 'Customer'} · ${fmt.format(deal.sellAmount)} ${deal.sellCurrencyCode} @ ${fmt.format(deal.saleRatePkr)}',
-                style: AppTypography.bodyMd(
-                  context.fx.onSurfaceVariant,
-                  context: context,
-                ).copyWith(fontSize: 12),
-              ),
-              Text(
-                'PKR ${fmt.format(deal.customerPayablePkr)} · Recv ${fmt.format(deal.customerReceivablePkr)}',
-                style: AppTypography.bodyMd(
-                  context.fx.onSurface,
-                  context: context,
-                ).copyWith(fontSize: 12),
-              ),
-            ],
+                ),
+                _StatusChip(status: deal.status),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${deal.customerName ?? 'Customer'} · ${fmt.format(deal.sellAmount)} ${deal.sellCurrencyCode} @ ${fmt.format(deal.saleRatePkr)}',
+              style: AppTypography.bodyMd(
+                context.fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
+            Text(
+              'PKR ${fmt.format(deal.customerPayablePkr)} · Recv ${fmt.format(deal.customerReceivablePkr)}',
+              style: AppTypography.bodyMd(
+                context.fx.onSurface,
+                context: context,
+              ).copyWith(fontSize: 12),
+            ),
+          ],
         ),
       ),
     );
@@ -122,7 +146,8 @@ class _StatusChip extends StatelessWidget {
     final color = switch (status) {
       FxDealStatus.completed => context.fx.tertiary,
       FxDealStatus.sourcingRequired ||
-      FxDealStatus.sourcingInProgress => context.fx.warning,
+      FxDealStatus.sourcingInProgress =>
+        context.fx.warning,
       FxDealStatus.cancelled || FxDealStatus.voided => context.fx.error,
       _ => context.fx.primary,
     };

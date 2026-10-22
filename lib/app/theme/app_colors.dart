@@ -12,32 +12,34 @@ abstract final class AppColors {
   static const premiumWarning = Color(0xFFF59E0B);
   static const premiumDanger = Color(0xFFBA1A1A);
 
-  // Light — Stitch executive_fx_ledger/DESIGN.md
-  static const lightBackground = Color(0xFFF8F9FF);
-  static const lightSurface = Color(0xFFF8F9FF);
+  // Light — unified financial workspace (see docs/UI_DESIGN_SYSTEM.md)
+  static const lightBackground = Color(0xFFF5F7FB);
+  static const lightSurface = Color(0xFFFFFFFF);
   static const lightSurfaceContainerLowest = Color(0xFFFFFFFF);
-  static const lightSurfaceContainerLow = Color(0xFFEFF4FF);
-  static const lightSurfaceContainer = Color(0xFFE6EEFF);
-  static const lightSurfaceContainerHigh = Color(0xFFDDE9FF);
-  static const lightSurfaceContainerHighest = Color(0xFFD5E3FD);
-  static const lightPrimary = Color(0xFF002045);
-  static const lightPrimaryContainer = Color(0xFF1A365D);
-  static const lightOnPrimaryContainer = Color(0xFF86A0CD);
-  static const lightSecondary = Color(0xFF0058BE);
-  static const lightSecondaryContainer = Color(0xFF2170E4);
-  static const lightTertiary = Color(0xFF002617);
-  static const lightTertiaryContainer = Color(0xFF003E28);
-  static const lightOnTertiaryContainer = Color(0xFF00B47D);
-  static const lightTertiaryFixedDim = Color(0xFF4EDEA3);
-  static const lightOnSurface = Color(0xFF0D1C2F);
-  static const lightOnSurfaceVariant = Color(0xFF43474E);
-  static const lightOutline = Color(0xFF74777F);
-  static const lightOutlineVariant = Color(0xFFC4C6CF);
+  static const lightSurfaceContainerLow = Color(0xFFF8FAFC);
+  static const lightSurfaceContainer = Color(0xFFF1F5F9);
+  static const lightSurfaceContainerHigh = Color(0xFFE2E8F0);
+  static const lightSurfaceContainerHighest = Color(0xFFCBD5E1);
+  static const lightPrimary = Color(0xFF14263D);
+  static const lightPrimaryContainer = Color(0xFF1E3A5F);
+  static const lightOnPrimaryContainer = Color(0xFFB8C7DB);
+  static const lightSecondary = Color(0xFF2563EB);
+  static const lightSecondaryContainer = Color(0xFF3B82F6);
+  static const lightTertiary = Color(0xFF064E3B);
+  static const lightTertiaryContainer = Color(0xFF047857);
+  static const lightOnTertiaryContainer = Color(0xFF047857);
+  static const lightTertiaryFixedDim = Color(0xFF10B981);
+  static const lightOnSurface = Color(0xFF14263D);
+  static const lightOnSurfaceVariant = Color(0xFF64748B);
+  static const lightOutline = Color(0xFF94A3B8);
+  static const lightOutlineVariant = Color(0xFFE2E8F0);
   static const lightOnPrimary = Color(0xFFFFFFFF);
   static const lightOnTertiary = Color(0xFFFFFFFF);
-  static const lightError = Color(0xFFBA1A1A);
-  static const lightErrorContainer = Color(0xFFFFDAD6);
+  static const lightError = Color(0xFFB91C1C);
+  static const lightErrorContainer = Color(0xFFFEE2E2);
   static const lightWarningContainer = Color(0xFFFEF3C7);
+  static const lightWarning = Color(0xFFB45309);
+  static const lightSuccess = Color(0xFF047857);
 
   // Dark — charcoal graphite (not pure black)
   static const darkBackground = Color(0xFF1A1D24);
@@ -186,7 +188,7 @@ class FxColors extends ThemeExtension<FxColors> {
     onSurfaceVariant: AppColors.lightOnSurfaceVariant,
     error: AppColors.lightError,
     errorContainer: AppColors.lightErrorContainer,
-    warning: AppColors.premiumWarning,
+    warning: AppColors.lightWarning,
     warningContainer: AppColors.lightWarningContainer,
   );
 
@@ -323,11 +325,14 @@ abstract final class AppSpacing {
   static const shellBottomInset = 88.0;
 }
 
-/// Canonical layout breakpoints (CSS-ish widths).
+/// Canonical layout breakpoints (layout width, not device name).
 abstract final class FxLayoutBreakpoints {
   static const compact = 600.0;
-  static const tablet = 900.0;
-  static const desktopWide = 1200.0;
+  static const tablet = 1024.0;
+  static const desktopWide = 1440.0;
+  static const contentMax = 1440.0;
+  static const formMax = 960.0;
+  static const sidebarWidth = 232.0;
 
   static bool isCompact(double width) => width < compact;
   static bool isTablet(double width) =>

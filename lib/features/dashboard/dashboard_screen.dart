@@ -26,6 +26,7 @@ class DashboardScreen extends ConsumerWidget {
     final todayPlAsync = ref.watch(todayProfitLossProvider);
     final positionAsync = ref.watch(currencyPositionProvider);
     final dealsAsync = ref.watch(dealsListProvider);
+    // Desktop content uses shared insets; sidebar lives in FxPremiumShell.
     final horizontal = context.fxHorizontalInset;
 
     final bottomInset =

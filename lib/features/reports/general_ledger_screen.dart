@@ -1,6 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_app_bar.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_account_list_column.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_gl_widgets.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
@@ -41,12 +41,14 @@ class _GeneralLedgerScreenState extends ConsumerState<GeneralLedgerScreen> {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: FxAppBar.child(
+      appBar: FxPageHeader.appBar(
         context: context,
         fallbackRoute: '/reports',
         title: const Text('General Ledger'),
       ),
-      body: Column(
+      body: FxContentContainer(
+        padding: const EdgeInsets.only(top: AppSpacing.stackMd),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -177,6 +179,7 @@ class _GeneralLedgerScreenState extends ConsumerState<GeneralLedgerScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

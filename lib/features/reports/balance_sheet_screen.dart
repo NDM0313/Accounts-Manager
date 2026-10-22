@@ -4,6 +4,7 @@ import 'package:accounts_manager/core/export/fx_report_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/services/reporting_currency_converter.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -29,8 +30,9 @@ class BalanceSheetScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.background,
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: '/reports',
         title: const Text('Balance Sheet'),
         actions: [
           IconButton(

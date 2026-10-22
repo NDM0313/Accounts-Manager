@@ -1,7 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
-import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
@@ -33,11 +32,16 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
     final fallback = widget.initialFilter == FxPartyType.agent
         ? '/accounts-hub'
         : '/parties';
+    final pageTitle = widget.initialFilter == FxPartyType.agent
+        ? 'Agent Ledger'
+        : 'Parties';
 
-    return FxPageScaffold(
-      fallbackRoute: fallback,
-      title: Text(
-        widget.initialFilter == FxPartyType.agent ? 'Agent Ledger' : 'Parties',
+    return Scaffold(
+      backgroundColor: context.fx.background,
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: fallback,
+        title: Text(pageTitle),
       ),
       floatingActionButton: widget.initialFilter == FxPartyType.agent
           ? null
@@ -45,27 +49,26 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
               onPressed: () => context.push('/parties/new'),
               child: const Icon(Icons.add),
             ),
-      body: FxObsidianPage(
+      body: FxContentContainer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
-              spacing: 8,
-              children: [
-                FilterChip(
-                  label: const Text('All'),
+            FxFilterToolbar(
+              filters: [
+                FxFilterChipButton(
+                  label: 'All',
                   selected: _filter == null,
-                  onSelected: (_) => setState(() => _filter = null),
+                  onPressed: () => setState(() => _filter = null),
                 ),
                 for (final t in FxPartyType.values)
-                  FilterChip(
-                    label: Text(t.label),
+                  FxFilterChipButton(
+                    label: t.label,
                     selected: _filter == t,
-                    onSelected: (_) => setState(() => _filter = t),
+                    onPressed: () => setState(() => _filter = t),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.stackSm),
             Text(
               'Tap a party to view settlement history. Link parties when creating Settlement Send/Receive.',
               style: AppTypography.bodyMd(
@@ -73,26 +76,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                 context: context,
               ).copyWith(fontSize: 12),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.stackMd),
             Expanded(
               child: partiesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                loading: () => const FxLoadingState(),
+                error: (e, _) => FxErrorState(message: 'Error: $e'),
                 data: (parties) {
                   if (parties.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No parties found.',
-                        style: AppTypography.bodyMd(
-                          Theme.of(context).colorScheme.onSurfaceVariant,
-                          context: context,
-                        ),
-                      ),
-                    );
+                    return const FxEmptyState(message: 'No parties found.');
                   }
                   return ListView.separated(
                     itemCount: parties.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.stackSm),
                     itemBuilder: (context, i) {
                       final p = parties[i];
                       return Material(

@@ -48,6 +48,7 @@ abstract final class AppTheme {
         AppColors.lightSurfaceContainerLowest,
         AppColors.lightOutlineVariant,
       ),
+      // Primary actions use blue (#2563EB) — navy reserved for text hierarchy.
       filledButtonTheme: _filledButtonTheme(
         AppColors.lightSecondary,
         AppColors.lightOnPrimary,

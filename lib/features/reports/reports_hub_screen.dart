@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_reports_hub_widgets.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,6 +113,15 @@ class _ReportsHubScreenState extends ConsumerState<ReportsHubScreen> {
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() {
+      final q = _searchCtrl.text.trim();
+      if (q != _query) setState(() => _query = q);
+    });
+  }
+
+  @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
@@ -121,9 +130,8 @@ class _ReportsHubScreenState extends ConsumerState<ReportsHubScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(currentProfileProvider);
-    final horizontal = MediaQuery.sizeOf(context).width >= 900
-        ? AppSpacing.marginDesktop
-        : AppSpacing.marginMobile;
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.shellBottomInset;
 
     final filtered = ReportsHubScreen.reports
         .where(
@@ -134,103 +142,108 @@ class _ReportsHubScreenState extends ConsumerState<ReportsHubScreen> {
         )
         .toList();
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
-      appBar: AppBar(
-        backgroundColor: context.fx.surface,
-        foregroundColor: context.fx.primary,
-        title: Text(
-          'Reports',
-          style: AppTypography.headlineSm(
-            context.fx.primary,
-            context: context,
-          ),
+    return ColoredBox(
+      color: context.fx.background,
+      child: FxContentContainer(
+        padding: EdgeInsets.fromLTRB(
+          context.fxHorizontalInset,
+          AppSpacing.stackMd,
+          context.fxHorizontalInset,
+          bottomInset,
         ),
-        // Tab root — no Back (Home is via shell nav).
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => setState(() {}),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: profileAsync.when(
-              loading: () => const SizedBox(width: 32, height: 32),
-              error: (_, _) => const SizedBox.shrink(),
-              data: (profile) {
-                final name = profile?.fullName ?? 'U';
-                final initials = name
-                    .split(' ')
-                    .map((p) => p.isNotEmpty ? p[0] : '')
-                    .take(2)
-                    .join()
-                    .toUpperCase();
-                return CircleAvatar(
-                  radius: 16,
-                  backgroundColor: context.fx.secondaryContainer,
-                  child: Text(
-                    initials,
-                    style: AppTypography.labelCaps(
-                      context.fx.onSecondaryContainer,
-                      context: context,
-                    ).copyWith(fontSize: 10),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      body: FxStitchScaffold(
-        padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 88),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FxStitchReportsHero(
-              searchController: _searchCtrl,
-              onSearchChanged: (v) => setState(() => _query = v.trim()),
-            ),
-            const SizedBox(height: 24),
-            LayoutBuilder(
-              builder: (context, c) {
-                final cols = c.maxWidth >= 900
-                    ? 3
-                    : c.maxWidth >= 600
-                        ? 2
-                        : 1;
-                final gap = 12.0;
-                final w = (c.maxWidth - (cols - 1) * gap) / cols;
-                return Wrap(
-                  spacing: gap,
-                  runSpacing: gap,
-                  children: [
-                    for (final r in filtered)
-                      SizedBox(
-                        width: cols == 1 ? c.maxWidth : w,
-                        child: FxStitchReportHubCard(
-                          title: r.$1,
-                          subtitle: r.$2,
-                          icon: r.$3,
-                          iconBackground: r.$5
-                              ? context.fx.tertiaryContainer
-                              : r.$1 == 'Daily Closing'
-                                  ? context.fx.errorContainer
-                                  : context.fx.surfaceContainerHigh,
-                          iconColor: r.$5
-                              ? context.fx.tertiaryFixedDim
-                              : r.$1 == 'Daily Closing'
-                                  ? context.fx.error
-                                  : context.fx.secondary,
-                          onTap: () => context.push(r.$4),
+            FxPageTitleBlock(
+              title: 'Reports',
+              subtitle: 'Financial statements, ledgers, and workspace tools.',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Refresh',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => setState(() {}),
+                  ),
+                  profileAsync.when(
+                    loading: () => const SizedBox(width: 32, height: 32),
+                    error: (_, _) => const SizedBox.shrink(),
+                    data: (profile) {
+                      final name = profile?.fullName ?? 'U';
+                      final initials = name
+                          .split(' ')
+                          .map((p) => p.isNotEmpty ? p[0] : '')
+                          .take(2)
+                          .join()
+                          .toUpperCase();
+                      return CircleAvatar(
+                        radius: 16,
+                        backgroundColor: context.fx.secondaryContainer,
+                        child: Text(
+                          initials,
+                          style: AppTypography.labelCaps(
+                            context.fx.onSecondaryContainer,
+                            context: context,
+                          ).copyWith(fontSize: 10),
                         ),
-                      ),
-                  ],
-                );
-              },
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            const FxStitchReportsCustomAnalyticsBanner(),
+            const SizedBox(height: AppSpacing.stackMd),
+            FxFilterToolbar(
+              searchController: _searchCtrl,
+              searchHint: 'Search reports and tools…',
+              onSearchSubmitted: (v) => setState(() => _query = v.trim()),
+            ),
+            const SizedBox(height: AppSpacing.stackLg),
+            Expanded(
+              child: ListView(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, c) {
+                      final cols = c.maxWidth >= 900
+                          ? 3
+                          : c.maxWidth >= 600
+                              ? 2
+                              : 1;
+                      final gap = 12.0;
+                      final w = (c.maxWidth - (cols - 1) * gap) / cols;
+                      return Wrap(
+                        spacing: gap,
+                        runSpacing: gap,
+                        children: [
+                          for (final r in filtered)
+                            SizedBox(
+                              width: cols == 1 ? c.maxWidth : w,
+                              child: FxStitchReportHubCard(
+                                title: r.$1,
+                                subtitle: r.$2,
+                                icon: r.$3,
+                                iconBackground: r.$5
+                                    ? context.fx.tertiaryContainer
+                                    : r.$1 == 'Daily Closing'
+                                        ? context.fx.errorContainer
+                                        : context.fx.surfaceContainerHigh,
+                                iconColor: r.$5
+                                    ? context.fx.tertiaryFixedDim
+                                    : r.$1 == 'Daily Closing'
+                                        ? context.fx.error
+                                        : context.fx.secondary,
+                                onTap: () => context.push(r.$4),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.stackLg),
+                  const FxStitchReportsCustomAnalyticsBanner(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

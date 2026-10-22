@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/image_compressor.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/data/repositories/slip_import_repository.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/slip_import/ocr/pak_bank_slip_parser.dart';
@@ -451,9 +452,12 @@ class _ImportPaymentSlipScreenState
           child: const Text('Paste text'),
         ),
       ],
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: FxContentContainer(
+        formWidth: true,
+        padding: EdgeInsets.zero,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           Text(
             'OCR creates a DRAFT only. Nothing posts until you confirm.',
             style: Theme.of(context).textTheme.bodyMedium,
@@ -754,6 +758,7 @@ class _ImportPaymentSlipScreenState
           ),
           const SizedBox(height: 48),
         ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_audit_timeline.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_shell.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,23 +53,12 @@ class AuditLogScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: AppBar(
+      appBar: FxPageHeader.appBar(
+        context: context,
+        fallbackRoute: '/reports',
         title: const Text('Audit Log'),
-        backgroundColor: context.fx.background,
       ),
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(
-          MediaQuery.sizeOf(context).width >= 900
-              ? AppSpacing.marginDesktop
-              : AppSpacing.marginMobile,
-          16,
-          MediaQuery.sizeOf(context).width >= 900
-              ? AppSpacing.marginDesktop
-              : AppSpacing.marginMobile,
-          16,
-        ),
-        child: content,
-      ),
+      body: FxContentContainer(child: content),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/deal_posting_errors.dart';
 import 'package:accounts_manager/core/utils/deal_statement.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_app_bar.dart';
+import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_bottom_bar.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_deal_widgets.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
@@ -38,7 +38,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
 
     return Scaffold(
       backgroundColor: context.fx.background,
-      appBar: FxAppBar.child(
+      appBar: FxPageHeader.appBar(
         context: context,
         fallbackRoute: '/deals',
         backgroundColor: context.fx.background,
@@ -83,10 +83,12 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen> {
               ),
       ),
       body: dealAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        loading: () => const FxLoadingState(),
+        error: (e, _) => FxErrorState(message: 'Error: $e'),
         data: (deal) {
-          if (deal == null) return const Center(child: Text('Deal not found'));
+          if (deal == null) {
+            return const FxEmptyState(message: 'Deal not found');
+          }
 
           return timelineAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
