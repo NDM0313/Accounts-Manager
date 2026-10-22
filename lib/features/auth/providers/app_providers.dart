@@ -290,18 +290,16 @@ final cashBalancesProvider = FutureProvider<List<CashBalanceRow>>((ref) async {
   return ref.read(reportRepositoryProvider).fetchCashBalances(profile.branchId);
 });
 
-/// Batch PKR balances for party directory. Empty map if RPC unavailable.
+/// Batch PKR balances for party directory. Errors surface to UI (not silent {}).
 final partyDirectoryBalancesProvider =
     FutureProvider<Map<String, double>>((ref) async {
   final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return {};
-  try {
-    return await ref
-        .read(reportRepositoryProvider)
-        .fetchPartyDirectoryBalances(companyId: profile.companyId);
-  } catch (_) {
-    return {};
+  if (profile == null) {
+    throw StateError('Sign in required to load party balances');
   }
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchPartyDirectoryBalances(companyId: profile.companyId);
 });
 
 /// Agent custody inventory; [agentPartyId] null loads all agents for the company.

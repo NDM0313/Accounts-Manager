@@ -33,14 +33,14 @@ BEGIN
 
   v_company := COALESCE(
     p_company_id,
-    (SELECT company_id FROM fx_profiles WHERE user_id = auth.uid() LIMIT 1)
+    (SELECT company_id FROM fx_users_profiles WHERE id = auth.uid() AND is_active LIMIT 1)
   );
   IF v_company IS NULL THEN
     RAISE EXCEPTION 'No company context';
   END IF;
   IF NOT EXISTS (
-    SELECT 1 FROM fx_profiles pr
-    WHERE pr.user_id = auth.uid() AND pr.company_id = v_company
+    SELECT 1 FROM fx_users_profiles pr
+    WHERE pr.id = auth.uid() AND pr.company_id = v_company AND pr.is_active
   ) THEN
     RAISE EXCEPTION 'Unauthorized company access';
   END IF;

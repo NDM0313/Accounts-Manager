@@ -7,6 +7,10 @@ class FxAccount {
     required this.isActive,
     this.parentId,
     this.currencyCode,
+    this.bankName,
+    this.accountTitle,
+    this.accountNumber,
+    this.iban,
   });
 
   final String id;
@@ -16,6 +20,10 @@ class FxAccount {
   final bool isActive;
   final String? parentId;
   final String? currencyCode;
+  final String? bankName;
+  final String? accountTitle;
+  final String? accountNumber;
+  final String? iban;
 
   factory FxAccount.fromJson(Map<String, dynamic> json) {
     final currencyJoin = json['fx_currencies'];
@@ -31,6 +39,10 @@ class FxAccount {
       isActive: json['is_active'] as bool? ?? true,
       parentId: json['parent_id'] as String?,
       currencyCode: currencyCode,
+      bankName: json['bank_name'] as String?,
+      accountTitle: json['account_title'] as String?,
+      accountNumber: json['account_number'] as String?,
+      iban: json['iban'] as String?,
     );
   }
 }

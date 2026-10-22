@@ -119,7 +119,8 @@ class _ImportPaymentSlipScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Clipboard image paste varies by browser. Upload a file, or paste OCR text here.',
+              'No usable OCR text on clipboard. Upload JPEG/PNG/WebP, or paste slip text. '
+              'HEIC/PDF OCR is not reliable in browsers.',
             ),
           ),
         );
@@ -132,6 +133,55 @@ class _ImportPaymentSlipScreenState
       _ready = true;
       _ocrError = null;
     });
+  }
+
+  Future<void> _pasteClipboardImage() async {
+    // Flutter web Clipboard API exposes text reliably; image paste is
+    // browser-specific. Prefer Upload when image paste is unavailable.
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Clipboard image paste is not available in this browser build. '
+            'Use Upload (JPEG/PNG/WebP). Camera capture uses the file picker when the OS offers it.',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _openComposerFromReview() {
+    final amount = double.tryParse(_amountCtrl.text.replaceAll(',', ''));
+    final receive = _classification == 'receive_from_party';
+    final pay = _classification == 'pay_to_party';
+    if (!receive && !pay) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choose Receive or Pay classification first'),
+        ),
+      );
+      return;
+    }
+    final mode = receive
+        ? (_partyFlow == 'agent_settlement' ? 'agent_return' : 'customer_receipt')
+        : (_partyFlow == 'customer_receipt' || _partyFlow == 'unspecified'
+            ? 'agent_payment'
+            : _partyFlow == 'supplier_payment'
+                ? 'agent_payment'
+                : 'customer_refund');
+    final q = <String, String>{
+      'direction': receive ? 'receive' : 'pay',
+      'mode': mode,
+      if (_partyId != null) 'partyId': _partyId!,
+      if (amount != null) 'amount': amount.toString(),
+      'currency': _currency,
+      if (_refCtrl.text.trim().isNotEmpty) 'reference': _refCtrl.text.trim(),
+      if (_descCtrl.text.trim().isNotEmpty) 'description': _descCtrl.text.trim(),
+    };
+    final qs = q.entries
+        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
+        .join('&');
+    context.push('/transactions/money?$qs');
   }
 
   Future<void> _ingest(Uint8List bytes, String name, String? mime) async {
@@ -463,13 +513,32 @@ class _ImportPaymentSlipScreenState
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
-          if (_fileName == null)
+          Text(
+            'Formats: JPEG, PNG, WebP for OCR. PDF attaches without full OCR. '
+            'HEIC is not supported — convert first. A printed slip is not '
+            'independent proof that a bank payment settled.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          if (_fileName == null) ...[
             FilledButton.icon(
               onPressed: _busy ? null : _pick,
               icon: const Icon(Icons.upload_file),
               label: const Text('Upload slip image or PDF'),
-            )
-          else ...[
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _pasteClipboardImage,
+              icon: const Icon(Icons.content_paste),
+              label: const Text('Paste clipboard image'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _pick,
+              icon: const Icon(Icons.photo_camera_outlined),
+              label: const Text('Camera / file (device picker)'),
+            ),
+          ] else ...[
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.attach_file),
@@ -752,9 +821,15 @@ class _ImportPaymentSlipScreenState
             decoration: const InputDecoration(labelText: 'Raw OCR / pasted text'),
           ),
           const SizedBox(height: 20),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _openComposerFromReview,
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('Continue in Receive / Pay composer'),
+          ),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: _busy || (!_ready && _bytes == null) ? null : _confirm,
-            child: Text(_busy ? 'Working…' : 'Confirm & post'),
+            child: Text(_busy ? 'Working…' : 'Confirm & post via slip import'),
           ),
           const SizedBox(height: 48),
         ],

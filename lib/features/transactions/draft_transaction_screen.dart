@@ -531,18 +531,32 @@ class _DraftTransactionScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FxSectionLabel(label: isBuy ? 'Agent purchase' : 'Customer sale'),
+        FxSectionLabel(
+          label: isBuy ? 'A. Buy from (agent/supplier)' : 'A. Sell to (customer)',
+        ),
+        const SizedBox(height: 4),
+        Text(
+          isBuy
+              ? 'Payment (pay now vs pay later) is separate from where the '
+                  'foreign currency is held after purchase.'
+              : 'Customer sale — delivery and settlement follow existing rules.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        FxSectionLabel(
+          label: isBuy ? 'C. Payment' : 'Payment',
+        ),
         const SizedBox(height: 8),
         SegmentedButton<bool>(
           segments: const [
             ButtonSegment(
               value: false,
-              label: Text('Cash'),
+              label: Text('Pay now'),
               icon: Icon(Icons.payments_outlined, size: 18),
             ),
             ButtonSegment(
               value: true,
-              label: Text('On credit'),
+              label: Text('Pay later'),
               icon: Icon(Icons.account_balance_outlined, size: 18),
             ),
           ],
@@ -654,6 +668,25 @@ class _DraftTransactionScreenState
                         context: context,
                       ).copyWith(fontSize: 12),
                     ),
+                    if (isBuy) ...[
+                      const SizedBox(height: 16),
+                      FxSectionLabel(label: 'D. Where is the currency?'),
+                      const SizedBox(height: 4),
+                      Text(
+                        _onCredit
+                            ? 'Pay later: foreign currency is typically held with / '
+                                'owed through the selected agent until settled. '
+                                'Vault receipt posts when you receive into our cash/FX account — '
+                                'do not also book agent custody for the same quantity.'
+                            : 'Pay now: foreign currency is received into our vault '
+                                '(cash/FX account for this currency). Payment and custody '
+                                'are not the same question — this posts vault receipt with PKR payment.',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
+                      ),
+                    ],
                   ],
                 );
               },
@@ -696,7 +729,13 @@ class _DraftTransactionScreenState
     required FxTransactionType type,
   }) {
     final cashAccounts = accounts
-        .where((a) => a.code.startsWith('11'))
+        .where(
+          (a) =>
+              a.accountType == 'asset' &&
+              a.isActive &&
+              (a.code.startsWith('11') || a.code.startsWith('12')) &&
+              !const {'1180', '1190'}.contains(a.code),
+        )
         .toList();
     final expenseAccounts = accounts
         .where((a) => a.accountType == 'expense')
@@ -739,7 +778,21 @@ class _DraftTransactionScreenState
                         _buildBuySellPartySection(type),
                       ],
                       const SizedBox(height: 16),
-                      FxSectionLabel(label: 'Amount & rate'),
+                      FxSectionLabel(
+                        label: type == FxTransactionType.currencyBuy
+                            ? 'B. Currency purchase'
+                            : type == FxTransactionType.currencySell
+                                ? 'B. Currency sale'
+                                : 'Amount & rate',
+                      ),
+                      if (type == FxTransactionType.currencyBuy) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Example: 10,000 CNY × PKR 40 per CNY = PKR 400,000. '
+                          'Rounding follows the posting engine.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         key: ValueKey('draft-currency-$_currencyCode'),
@@ -1114,8 +1167,8 @@ class _DraftTransactionScreenState
                           initialValue: _fromAccountCode,
                           decoration: InputDecoration(
                             labelText: type == FxTransactionType.settlementSend
-                                ? 'Pay from (cash)'
-                                : 'Receive to (cash)',
+                                ? 'Pay from (cash/bank)'
+                                : 'Receive to (cash/bank)',
                           ),
                           items: cashAccounts
                               .map(

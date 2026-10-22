@@ -22,42 +22,57 @@ class TransactionMenuEntry {
   final String route;
 }
 
-/// Grouped New Transaction menu entries for the ledger bottom sheet.
+/// Compact primary actions + More — no duplicate receive/pay forms.
 List<TransactionMenuGroup> buildTransactionMenuGroups() {
   return [
     TransactionMenuGroup(
-      title: 'Common',
+      title: 'Primary',
       entries: [
         const TransactionMenuEntry(
-          label: 'Import Payment Slip',
+          label: 'Scan Slip',
           icon: Icons.document_scanner_outlined,
           route: '/slips/import',
         ),
-        TransactionMenuEntry(
-          label: TransactionDraftMode.customerReceipt.menuLabel,
+        const TransactionMenuEntry(
+          label: 'Receive Money',
           icon: Icons.call_received_outlined,
-          route:
-              '/transactions/new?type=settlement_receive&mode=customer_receipt',
+          route: '/transactions/money?direction=receive&mode=customer_receipt',
         ),
-        TransactionMenuEntry(
-          label: TransactionDraftMode.agentPayment.menuLabel,
+        const TransactionMenuEntry(
+          label: 'Pay Money',
           icon: Icons.send_outlined,
-          route: '/transactions/new?type=settlement_send&mode=agent_payment',
+          route: '/transactions/money?direction=pay&mode=agent_payment',
+        ),
+        const TransactionMenuEntry(
+          label: 'Buy Currency',
+          icon: Icons.add_shopping_cart_outlined,
+          route: '/transactions/new?type=currency_buy',
+        ),
+        const TransactionMenuEntry(
+          label: 'Sell Currency',
+          icon: Icons.payments_outlined,
+          route: '/transactions/new?type=currency_sell',
+        ),
+        if (FeatureFlags.dealsWorkflowEnabled)
+          const TransactionMenuEntry(
+            label: 'New Deal',
+            icon: Icons.handshake_outlined,
+            route: '/deals/new',
+          ),
+        const TransactionMenuEntry(
+          label: 'Transfer Between Accounts',
+          icon: Icons.swap_horiz,
+          route: '/transactions/new?type=account_transfer',
         ),
         const TransactionMenuEntry(
           label: 'Expense',
           icon: Icons.receipt_long_outlined,
           route: '/transactions/new?type=expense',
         ),
-        const TransactionMenuEntry(
-          label: 'Account Transfer',
-          icon: Icons.swap_horiz,
-          route: '/transactions/new?type=account_transfer',
-        ),
       ],
     ),
     TransactionMenuGroup(
-      title: 'Remittance',
+      title: 'More',
       entries: [
         if (FeatureFlags.remittanceWorkflowEnabled)
           const TransactionMenuEntry(
@@ -71,27 +86,6 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
             icon: Icons.list_alt_outlined,
             route: '/remittance',
           ),
-      ],
-    ),
-    TransactionMenuGroup(
-      title: 'FX Deals',
-      entries: [
-        if (FeatureFlags.dealsWorkflowEnabled)
-          const TransactionMenuEntry(
-            label: 'Customer FX Deal',
-            icon: Icons.handshake_outlined,
-            route: '/deals/new',
-          ),
-        const TransactionMenuEntry(
-          label: 'Currency Buy',
-          icon: Icons.add_shopping_cart_outlined,
-          route: '/transactions/new?type=currency_buy',
-        ),
-        const TransactionMenuEntry(
-          label: 'Currency Sell',
-          icon: Icons.payments_outlined,
-          route: '/transactions/new?type=currency_sell',
-        ),
         const TransactionMenuEntry(
           label: 'Cross Currency',
           icon: Icons.currency_exchange,
@@ -102,30 +96,15 @@ List<TransactionMenuGroup> buildTransactionMenuGroups() {
           icon: Icons.link,
           route: '/transactions/chained-exchange',
         ),
-      ],
-    ),
-    TransactionMenuGroup(
-      title: 'Advanced',
-      entries: [
-        const TransactionMenuEntry(
-          label: 'Settlement Receive',
-          icon: Icons.call_received_outlined,
-          route: '/transactions/new?type=settlement_receive',
-        ),
-        const TransactionMenuEntry(
-          label: 'Settlement Send',
-          icon: Icons.send_outlined,
-          route: '/transactions/new?type=settlement_send',
-        ),
         TransactionMenuEntry(
           label: TransactionDraftMode.agentReturn.menuLabel,
           icon: Icons.reply_outlined,
-          route: '/transactions/new?type=settlement_receive&mode=agent_return',
+          route: '/transactions/money?direction=receive&mode=agent_return',
         ),
         TransactionMenuEntry(
           label: TransactionDraftMode.customerRefund.menuLabel,
           icon: Icons.undo_outlined,
-          route: '/transactions/new?type=settlement_send&mode=customer_refund',
+          route: '/transactions/money?direction=pay&mode=customer_refund',
         ),
         TransactionMenuEntry(
           label: FxTransactionType.revaluation.label,

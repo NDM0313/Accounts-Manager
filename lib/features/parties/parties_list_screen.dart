@@ -84,15 +84,29 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
               ).copyWith(fontSize: 12),
             ),
             const SizedBox(height: AppSpacing.stackMd),
+            if (balancesAsync.hasError)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.stackSm),
+                child: FxErrorState(
+                  message:
+                      'Balances unavailable: ${balancesAsync.error}. Tap retry.',
+                  onRetry: () =>
+                      ref.invalidate(partyDirectoryBalancesProvider),
+                ),
+              ),
             Expanded(
               child: partiesAsync.when(
                 loading: () => const FxLoadingState(),
-                error: (e, _) => FxErrorState(message: 'Error: $e'),
+                error: (e, _) => FxErrorState(
+                  message: 'Error: $e',
+                  onRetry: () => ref.invalidate(partiesProvider(_filter)),
+                ),
                 data: (parties) {
                   if (parties.isEmpty) {
                     return const FxEmptyState(message: 'No parties found.');
                   }
-                  final balances = balancesAsync.asData?.value ?? const {};
+                  final balancesLoading = balancesAsync.isLoading;
+                  final balances = balancesAsync.asData?.value;
                   final currencyByParty =
                       currencyBalancesAsync.asData?.value ?? const {};
                   return ListView.separated(
@@ -101,12 +115,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                         const SizedBox(height: AppSpacing.stackSm),
                     itemBuilder: (context, i) {
                       final p = parties[i];
-                      final bal = balances[p.id];
-                      final balanceLabel = bal == null
-                          ? 'Balance unavailable'
-                          : bal.abs() < 0.005
-                              ? 'Settled'
-                              : _balanceMeaning(p.partyType, bal, fmt);
+                      final String balanceLabel;
+                      if (balancesLoading && balances == null) {
+                        balanceLabel = 'Loading balance…';
+                      } else if (balancesAsync.hasError) {
+                        balanceLabel = 'Balance unavailable — retry';
+                      } else if (balances == null || !balances.containsKey(p.id)) {
+                        balanceLabel = 'Balance unavailable — retry';
+                      } else {
+                        final bal = balances[p.id]!;
+                        balanceLabel = bal.abs() < 0.005
+                            ? 'Settled'
+                            : _balanceMeaning(p.partyType, bal, fmt);
+                      }
                       return PartyDirectoryListTile(
                         party: p,
                         pkrBalanceLabel: balanceLabel,

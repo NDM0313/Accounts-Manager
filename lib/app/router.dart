@@ -40,7 +40,7 @@ import 'package:accounts_manager/features/transactions/chained_exchange_wizard_s
 import 'package:accounts_manager/features/transactions/transaction_audit_screen.dart';
 import 'package:accounts_manager/features/transactions/transaction_complete_screen.dart';
 import 'package:accounts_manager/features/transactions/draft_transaction_screen.dart';
-import 'package:accounts_manager/features/transactions/receive_payment_screen.dart';
+import 'package:accounts_manager/features/transactions/money_movement_composer_screen.dart';
 import 'package:accounts_manager/features/attachments/attachment_preview_screen.dart';
 import 'package:accounts_manager/features/share/share_secure_link_screen.dart';
 import 'package:accounts_manager/features/settings/settings_security_screen.dart';
@@ -113,9 +113,46 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/transactions/receive-payment',
-            builder: (context, state) => ReceivePaymentScreen(
-              initialPartyId: state.uri.queryParameters['partyId'],
-            ),
+            builder: (context, state) {
+              final q = state.uri.queryParameters;
+              return MoneyMovementComposerScreen(
+                mode: TransactionDraftMode.customerReceipt,
+                forceReceive: true,
+                initialPartyId: q['partyId'],
+                initialAmount: double.tryParse(q['amount'] ?? ''),
+                initialCurrency: q['currency'],
+                initialAccountCode: q['account'],
+                initialMethod: q['method'],
+                initialReference: q['reference'],
+                initialDescription: q['description'],
+              );
+            },
+          ),
+          GoRoute(
+            path: '/transactions/money',
+            builder: (context, state) {
+              final q = state.uri.queryParameters;
+              final mode = TransactionDraftMode.fromQuery(q['mode']);
+              final direction = q['direction'];
+              final forceReceive = direction == null
+                  ? null
+                  : direction == 'receive';
+              return MoneyMovementComposerScreen(
+                mode: mode == TransactionDraftMode.standard
+                    ? (forceReceive == false
+                        ? TransactionDraftMode.agentPayment
+                        : TransactionDraftMode.customerReceipt)
+                    : mode,
+                forceReceive: forceReceive,
+                initialPartyId: q['partyId'],
+                initialAmount: double.tryParse(q['amount'] ?? ''),
+                initialCurrency: q['currency'],
+                initialAccountCode: q['account'],
+                initialMethod: q['method'],
+                initialReference: q['reference'],
+                initialDescription: q['description'],
+              );
+            },
           ),
           GoRoute(
             path: '/attachments/:id/preview',
@@ -148,6 +185,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/transactions/new',
+            redirect: (context, state) {
+              final q = state.uri.queryParameters;
+              final type = q['type'];
+              if (type != 'settlement_receive' && type != 'settlement_send') {
+                return null;
+              }
+              final mode = q['mode'] ?? '';
+              final direction =
+                  type == 'settlement_receive' ? 'receive' : 'pay';
+              final params = <String, String>{
+                'direction': direction,
+                if (mode.isNotEmpty) 'mode': mode,
+                if (q['partyId'] != null) 'partyId': q['partyId']!,
+                if (q['currency'] != null) 'currency': q['currency']!,
+                if (q['amount'] != null) 'amount': q['amount']!,
+                if (q['account'] != null) 'account': q['account']!,
+                if (q['method'] != null) 'method': q['method']!,
+                if (q['reference'] != null) 'reference': q['reference']!,
+                if (q['description'] != null) 'description': q['description']!,
+              };
+              final qs = params.entries
+                  .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
+                  .join('&');
+              return '/transactions/money?$qs';
+            },
             builder: (context, state) {
               final q = state.uri.queryParameters;
               final type = _transactionTypeFromQuery(q['type']);
