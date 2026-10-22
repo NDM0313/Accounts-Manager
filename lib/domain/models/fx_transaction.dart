@@ -57,6 +57,8 @@ class FxTransaction {
     this.partyId,
     this.partyName,
     this.partyCode,
+    this.dealId,
+    this.dealNo,
     this.exchangeGroupId,
     this.createdAt,
     this.postedAt,
@@ -76,6 +78,8 @@ class FxTransaction {
   final String? partyId;
   final String? partyName;
   final String? partyCode;
+  final String? dealId;
+  final String? dealNo;
   final String? exchangeGroupId;
   final DateTime? createdAt;
   final DateTime? postedAt;
@@ -107,6 +111,11 @@ class FxTransaction {
       partyName = partyJson['name'] as String?;
       partyCode = partyJson['code'] as String?;
     }
+    final dealJson = json['fx_deals'];
+    String? dealNo;
+    if (dealJson is Map<String, dynamic>) {
+      dealNo = dealJson['deal_no'] as String?;
+    }
 
     return FxTransaction(
       id: json['id'] as String,
@@ -124,6 +133,8 @@ class FxTransaction {
       partyId: json['party_id'] as String?,
       partyName: partyName,
       partyCode: partyCode,
+      dealId: json['deal_id'] as String?,
+      dealNo: dealNo,
       exchangeGroupId: json['exchange_group_id'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)

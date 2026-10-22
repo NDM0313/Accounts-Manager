@@ -65,8 +65,8 @@ class FxPartyStatementRow extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _detailLine(fmt, line),
-                      maxLines: 2,
+                      line.narrative,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.dataMd(
                         context.fx.onSurface,
@@ -74,7 +74,8 @@ class FxPartyStatementRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (line.hasAttachment) FxProofBadge(count: 1),
+                  if (line.attachmentCount > 0)
+                    FxProofBadge(count: line.attachmentCount),
                 ],
               ),
               const SizedBox(height: 8),
@@ -110,30 +111,11 @@ class FxPartyStatementRow extends StatelessWidget {
                   ),
                 ],
               ),
-              if (line.description != null && line.description!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  line.description!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodyMd(
-                    context.fx.onSurfaceVariant,
-                    context: context,
-                  ).copyWith(fontSize: 10),
-                ),
-              ],
             ],
           ),
         ),
       ),
     );
-  }
-
-  static String _detailLine(NumberFormat fmt, PartyStatementLine line) {
-    if (line.foreignAmount != 0 && line.currencyCode.isNotEmpty) {
-      return 'Sold ${fmt.format(line.foreignAmount)} ${line.currencyCode} @ ${fmt.format(line.rateUsed)} = PKR ${fmt.format(line.pkrEquivalent)}';
-    }
-    return 'PKR ${fmt.format(line.pkrEquivalent)}';
   }
 }
 

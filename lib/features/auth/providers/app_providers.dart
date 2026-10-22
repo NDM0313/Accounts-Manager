@@ -700,18 +700,30 @@ final partyStatementProvider =
         priorTransactions: priorTxs,
       );
 
-      final attachmentIds = await ref
+      final attachmentCounts = await ref
           .read(attachmentRepositoryProvider)
-          .fetchTransactionIdsWithAttachments(txs.map((t) => t.id).toList());
+          .fetchTransactionAttachmentCounts(txs.map((t) => t.id).toList());
+
+      final workspaces = ref.watch(myWorkspacesProvider).asData?.value;
+      final ws = workspaces?.where((w) => w.isActiveWorkspace).firstOrNull;
+      final company = PartyStatementCompanyMeta(
+        companyName: (ws?.companyName.isNotEmpty == true)
+            ? ws!.companyName
+            : 'FX Cash Ledger',
+        branchName: (ws?.branchName.isNotEmpty == true) ? ws!.branchName : null,
+        isDemo: ws?.isDemo ?? false,
+      );
 
       return PartyStatementBuilder.build(
         party: party,
         from: filters.from,
         to: filters.to,
         transactions: txs,
-        transactionIdsWithAttachments: attachmentIds,
+        attachmentCountsByTx: attachmentCounts,
         isInternalView: filters.isInternalView,
         openingBalancePkr: openingBalance,
+        company: company,
+        generatedAt: DateTime.now(),
       );
     });
 

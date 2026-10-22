@@ -1,11 +1,9 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/core/export/fx_document_export.dart';
-import 'package:accounts_manager/core/export/report_pdf_builder.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_statement_bottom_bar.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
-import 'package:accounts_manager/domain/services/party_statement_builder.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
+import 'package:accounts_manager/features/parties/party_statement_export_sheet.dart';
 import 'package:accounts_manager/features/parties/widgets/agent_ledger_stitch_view.dart';
 import 'package:accounts_manager/features/parties/widgets/customer_ledger_stitch_view.dart';
 import 'package:flutter/material.dart';
@@ -32,16 +30,12 @@ class PartyLedgerScreen extends ConsumerWidget {
         backgroundColor: context.fx.background,
         title: Text(title),
         actions: [
-          if (isCustomer)
-            IconButton(
-              icon: const Icon(Icons.ios_share_outlined),
-              onPressed: () => _exportStatement(
-                context,
-                ref,
-                customerCopy: false,
-              ),
-            )
-          else ...[
+          IconButton(
+            tooltip: 'Export statement',
+            icon: const Icon(Icons.ios_share_outlined),
+            onPressed: () => _exportStatement(context, ref),
+          ),
+          if (!isCustomer) ...[
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
@@ -76,11 +70,7 @@ class PartyLedgerScreen extends ConsumerWidget {
               onSendRefund: () => context.push(
                 '/transactions/new?type=${FxTransactionType.settlementSend.dbValue}&partyId=$partyId',
               ),
-              onExportPdf: () => _exportStatement(
-                context,
-                ref,
-                customerCopy: true,
-              ),
+              onExportPdf: () => _exportStatement(context, ref),
             )
           : null,
       body: partyAsync.when(
@@ -96,11 +86,7 @@ class PartyLedgerScreen extends ConsumerWidget {
               party: party,
               statementAsync: statementAsync,
               fmt: fmt,
-              onExport: () => _exportStatement(
-                context,
-                ref,
-                customerCopy: false,
-              ),
+              onExport: () => _exportStatement(context, ref),
             );
           }
           return AgentLedgerStitchView(
@@ -114,62 +100,16 @@ class PartyLedgerScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _exportStatement(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool customerCopy,
-  }) async {
+  Future<void> _exportStatement(BuildContext context, WidgetRef ref) async {
     final view = ref
         .read(partyStatementProvider(partyId))
         .whenOrNull(data: (v) => v);
-    if (view == null || view.lines.isEmpty) {
+    if (view == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No statement data to share.')),
       );
       return;
     }
-    final internal = !customerCopy;
-    final text = PartyStatementBuilder.formatShareText(
-      view,
-      internal: internal,
-    );
-    final csv = PartyStatementBuilder.formatShareCsv(view);
-    final pdfRows = view.lines
-        .map(
-          (l) => [
-            l.transactionDate.toIso8601String().split('T').first,
-            l.transactionNo ?? l.transactionId.substring(0, 8),
-            l.transactionType.label,
-            l.currencyCode,
-            l.debitPkr.toStringAsFixed(2),
-            l.creditPkr.toStringAsFixed(2),
-            l.runningBalancePkr.toStringAsFixed(2),
-          ],
-        )
-        .toList();
-    final pdf = await buildStatementPdf(
-      title: 'Party Statement',
-      partyName: view.party.name,
-      periodLabel:
-          '${view.from.toIso8601String().split('T').first} → ${view.to.toIso8601String().split('T').first}',
-      displayCurrency: 'PKR',
-      lineRows: pdfRows,
-      totalDebit: view.summary.totalDebitPkr.toStringAsFixed(2),
-      totalCredit: view.summary.totalCreditPkr.toStringAsFixed(2),
-      closingBalance: view.summary.netBalancePkr.toStringAsFixed(2),
-      internal: internal,
-    );
-    if (!context.mounted) return;
-    await showFxExportSheet(
-      context,
-      mode: internal ? FxExportMode.internal : FxExportMode.customerFacing,
-      document: FxExportDocument(
-        title: 'Party Statement — ${view.party.name}',
-        textBody: text,
-        csvBody: csv,
-        pdfBytes: pdf,
-        subject: 'Party Statement — ${view.party.name}',
-      ),
-    );
+    await showPartyStatementExportSheet(context, view: view);
   }
 }

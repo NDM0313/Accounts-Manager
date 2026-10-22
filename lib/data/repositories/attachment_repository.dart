@@ -164,16 +164,25 @@ class AttachmentRepository {
   Future<Set<String>> fetchTransactionIdsWithAttachments(
     List<String> transactionIds,
   ) async {
+    final counts = await fetchTransactionAttachmentCounts(transactionIds);
+    return counts.keys.toSet();
+  }
+
+  Future<Map<String, int>> fetchTransactionAttachmentCounts(
+    List<String> transactionIds,
+  ) async {
     if (transactionIds.isEmpty) return {};
     final rows = await supabase
         .from('fx_attachments')
         .select('transaction_id')
         .inFilter('transaction_id', transactionIds);
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .where((r) => r['transaction_id'] != null)
-        .map((r) => r['transaction_id'] as String)
-        .toSet();
+    final counts = <String, int>{};
+    for (final row in (rows as List).cast<Map<String, dynamic>>()) {
+      final id = row['transaction_id'] as String?;
+      if (id == null) continue;
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
   }
 
   Future<Map<String, int>> fetchLegAttachmentCounts(List<String> legIds) async {

@@ -11,9 +11,9 @@ import 'package:accounts_manager/domain/services/draft_line_builder.dart';
 
 class TransactionRepository {
   static const _txSelect =
-      'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, exchange_group_id, '
+      'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, deal_id, exchange_group_id, '
       'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
-      'fx_parties(code, name)';
+      'fx_parties(code, name), fx_deals(deal_no)';
 
   static String _localDateIso([DateTime? date]) =>
       localTransactionDateIso(date ?? DateTime.now());

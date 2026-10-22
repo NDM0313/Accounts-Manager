@@ -1,6 +1,10 @@
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 
+enum PartyStatementFormat { simple, detailed }
+
+enum PartyStatementAudience { external, internal }
+
 class PartyStatementLine {
   const PartyStatementLine({
     required this.transactionDate,
@@ -15,7 +19,11 @@ class PartyStatementLine {
     required this.runningBalancePkr,
     required this.pkrEquivalent,
     required this.transactionId,
+    required this.narrative,
+    this.detailBlocks = const [],
     this.description,
+    this.dealNo,
+    this.attachmentCount = 0,
     this.hasAttachment = false,
   });
 
@@ -31,7 +39,11 @@ class PartyStatementLine {
   final double runningBalancePkr;
   final double pkrEquivalent;
   final String transactionId;
+  final String narrative;
+  final List<String> detailBlocks;
   final String? description;
+  final String? dealNo;
+  final int attachmentCount;
   final bool hasAttachment;
 }
 
@@ -53,6 +65,18 @@ class PartyStatementSummary {
   final Map<String, double> balancesByCurrency;
 }
 
+class PartyStatementCompanyMeta {
+  const PartyStatementCompanyMeta({
+    required this.companyName,
+    this.branchName,
+    this.isDemo = false,
+  });
+
+  final String companyName;
+  final String? branchName;
+  final bool isDemo;
+}
+
 class PartyStatementView {
   const PartyStatementView({
     required this.party,
@@ -62,6 +86,11 @@ class PartyStatementView {
     required this.lines,
     this.isInternalView = true,
     this.openingBalancePkr = 0,
+    this.statementCurrency = 'PKR',
+    this.company,
+    this.generatedAt,
+    this.balanceExplanation = '',
+    this.timezoneLabel = 'PKT',
   });
 
   final FxParty party;
@@ -71,6 +100,13 @@ class PartyStatementView {
   final List<PartyStatementLine> lines;
   final bool isInternalView;
   final double openingBalancePkr;
+  final String statementCurrency;
+  final PartyStatementCompanyMeta? company;
+  final DateTime? generatedAt;
+  final String balanceExplanation;
+  final String timezoneLabel;
+
+  double get closingBalancePkr => summary.netBalancePkr;
 }
 
 /// Filter options for party statement queries.

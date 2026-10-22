@@ -67,14 +67,24 @@ class FxStitchStatementRow extends StatelessWidget {
               ],
             ],
           ),
-          if (line.description != null && line.description!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            line.narrative,
+            textAlign: TextAlign.center,
+            style: AppTypography.bodySm(
+              context.fx.onSurfaceVariant,
+              context: context,
+            ),
+          ),
+          if (line.attachmentCount > 0) ...[
             const SizedBox(height: 4),
             Text(
-              line.description!,
-              style: AppTypography.bodySm(
-                context.fx.onSurfaceVariant,
+              'Attachments: ${line.attachmentCount}',
+              textAlign: TextAlign.center,
+              style: AppTypography.labelCaps(
+                context.fx.secondary,
                 context: context,
-              ),
+              ).copyWith(fontSize: 9),
             ),
           ],
           const SizedBox(height: 8),
