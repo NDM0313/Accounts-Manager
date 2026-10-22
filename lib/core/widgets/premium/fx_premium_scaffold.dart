@@ -3,16 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// Pops the route stack when possible; otherwise navigates to [fallbackRoute].
-void fxSafePop(BuildContext context, {String? fallbackRoute}) {
-  if (Navigator.of(context).canPop()) {
-    if (GoRouter.maybeOf(context) != null) {
-      context.pop();
+///
+/// Prefer this for Cancel/Back on flat (non-shell) routes opened via hash deep
+/// links — bare [GoRouter.pop] is a no-op when `canPop` is false.
+void fxSafePop(
+  BuildContext context, {
+  String? fallbackRoute,
+  Object? result,
+}) {
+  final router = GoRouter.maybeOf(context);
+  final canPop = router != null
+      ? context.canPop()
+      : Navigator.of(context).canPop();
+  if (canPop) {
+    if (router != null) {
+      context.pop(result);
     } else {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(result);
     }
     return;
   }
-  if (fallbackRoute != null && GoRouter.maybeOf(context) != null) {
+  if (fallbackRoute != null && router != null) {
     context.go(fallbackRoute);
   }
 }

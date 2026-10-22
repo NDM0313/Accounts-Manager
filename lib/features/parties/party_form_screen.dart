@@ -3,6 +3,7 @@ import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/contact_import.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/data/repositories/party_bank_repository.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -13,6 +14,9 @@ import 'package:intl/intl.dart';
 
 class PartyFormScreen extends ConsumerStatefulWidget {
   const PartyFormScreen({super.key, this.partyId});
+
+  /// Cold deep-link / empty-stack leave target (hub is outside the shell).
+  static const leaveFallback = '/accounts-hub';
 
   final String? partyId;
 
@@ -201,40 +205,38 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
   Widget build(BuildContext context) {
     final fx = context.fx;
     if (_isEdit && !_loaded) {
-      return Scaffold(
+      return FxPremiumScaffold(
+        title: const Text('Edit party'),
+        fallbackRoute: PartyFormScreen.leaveFallback,
         backgroundColor: fx.background,
-        appBar: AppBar(
-          title: const Text('Edit party'),
-          backgroundColor: fx.background,
-        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return PopScope(
-      canPop: !_busy,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop || _busy) return;
         final leave = await _confirmDiscard();
-        if (leave && mounted) context.pop();
+        if (leave && mounted) {
+          fxSafePop(context, fallbackRoute: PartyFormScreen.leaveFallback);
+        }
       },
-      child: Scaffold(
+      child: FxPremiumScaffold(
+        title: Text(_isEdit ? 'Edit party' : 'New party'),
+        fallbackRoute: PartyFormScreen.leaveFallback,
         backgroundColor: fx.background,
-        appBar: AppBar(
-          title: Text(_isEdit ? 'Edit party' : 'New party'),
-          backgroundColor: fx.background,
-          actions: [
-            TextButton.icon(
-              onPressed: _busy ? null : _importContact,
-              icon: const Icon(Icons.contact_page_outlined),
-              label: Text(
-                ContactImport.isContactPickerSupported
-                    ? 'Import contact'
-                    : 'Import .vcf',
-              ),
+        actions: [
+          TextButton.icon(
+            onPressed: _busy ? null : _importContact,
+            icon: const Icon(Icons.contact_page_outlined),
+            label: Text(
+              ContactImport.isContactPickerSupported
+                  ? 'Import contact'
+                  : 'Import .vcf',
             ),
-          ],
-        ),
+          ),
+        ],
         body: Form(
           key: _formKey,
           child: Column(
@@ -543,7 +545,12 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
               FxObsidianActionBar(
                 saveLabel: _isEdit ? 'Save changes' : 'Create party',
                 onCancel: () async {
-                  if (await _confirmDiscard() && mounted) context.pop();
+                  if (await _confirmDiscard() && mounted) {
+                    fxSafePop(
+                      context,
+                      fallbackRoute: PartyFormScreen.leaveFallback,
+                    );
+                  }
                 },
                 onSave: _busy ? null : _save,
                 busy: _busy,
@@ -614,7 +621,7 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
         'currency_code': _openingCcy,
         'direction': _openingDirection,
         'as_of_date': DateFormat('yyyy-MM-dd').format(_openingDate),
-        if (rate != null) 'rate_used': rate,
+        'rate_used': ?rate,
         'memo': _openingMemoCtrl.text.trim().isEmpty
             ? null
             : _openingMemoCtrl.text.trim(),
@@ -648,7 +655,7 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
         'country_code': _countryCtrl.text.trim().toUpperCase(),
         'website': _websiteCtrl.text.trim(),
         'notes': _notesCtrl.text.trim(),
-        if (opening != null) 'opening': opening,
+        'opening': ?opening,
       };
 
       if (!_isEdit) {
@@ -683,7 +690,11 @@ class _PartyFormScreenState extends ConsumerState<PartyFormScreen> {
           ),
         ),
       );
-      context.pop(id);
+      fxSafePop(
+        context,
+        fallbackRoute: PartyFormScreen.leaveFallback,
+        result: id,
+      );
     } catch (e) {
       final msg = e.toString();
       if (mounted) {

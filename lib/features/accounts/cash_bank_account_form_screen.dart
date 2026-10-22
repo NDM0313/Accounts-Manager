@@ -2,14 +2,16 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_form_field.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class CashBankAccountFormScreen extends ConsumerStatefulWidget {
   const CashBankAccountFormScreen({super.key, this.initialKind = 'cash'});
+
+  static const leaveFallback = '/accounts-hub';
 
   final String initialKind;
 
@@ -102,7 +104,7 @@ class _CashBankAccountFormScreenState
         'amount': amt,
         'currency_code': _currency,
         'as_of_date': DateFormat('yyyy-MM-dd').format(_openingDate),
-        if (rate != null) 'rate_used': rate,
+        'rate_used': ?rate,
         'direction': 'asset',
         'memo': _openingMemoCtrl.text.trim().isEmpty
             ? null
@@ -157,7 +159,11 @@ class _CashBankAccountFormScreenState
           ),
         ),
       );
-      context.pop(result['account_id'] as String?);
+      fxSafePop(
+        context,
+        fallbackRoute: CashBankAccountFormScreen.leaveFallback,
+        result: result['account_id'] as String?,
+      );
     } catch (e) {
       final msg = e.toString();
       if (mounted) {
@@ -184,12 +190,10 @@ class _CashBankAccountFormScreenState
   @override
   Widget build(BuildContext context) {
     final fx = context.fx;
-    return Scaffold(
+    return FxPremiumScaffold(
+      title: Text(_kind == 'bank' ? 'Add Bank Account' : 'Add Cash Account'),
+      fallbackRoute: CashBankAccountFormScreen.leaveFallback,
       backgroundColor: fx.background,
-      appBar: AppBar(
-        title: Text(_kind == 'bank' ? 'Add Bank Account' : 'Add Cash Account'),
-        backgroundColor: fx.background,
-      ),
       body: Form(
         key: _formKey,
         child: Column(
@@ -353,7 +357,10 @@ class _CashBankAccountFormScreenState
               ),
             ),
             FxObsidianActionBar(
-              onCancel: () => context.pop(),
+              onCancel: () => fxSafePop(
+                context,
+                fallbackRoute: CashBankAccountFormScreen.leaveFallback,
+              ),
               onSave: _busy ? null : _save,
               saveLabel: _busy ? 'Saving…' : 'Create account',
               busy: _busy,

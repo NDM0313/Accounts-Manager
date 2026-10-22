@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_reports_hub_widgets.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
@@ -148,7 +149,7 @@ class _ReportsHubScreenState extends ConsumerState<ReportsHubScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : null,
+          onPressed: () => fxSafePop(context, fallbackRoute: '/'),
         ),
         actions: [
           IconButton(

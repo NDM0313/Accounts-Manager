@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/rate_source_labels.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_rate_card.dart';
 import 'package:accounts_manager/domain/models/rate_pair_quote.dart';
@@ -59,7 +60,8 @@ class RateBoardScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : null,
+          onPressed: () =>
+              fxSafePop(context, fallbackRoute: '/accounts-hub'),
         ),
         actions: [
           IconButton(

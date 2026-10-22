@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/image_compressor.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/data/repositories/slip_import_repository.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/slip_import/ocr/pak_bank_slip_parser.dart';
@@ -18,6 +19,8 @@ final slipImportRepositoryProvider = Provider((_) => SlipImportRepository());
 /// Import Payment Slip → OCR draft → human review → explicit confirm post.
 class ImportPaymentSlipScreen extends ConsumerStatefulWidget {
   const ImportPaymentSlipScreen({super.key, this.dealId});
+
+  static const leaveFallback = '/accounts-hub';
 
   final String? dealId;
 
@@ -437,19 +440,17 @@ class _ImportPaymentSlipScreenState
     final accountsAsync = ref.watch(accountsProvider);
     final partiesAsync = ref.watch(partiesProvider(null));
 
-    return Scaffold(
+    return FxPremiumScaffold(
+      title: const Text('Import Payment Slip'),
+      fallbackRoute: ImportPaymentSlipScreen.leaveFallback,
       backgroundColor: fx.background,
-      appBar: AppBar(
-        title: const Text('Import Payment Slip'),
-        backgroundColor: fx.background,
-        actions: [
-          TextButton(onPressed: _busy ? null : _pick, child: const Text('Upload')),
-          TextButton(
-            onPressed: _busy ? null : _pasteText,
-            child: const Text('Paste text'),
-          ),
-        ],
-      ),
+      actions: [
+        TextButton(onPressed: _busy ? null : _pick, child: const Text('Upload')),
+        TextButton(
+          onPressed: _busy ? null : _pasteText,
+          child: const Text('Paste text'),
+        ),
+      ],
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

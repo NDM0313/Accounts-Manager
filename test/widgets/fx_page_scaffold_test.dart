@@ -82,4 +82,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('home')), findsOneWidget);
   });
+
+  testWidgets('fxSafePop goes to fallback on cold deep-link stack', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/accounts-hub',
+          builder: (_, _) => const SizedBox(key: Key('hub')),
+        ),
+        GoRoute(
+          path: '/parties/new',
+          builder: (context, _) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () =>
+                  fxSafePop(context, fallbackRoute: '/accounts-hub'),
+              child: const Text('Cancel'),
+            ),
+          ),
+        ),
+      ],
+      initialLocation: '/parties/new',
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('hub')), findsOneWidget);
+  });
 }

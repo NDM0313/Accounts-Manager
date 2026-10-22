@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_receive_payment_widgets.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
@@ -233,7 +234,7 @@ class _ReceivePaymentScreenState extends ConsumerState<ReceivePaymentScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : null,
+          onPressed: () => fxSafePop(context, fallbackRoute: '/ledger'),
         ),
         actions: [
           IconButton(

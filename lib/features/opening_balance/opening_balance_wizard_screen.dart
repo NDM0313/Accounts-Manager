@@ -1,6 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/opening_balance_summary.dart';
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_bottom_action_bar.dart';
 import 'package:accounts_manager/core/widgets/premium/stitch/fx_stitch_opening_balance_widgets.dart';
@@ -222,9 +223,10 @@ class _OpeningBalanceWizardScreenState
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go('/opening-balances'),
+          onPressed: () => fxSafePop(
+            context,
+            fallbackRoute: '/opening-balances',
+          ),
         ),
         actions: [
           IconButton(
