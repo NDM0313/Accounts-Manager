@@ -44,11 +44,20 @@ Legend: **Done** = migrated to shared tokens/components · **Partial** = tokens/
 | Opening balance carries into period | **PASS** existing builder test |
 | PDF uses same builder lines | Existing export path (unchanged) |
 
-## Not run / remaining limitations
+## Visual verification (viewport screenshots)
 
-- Authenticated visual capture suite (390–1920) after login — needs user session
-- Live AM_DEMO pagination / multi-currency ledger click-through
-- Physical device verification
-- Remittance/messaging/rates body layouts not fully restyled
+| Capture | Status |
+|---------|--------|
+| Desktop dashboard (sidebar + compact KPIs, AM_DEMO) | Captured after deploy `0918090` → `tmp/ui-redesign-screenshots/` |
+| Desktop ledger list | Captured earlier in session (top chrome / list density) |
+| Mobile 390 / tablet 768 / 1920 suite | Not fully automated this pass |
+| Authenticated party ledger / bank / OCR / forms after redesign | Not captured (Flutter web canvas click/deep-link flaky in automation) |
+
+## Remaining limitations
+
+- Remittance/messaging/rates body layouts not fully restyled (shell/tokens only)
 - Dashboard recent-activity density polish
-- Deal/new and other form screens not all on FxFormSection yet
+- Deal/new and other form screens not all on `FxFormSection` yet
+- Live AM_DEMO pagination / multi-currency ledger click-through not run
+- Physical device verification not claimed
+- No SQL/schema changes in this redesign deploy
