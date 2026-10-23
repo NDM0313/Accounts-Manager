@@ -47,7 +47,46 @@ void main() {
 
     expect(customer, isNot(contains('2100')));
     expect(customer, isNot(contains('Agent Payables')));
+    expect(customer, isNot(contains('Rate:')));
+    expect(customer, contains('Account: Cash'));
     expect(internal, contains('2100'));
     expect(internal, contains('Agent Payables'));
+  });
+
+  test('customer receipt includes party and public Ref without private notes', () {
+    final tx = FxTransaction(
+      id: 'tx-2',
+      transactionNo: 'TXN-002',
+      transactionType: FxTransactionType.settlementReceive,
+      status: 'posted',
+      currencyCode: 'PKR',
+      totalForeignAmount: 101,
+      rateUsed: 1,
+      totalBaseAmountPkr: 101,
+      transactionDate: DateTime(2026, 10, 23),
+      partyName: 'DEMO Client Ali',
+      description:
+          'Received PKR 101 from DEMO Client Ali into Cash PKR. Ref: AM_UI_VERIFY_TEST. internal cost note',
+      lines: const [
+        FxTransactionLine(
+          id: 'l1',
+          lineNo: 1,
+          accountId: 'a1',
+          accountCode: '1110',
+          accountName: 'Cash PKR',
+          currencyCode: 'PKR',
+          foreignAmount: 101,
+          rateUsed: 1,
+          debitPkr: 101,
+          creditPkr: 0,
+        ),
+      ],
+    );
+
+    final customer = formatTransactionReceipt(tx, customerCopy: true);
+    expect(customer, contains('Party: DEMO Client Ali'));
+    expect(customer, contains('Reference: AM_UI_VERIFY_TEST'));
+    expect(customer, isNot(contains('internal cost note')));
+    expect(customer, isNot(contains('Rate:')));
   });
 }

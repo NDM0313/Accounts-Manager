@@ -1058,6 +1058,18 @@ class _MoneyMovementComposerScreenState
         ],
         const SizedBox(height: 16),
         Text(
+          'Settlement method: ${_method == 'bank' ? 'Bank' : 'Cash'}',
+          style: AppTypography.bodyMd(fx.onSurface, context: context),
+        ),
+        if (vault != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Account: ${CashBankAccountRules.displayLabel(vault)}',
+            style: AppTypography.bodyMd(fx.onSurface, context: context),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Text(
           'Description',
           style: AppTypography.headlineSm(fx.onSurface, context: context),
         ),

@@ -57,11 +57,28 @@ String formatTransactionReceiptWithMode(
       buf.writeln('Notes: ${tx.description}');
     }
   } else {
+    // Customer copy: amount + party + vault account + public reference.
+    // Never include rates, control accounts, internal costs, or private notes.
     if (tx.partyName != null) buf.writeln('Party: ${tx.partyName}');
-    if (tx.description != null &&
-        tx.description!.isNotEmpty &&
-        !tx.description!.toLowerCase().contains('internal')) {
-      buf.writeln('Notes: ${tx.description}');
+    FxTransactionLine? vaultLine;
+    for (final line in tx.lines) {
+      final n = int.tryParse(line.accountCode ?? '') ?? -1;
+      final isVault =
+          (n >= 1110 && n <= 1159) ||
+          (n >= 1181 && n <= 1189) ||
+          (n >= 1210 && n <= 1299);
+      if (isVault) {
+        vaultLine = line;
+        break;
+      }
+    }
+    if (vaultLine?.accountName != null) {
+      buf.writeln('Account: ${vaultLine!.accountName}');
+    }
+    final refMatch = RegExp(r'Ref:\s*([^.]+)').firstMatch(tx.description ?? '');
+    final publicRef = refMatch?.group(1)?.trim();
+    if (publicRef != null && publicRef.isNotEmpty) {
+      buf.writeln('Reference: $publicRef');
     }
   }
 
