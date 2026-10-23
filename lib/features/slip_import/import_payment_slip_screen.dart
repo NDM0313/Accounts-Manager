@@ -1,14 +1,18 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
+import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/app/theme/fx_design_tokens.dart';
 import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/utils/image_compressor.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/data/repositories/slip_import_repository.dart';
+import 'package:accounts_manager/domain/models/cash_bank_account.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/slip_import/ocr/pak_bank_slip_parser.dart';
 import 'package:accounts_manager/features/slip_import/ocr/slip_ocr_engine.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +21,9 @@ import 'package:uuid/uuid.dart';
 
 final slipImportRepositoryProvider = Provider((_) => SlipImportRepository());
 
-/// Import Payment Slip → OCR draft → human review → explicit confirm post.
+enum _SlipPhase { capture, review, action }
+
+/// Import Payment Slip → OCR draft → human review → choose action → composer/post.
 class ImportPaymentSlipScreen extends ConsumerStatefulWidget {
   const ImportPaymentSlipScreen({super.key, this.dealId});
 
@@ -65,6 +71,9 @@ class _ImportPaymentSlipScreenState
   bool _keepHighQuality = false;
   bool _ready = false;
   bool _userTouchedFields = false;
+  bool _showRawOcr = false;
+  bool _showHelp = false;
+  _SlipPhase _phase = _SlipPhase.capture;
 
   @override
   void dispose() {
@@ -132,6 +141,7 @@ class _ImportPaymentSlipScreenState
       _applyExtract(PakBankSlipParser.parse(text));
       _ready = true;
       _ocrError = null;
+      _phase = _SlipPhase.review;
     });
   }
 
@@ -157,8 +167,14 @@ class _ImportPaymentSlipScreenState
     if (!receive && !pay) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Choose Receive or Pay classification first'),
+          content: Text('Choose Receive or Pay first'),
         ),
+      );
+      return;
+    }
+    if (_partyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Identify the party before continuing')),
       );
       return;
     }
@@ -169,19 +185,39 @@ class _ImportPaymentSlipScreenState
             : _partyFlow == 'supplier_payment'
                 ? 'agent_payment'
                 : 'customer_refund');
+    final accounts = ref.read(accountsProvider).asData?.value ?? const [];
+    final vault = accounts.where((a) => a.id == _cashAccountId).firstOrNull;
+    final method = vault == null
+        ? null
+        : (CashBankAccountRules.isBankVault(vault) ? 'bank' : 'cash');
     final q = <String, String>{
       'direction': receive ? 'receive' : 'pay',
       'mode': mode,
-      if (_partyId != null) 'partyId': _partyId!,
+      'partyId': _partyId!,
       if (amount != null) 'amount': amount.toString(),
       'currency': _currency,
       if (_refCtrl.text.trim().isNotEmpty) 'reference': _refCtrl.text.trim(),
       if (_descCtrl.text.trim().isNotEmpty) 'description': _descCtrl.text.trim(),
+      if (vault != null) 'account': vault.code,
+      if (method != null) 'method': method,
+      if (_attachmentId != null) 'attachmentId': _attachmentId!,
     };
     final qs = q.entries
         .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
         .join('&');
     context.push('/transactions/money?$qs');
+  }
+
+  void _resetCapture() {
+    setState(() {
+      _bytes = null;
+      _fileName = null;
+      _ready = false;
+      _ocrError = null;
+      _ocrProgress = null;
+      _phase = _SlipPhase.capture;
+      _showRawOcr = false;
+    });
   }
 
   Future<void> _ingest(Uint8List bytes, String name, String? mime) async {
@@ -243,6 +279,7 @@ class _ImportPaymentSlipScreenState
           _ocrError =
               'PDF OCR is limited in-browser. Enter fields from the slip; file stays attached.';
           _ready = true;
+          _phase = _SlipPhase.review;
         });
         return;
       }
@@ -251,6 +288,7 @@ class _ImportPaymentSlipScreenState
         setState(() {
           _ocrError = 'OCR needs Flutter web. Fields remain editable.';
           _ready = true;
+          _phase = _SlipPhase.review;
         });
         return;
       }
@@ -294,12 +332,14 @@ class _ImportPaymentSlipScreenState
         setState(() {
           _ready = true;
           _ocrProgress = null;
+          _phase = _SlipPhase.review;
         });
       } catch (e) {
         setState(() {
           _ocrError = e.toString();
           _ocrProgress = null;
           _ready = true;
+          _phase = _SlipPhase.review;
         });
         await ref.read(slipImportRepositoryProvider).upsertDraft({
           'client_operation_id': _clientOp,
@@ -488,353 +528,588 @@ class _ImportPaymentSlipScreenState
   @override
   Widget build(BuildContext context) {
     final fx = context.fx;
-    final accountsAsync = ref.watch(accountsProvider);
-    final partiesAsync = ref.watch(partiesProvider(null));
+    final title = switch (_phase) {
+      _SlipPhase.capture => 'Scan slip',
+      _SlipPhase.review => 'Review extracted data',
+      _SlipPhase.action => 'Choose action',
+    };
 
     return FxPremiumScaffold(
-      title: const Text('Import Payment Slip'),
+      title: Text(title),
       fallbackRoute: ImportPaymentSlipScreen.leaveFallback,
       backgroundColor: fx.background,
       actions: [
-        TextButton(onPressed: _busy ? null : _pick, child: const Text('Upload')),
-        TextButton(
-          onPressed: _busy ? null : _pasteText,
-          child: const Text('Paste text'),
+        IconButton(
+          tooltip: 'Help',
+          onPressed: () => setState(() => _showHelp = !_showHelp),
+          icon: const Icon(Icons.help_outline),
         ),
       ],
       body: FxContentContainer(
         formWidth: true,
         padding: EdgeInsets.zero,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            12,
+            16,
+            24 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
           children: [
-          Text(
-            'OCR creates a DRAFT only. Nothing posts until you confirm.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Formats: JPEG, PNG, WebP for OCR. PDF attaches without full OCR. '
-            'HEIC is not supported — convert first. A printed slip is not '
-            'independent proof that a bank payment settled.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          if (_fileName == null) ...[
-            FilledButton.icon(
-              onPressed: _busy ? null : _pick,
-              icon: const Icon(Icons.upload_file),
-              label: const Text('Upload slip image or PDF'),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _busy ? null : _pasteClipboardImage,
-              icon: const Icon(Icons.content_paste),
-              label: const Text('Paste clipboard image'),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _busy ? null : _pick,
-              icon: const Icon(Icons.photo_camera_outlined),
-              label: const Text('Camera / file (device picker)'),
-            ),
-          ] else ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.attach_file),
-              title: Text(_fileName!),
-              subtitle: Text(
-                _originalBytes == null
-                    ? 'Attached'
-                    : 'Original ${ImageCompressor.formatBytes(_originalBytes!)}'
-                        ' → stored ${ImageCompressor.formatBytes(_storedBytes ?? _originalBytes!)}'
-                        '${_keptOriginal ? ' (original kept)' : ' (compressed; not byte-identical)'}',
-              ),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Keep higher quality on next upload'),
-              value: _keepHighQuality,
-              onChanged: _busy ? null : (v) => setState(() => _keepHighQuality = v),
-            ),
-          ],
-          if (_busy) const LinearProgressIndicator(),
-          if (_ocrProgress != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text('OCR: $_ocrProgress'),
-            ),
-          if (_ocrError != null) ...[
-            const SizedBox(height: 8),
-            Material(
-              color: Colors.orange.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  'OCR note: $_ocrError\n'
-                  'Draft + attachment preserved — correct fields manually and confirm, or retry upload.',
-                ),
-              ),
-            ),
-          ],
-          if (_printedStatus != null)
+            _phaseIndicator(fx),
+            const SizedBox(height: 12),
             Text(
-              'Printed status: $_printedStatus (not bank-verified)',
-              style: Theme.of(context).textTheme.bodySmall,
+              'OCR creates a draft only. Scanning never posts money.',
+              style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
             ),
-          if (_duplicates.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Material(
-              color: Colors.amber.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Possible duplicates (file hash and/or ref+amount):'),
-                    ..._duplicates.map(
-                      (d) => Text(
-                        '• ${d['match_reason']} / ${d['status']} / '
-                        'tx=${d['resulting_tx_id'] ?? '—'}',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          if (_uncertain.isNotEmpty)
-            Text(
-              'Uncertain: ${_uncertain.join(', ')} — verify before posting',
-              style: TextStyle(color: Colors.deepOrange.shade700),
-            ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            initialValue: _classification,
-            decoration: const InputDecoration(labelText: 'Classification'),
-            items: const [
-              DropdownMenuItem(
-                value: 'receive_from_party',
-                child: Text('Money received from party'),
-              ),
-              DropdownMenuItem(
-                value: 'pay_to_party',
-                child: Text('Money paid to party'),
-              ),
-              DropdownMenuItem(
-                value: 'internal_transfer',
-                child: Text('Internal transfer (our accounts)'),
-              ),
-              DropdownMenuItem(
-                value: 'unsupported',
-                child: Text('Unsupported / draft only'),
+            if (_showHelp) ...[
+              const SizedBox(height: 8),
+              Text(
+                'JPEG/PNG/WebP OCR on web. PDF attaches without full OCR. '
+                'HEIC is unsupported — convert first. A printed “Pending/Failed” '
+                'status is not proof that funds settled. Bank names on slips '
+                'never auto-select an internal account.',
+                style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
               ),
             ],
-            onChanged: (v) =>
-                setState(() => _classification = v ?? _classification),
-          ),
-          if (_classification != 'internal_transfer')
-            DropdownButtonFormField<String>(
-              initialValue: _partyFlow,
-              decoration: const InputDecoration(
-                labelText: 'Party flow detail',
-                helperText:
-                    'Does not invent income/expense — settlement accounts only',
-              ),
-              items: const [
-                DropdownMenuItem(value: 'unspecified', child: Text('Unspecified')),
-                DropdownMenuItem(
-                  value: 'customer_receipt',
-                  child: Text('Customer receipt'),
-                ),
-                DropdownMenuItem(
-                  value: 'supplier_refund',
-                  child: Text('Supplier refund (incoming)'),
-                ),
-                DropdownMenuItem(
-                  value: 'supplier_payment',
-                  child: Text('Supplier payment (outgoing)'),
-                ),
-                DropdownMenuItem(
-                  value: 'agent_settlement',
-                  child: Text('Agent settlement'),
-                ),
-                DropdownMenuItem(
-                  value: 'agent_to_beneficiary',
-                  child: Text('Agent→beneficiary (draft only)'),
-                ),
-              ],
-              onChanged: (v) => setState(() => _partyFlow = v ?? _partyFlow),
-            ),
-          TextFormField(
-            controller: _amountCtrl,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Amount'),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          DropdownButtonFormField<String>(
-            initialValue: _currency,
-            decoration: const InputDecoration(labelText: 'Currency'),
-            items: const [
-              DropdownMenuItem(value: 'PKR', child: Text('PKR')),
-              DropdownMenuItem(value: 'USD', child: Text('USD')),
-              DropdownMenuItem(value: 'AED', child: Text('AED')),
-              DropdownMenuItem(value: 'CNY', child: Text('CNY (RMB)')),
-            ],
-            onChanged: (v) => setState(() => _currency = v ?? _currency),
-          ),
-          TextFormField(
-            controller: _dateCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Date YYYY-MM-DD (as on slip)',
-            ),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          TextFormField(
-            controller: _timeCtrl,
-            decoration: const InputDecoration(labelText: 'Time as printed'),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          TextFormField(
-            controller: _refCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Bank reference / TID (keep leading zeros)',
-            ),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          TextFormField(
-            controller: _senderCtrl,
-            decoration: const InputDecoration(labelText: 'Sender name'),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          TextFormField(
-            controller: _receiverCtrl,
-            decoration: const InputDecoration(labelText: 'Receiver name'),
-            onChanged: (_) => _userTouchedFields = true,
-          ),
-          accountsAsync.when(
-            loading: () => const LinearProgressIndicator(),
-            error: (e, _) => Text('Accounts error: $e'),
-            data: (accounts) {
-              final cash = accounts
-                  .where(
-                    (a) =>
-                        a.accountType == 'asset' &&
-                        (a.code.startsWith('11') || a.code.startsWith('12')),
-                  )
-                  .toList();
-              final items = cash
-                  .map(
-                    (a) => DropdownMenuItem(
-                      value: a.id,
-                      child: Text(
-                        '${a.code} ${a.name} (${a.currencyCode ?? 'PKR'})',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList();
-              return Column(
-                children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: _cashAccountId,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: _classification == 'internal_transfer'
-                          ? 'From (source) cash/bank'
-                          : 'Our cash/bank account',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () async {
-                          final id = await context.push<String>(
-                            '/accounts/new-cash',
-                          );
-                          ref.invalidate(accountsProvider);
-                          if (id != null) {
-                            setState(() => _cashAccountId = id);
-                          }
-                        },
-                      ),
-                    ),
-                    items: items,
-                    onChanged: (v) => setState(() => _cashAccountId = v),
-                  ),
-                  if (_classification == 'internal_transfer') ...[
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _destinationAccountId,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'To (destination) cash/bank',
-                        helperText:
-                            'Cross-currency requires explicit transfer_rate — not guessed',
-                      ),
-                      items: items,
-                      onChanged: (v) =>
-                          setState(() => _destinationAccountId = v),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          if (_classification != 'internal_transfer')
-            partiesAsync.when(
-              loading: () => const SizedBox.shrink(),
-              error: (e, _) => Text('Parties error: $e'),
-              data: (parties) => DropdownButtonFormField<String>(
-                initialValue: _partyId,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: 'Counterparty',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.person_add_alt),
-                    onPressed: () async {
-                      final id = await context.push<String>('/parties/new');
-                      ref.invalidate(partiesProvider(null));
-                      if (id != null) setState(() => _partyId = id);
-                    },
-                  ),
-                ),
-                items: parties
-                    .map(
-                      (p) => DropdownMenuItem(
-                        value: p.id,
-                        child: Text(
-                          '${p.name} (${p.partyType.label})',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _partyId = v),
-              ),
-            ),
-          TextFormField(
-            controller: _descCtrl,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Description'),
-          ),
-          TextFormField(
-            controller: _rawCtrl,
-            maxLines: 4,
-            decoration: const InputDecoration(labelText: 'Raw OCR / pasted text'),
-          ),
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: _busy ? null : _openComposerFromReview,
-            icon: const Icon(Icons.open_in_new),
-            label: const Text('Continue in Receive / Pay composer'),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: _busy || (!_ready && _bytes == null) ? null : _confirm,
-            child: Text(_busy ? 'Working…' : 'Confirm & post via slip import'),
-          ),
-          const SizedBox(height: 48),
-        ],
+            const SizedBox(height: 16),
+            if (_phase == _SlipPhase.capture) _buildCapture(fx),
+            if (_phase == _SlipPhase.review) _buildReview(fx),
+            if (_phase == _SlipPhase.action) _buildAction(fx),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _phaseIndicator(FxColors fx) {
+    Widget step(String label, bool active, bool done) {
+      return Expanded(
+        child: Column(
+          children: [
+            Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: done || active ? fx.primary : fx.outlineVariant,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: AppTypography.bodySm(
+                active ? fx.primary : fx.onSurfaceVariant,
+                context: context,
+              ).copyWith(fontWeight: active ? FontWeight.w600 : FontWeight.w400),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        step('Capture', _phase == _SlipPhase.capture, _phase != _SlipPhase.capture),
+        const SizedBox(width: 8),
+        step(
+          'Review',
+          _phase == _SlipPhase.review,
+          _phase == _SlipPhase.action,
+        ),
+        const SizedBox(width: 8),
+        step('Action', _phase == _SlipPhase.action, false),
+      ],
+    );
+  }
+
+  Widget _buildCapture(FxColors fx) {
+    final clipboardImageSupported = kIsWeb; // honest: web paste image is limited
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+          decoration: BoxDecoration(
+            color: context.fxAccentSurface(FxAccent.scan),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: fx.outlineVariant),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.document_scanner_outlined,
+                size: 48,
+                color: context.fxAccent(FxAccent.scan),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Upload or capture a payment slip',
+                textAlign: TextAlign.center,
+                style: AppTypography.headlineSm(fx.onSurface, context: context),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'JPEG, PNG or WebP preferred. Nothing posts until you confirm.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySm(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: _busy ? null : _pick,
+                icon: const Icon(Icons.upload_file),
+                label: Text(_busy ? 'Working…' : 'Upload slip'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _pick,
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: const Text('Camera / file picker'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _busy ? null : _pasteText,
+          icon: const Icon(Icons.content_paste),
+          label: const Text('Paste slip text'),
+        ),
+        const SizedBox(height: 8),
+        if (clipboardImageSupported)
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _pasteClipboardImage,
+            icon: const Icon(Icons.image_outlined),
+            label: const Text('Paste clipboard image'),
+          )
+        else
+          Text(
+            'Clipboard image paste is unavailable on this platform.',
+            style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
+          ),
+        if (_busy) ...[
+          const SizedBox(height: 16),
+          const LinearProgressIndicator(),
+          if (_ocrProgress != null) ...[
+            const SizedBox(height: 8),
+            Text('Extracting: $_ocrProgress'),
+          ],
+        ],
+        if (_fileName != null && _busy) ...[
+          const SizedBox(height: 12),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: _bytes != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      _bytes!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.attach_file),
+                    ),
+                  )
+                : const Icon(Icons.attach_file),
+            title: Text(_fileName!),
+            subtitle: const Text('Uploading & extracting…'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildReview(FxColors fx) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_fileName != null)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: _bytes != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      _bytes!,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.attach_file),
+                    ),
+                  )
+                : const Icon(Icons.attach_file),
+            title: Text(_fileName!),
+            subtitle: Text(
+              _originalBytes == null
+                  ? 'Attached'
+                  : '${ImageCompressor.formatBytes(_originalBytes!)}'
+                      '${_keptOriginal ? '' : ' → compressed'}',
+            ),
+            trailing: TextButton(
+              onPressed: _busy ? null : _resetCapture,
+              child: const Text('Replace'),
+            ),
+          ),
+        if (_busy) const LinearProgressIndicator(minHeight: 2),
+        if (_ocrError != null) ...[
+          const SizedBox(height: 8),
+          Material(
+            color: fx.warningContainer.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                'OCR note: $_ocrError\nDraft kept — correct fields or retry.',
+                style: AppTypography.bodySm(fx.onSurface, context: context),
+              ),
+            ),
+          ),
+        ],
+        if (_printedStatus != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Printed status: $_printedStatus — not bank-verified settlement.',
+            style: AppTypography.bodySm(fx.onSurfaceVariant, context: context)
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+        if (_duplicates.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Material(
+            color: fx.warningContainer.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Possible duplicates:'),
+                  ..._duplicates.map(
+                    (d) => Text(
+                      '• ${d['match_reason']} / ${d['status']} / '
+                      'tx=${d['resulting_tx_id'] ?? '—'}',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        if (_uncertain.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Uncertain: ${_uncertain.join(', ')} — verify before posting',
+            style: AppTypography.bodySm(fx.error, context: context),
+          ),
+        ],
+        const SizedBox(height: 12),
+        FxFormBlock(
+          dense: true,
+          title: 'Extracted fields',
+          children: [
+            FxAmountEntry(
+              controller: _amountCtrl,
+              currencyCode: _currency,
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            DropdownButtonFormField<String>(
+              initialValue: _currency,
+              decoration: const InputDecoration(labelText: 'Currency'),
+              items: const [
+                DropdownMenuItem(value: 'PKR', child: Text('PKR')),
+                DropdownMenuItem(value: 'USD', child: Text('USD')),
+                DropdownMenuItem(value: 'AED', child: Text('AED')),
+                DropdownMenuItem(value: 'CNY', child: Text('CNY (RMB)')),
+              ],
+              onChanged: (v) {
+                _userTouchedFields = true;
+                setState(() => _currency = v ?? _currency);
+              },
+            ),
+            TextFormField(
+              controller: _dateCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Date YYYY-MM-DD (as on slip)',
+              ),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            TextFormField(
+              controller: _timeCtrl,
+              decoration: const InputDecoration(labelText: 'Time as printed'),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            TextFormField(
+              controller: _refCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Bank reference / TID (keep leading zeros)',
+              ),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            TextFormField(
+              controller: _senderCtrl,
+              decoration: const InputDecoration(labelText: 'Sender name'),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            TextFormField(
+              controller: _receiverCtrl,
+              decoration: const InputDecoration(labelText: 'Receiver name'),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+            TextFormField(
+              controller: _descCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Description'),
+              onChanged: (_) => _userTouchedFields = true,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ExpansionTile(
+          initiallyExpanded: _showRawOcr,
+          onExpansionChanged: (v) => setState(() => _showRawOcr = v),
+          title: const Text('Raw OCR text'),
+          children: [
+            TextFormField(
+              controller: _rawCtrl,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                labelText: 'Raw OCR / pasted text',
+              ),
+            ),
+          ],
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Keep higher quality on next upload'),
+          value: _keepHighQuality,
+          onChanged: _busy ? null : (v) => setState(() => _keepHighQuality = v),
+        ),
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: _busy
+              ? null
+              : () => setState(() => _phase = _SlipPhase.action),
+          child: const Text('Continue — choose action'),
+        ),
+        TextButton(
+          onPressed: _busy ? null : _resetCapture,
+          child: const Text('Replace image'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAction(FxColors fx) {
+    final accountsAsync = ref.watch(accountsProvider);
+    final partiesAsync = ref.watch(partiesProvider(null));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Identify what this slip means. A bank name from OCR does not '
+          'select your internal account.',
+          style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
+        ),
+        const SizedBox(height: 12),
+        FxFormBlock(
+          dense: true,
+          title: 'Action',
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: _classification,
+              decoration: const InputDecoration(labelText: 'What happened?'),
+              items: const [
+                DropdownMenuItem(
+                  value: 'receive_from_party',
+                  child: Text('Receive from party'),
+                ),
+                DropdownMenuItem(
+                  value: 'pay_to_party',
+                  child: Text('Pay to party'),
+                ),
+                DropdownMenuItem(
+                  value: 'internal_transfer',
+                  child: Text('Internal transfer'),
+                ),
+                DropdownMenuItem(
+                  value: 'unsupported',
+                  child: Text('Unsupported / draft only'),
+                ),
+              ],
+              onChanged: (v) =>
+                  setState(() => _classification = v ?? _classification),
+            ),
+            if (_classification != 'internal_transfer')
+              DropdownButtonFormField<String>(
+                initialValue: _partyFlow,
+                decoration: const InputDecoration(
+                  labelText: 'Party flow detail',
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'unspecified',
+                    child: Text('Unspecified'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'customer_receipt',
+                    child: Text('Customer receipt'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'supplier_refund',
+                    child: Text('Supplier refund (incoming)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'supplier_payment',
+                    child: Text('Supplier payment (outgoing)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'agent_settlement',
+                    child: Text('Agent settlement'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'agent_to_beneficiary',
+                    child: Text('Agent→beneficiary (draft only)'),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _partyFlow = v ?? _partyFlow),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
+          title: 'Our account',
+          children: [
+            accountsAsync.when(
+              loading: () => const LinearProgressIndicator(minHeight: 2),
+              error: (e, _) => Text('Accounts error: $e'),
+              data: (accounts) {
+                final cash = accounts
+                    .where(
+                      (a) =>
+                          CashBankAccountRules.isCashVault(a) ||
+                          CashBankAccountRules.isBankVault(a),
+                    )
+                    .toList();
+                return Column(
+                  children: [
+                    FxSearchableSelect<String>(
+                      labelText: _classification == 'internal_transfer'
+                          ? 'From (source) cash/bank'
+                          : 'Cash / bank account',
+                      hintText: 'Search our accounts…',
+                      value: _cashAccountId,
+                      enabled: !_busy,
+                      addNewLabel: 'Add account',
+                      options: cash
+                          .map(
+                            (a) => FxSearchableOption(
+                              value: a.id,
+                              label: '${a.code} ${a.name}',
+                              subtitle:
+                                  '${CashBankAccountRules.isBankVault(a) ? 'Bank' : 'Cash'} · ${a.currencyCode ?? 'PKR'}',
+                              searchText: '${a.code} ${a.name}',
+                            ),
+                          )
+                          .toList(),
+                      onSelected: (v) => setState(() => _cashAccountId = v),
+                      onAddNew: () async {
+                        final id =
+                            await context.push<String>('/accounts/new-cash');
+                        ref.invalidate(accountsProvider);
+                        if (id != null) setState(() => _cashAccountId = id);
+                      },
+                    ),
+                    if (_classification == 'internal_transfer') ...[
+                      const SizedBox(height: 8),
+                      FxSearchableSelect<String>(
+                        labelText: 'To (destination)',
+                        hintText: 'Search destination…',
+                        value: _destinationAccountId,
+                        enabled: !_busy,
+                        options: cash
+                            .map(
+                              (a) => FxSearchableOption(
+                                value: a.id,
+                                label: '${a.code} ${a.name}',
+                                subtitle: a.currencyCode ?? 'PKR',
+                              ),
+                            )
+                            .toList(),
+                        onSelected: (v) =>
+                            setState(() => _destinationAccountId = v),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+        if (_classification != 'internal_transfer') ...[
+          const SizedBox(height: 16),
+          FxFormBlock(
+            dense: true,
+            title: 'Party',
+            children: [
+              partiesAsync.when(
+                loading: () => const LinearProgressIndicator(minHeight: 2),
+                error: (e, _) => Text('Parties error: $e'),
+                data: (parties) => FxSearchableSelect<String>(
+                  labelText: 'Counterparty',
+                  hintText: 'Search party…',
+                  value: _partyId,
+                  enabled: !_busy,
+                  addNewLabel: 'Add party',
+                  options: parties
+                      .map(
+                        (p) => FxSearchableOption(
+                          value: p.id,
+                          label: p.name,
+                          subtitle: '${p.code} · ${p.partyType.label}',
+                          searchText: '${p.name} ${p.code}',
+                        ),
+                      )
+                      .toList(),
+                  onSelected: (v) => setState(() => _partyId = v),
+                  onAddNew: () async {
+                    final id = await context.push<String>('/parties/new');
+                    ref.invalidate(partiesProvider(null));
+                    if (id != null) setState(() => _partyId = id);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 20),
+        if (_classification == 'receive_from_party' ||
+            _classification == 'pay_to_party')
+          FilledButton.icon(
+            onPressed: _busy ? null : _openComposerFromReview,
+            icon: const Icon(Icons.arrow_forward),
+            label: Text(
+              _classification == 'receive_from_party'
+                  ? 'Continue in Receive composer'
+                  : 'Continue in Pay composer',
+            ),
+          ),
+        const SizedBox(height: 10),
+        OutlinedButton(
+          onPressed: _busy || !_ready ? null : _confirm,
+          child: Text(_busy ? 'Working…' : 'Confirm & post via slip import'),
+        ),
+        TextButton(
+          onPressed: _busy
+              ? null
+              : () => setState(() => _phase = _SlipPhase.review),
+          child: const Text('Back to review'),
+        ),
+      ],
     );
   }
 }

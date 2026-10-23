@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/main_shell.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_authenticated_chrome.dart';
+import 'package:accounts_manager/core/widgets/system/fx_focused_flow.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
@@ -100,7 +101,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
       ShellRoute(
         builder: (context, state, child) {
-          return AuthGate(child: FxAuthenticatedChrome(child: child));
+          final path = state.matchedLocation;
+          final focused = path.startsWith('/transactions/money') ||
+              path.startsWith('/transactions/receive-payment') ||
+              path.startsWith('/slips/import') ||
+              (path.startsWith('/transactions/') && path.endsWith('/complete'));
+          return AuthGate(
+            child: FxFocusedFlowScope(
+              hideBottomNav: focused,
+              child: FxAuthenticatedChrome(child: child),
+            ),
+          );
         },
         routes: [
           GoRoute(
@@ -126,6 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialReference: q['reference'],
                 initialDescription: q['description'],
                 initialDealId: q['dealId'],
+                attachmentImportId: q['attachmentId'],
               );
             },
           ),
@@ -153,6 +165,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialReference: q['reference'],
                 initialDescription: q['description'],
                 initialDealId: q['dealId'],
+                attachmentImportId: q['attachmentId'],
               );
             },
           ),

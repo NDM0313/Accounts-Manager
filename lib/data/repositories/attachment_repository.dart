@@ -366,4 +366,14 @@ class AttachmentRepository {
   Future<String> signedUrl(String storagePath) async {
     return supabase.storage.from(bucket).createSignedUrl(storagePath, 3600);
   }
+
+  /// Link an existing slip/proof attachment to a posted transaction.
+  Future<void> linkToTransaction({
+    required String attachmentId,
+    required String transactionId,
+  }) async {
+    await supabase.from('fx_attachments').update({
+      'transaction_id': transactionId,
+    }).eq('id', attachmentId);
+  }
 }
