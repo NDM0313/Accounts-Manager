@@ -31,8 +31,9 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
     final balancesAsync = ref.watch(partyDirectoryBalancesProvider);
-    final currencyBalancesAsync =
-        ref.watch(partyDirectoryCurrencyBalancesProvider);
+    final currencyBalancesAsync = ref.watch(
+      partyDirectoryCurrencyBalancesProvider,
+    );
     final fmt = NumberFormat('#,##0.00');
 
     final fallback = widget.initialFilter == FxPartyType.agent
@@ -89,9 +90,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                 padding: const EdgeInsets.only(bottom: AppSpacing.stackSm),
                 child: FxErrorState(
                   message:
-                      'Balances unavailable: ${balancesAsync.error}. Tap retry.',
-                  onRetry: () =>
-                      ref.invalidate(partyDirectoryBalancesProvider),
+                      'Balances could not be loaded. Tap retry to refresh them.',
+                  onRetry: () => ref.invalidate(partyDirectoryBalancesProvider),
                 ),
               ),
             Expanded(
@@ -120,7 +120,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                         balanceLabel = 'Loading balance…';
                       } else if (balancesAsync.hasError) {
                         balanceLabel = 'Balance unavailable — retry';
-                      } else if (balances == null || !balances.containsKey(p.id)) {
+                      } else if (balances == null ||
+                          !balances.containsKey(p.id)) {
                         balanceLabel = 'Balance unavailable — retry';
                       } else {
                         final bal = balances[p.id]!;
@@ -150,12 +151,10 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   String _balanceMeaning(FxPartyType type, double bal, NumberFormat fmt) {
     final abs = fmt.format(bal.abs());
     return switch (type) {
-      FxPartyType.customer || FxPartyType.supplier => bal > 0
-          ? 'Receivable PKR $abs'
-          : 'Advance/credit PKR $abs',
-      FxPartyType.agent || FxPartyType.settlement => bal > 0
-          ? 'Payable/custody PKR $abs'
-          : 'Receivable PKR $abs',
+      FxPartyType.customer || FxPartyType.supplier =>
+        bal > 0 ? 'Receivable PKR $abs' : 'Advance/credit PKR $abs',
+      FxPartyType.agent || FxPartyType.settlement =>
+        bal > 0 ? 'Payable/custody PKR $abs' : 'Receivable PKR $abs',
     };
   }
 }

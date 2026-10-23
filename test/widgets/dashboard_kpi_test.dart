@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Dashboard KPI row shows Stitch premium labels', (tester) async {
+  testWidgets('Dashboard labels reflect balance-sheet values', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light(),
@@ -27,9 +27,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('TOTAL CASH BALANCE'), findsOneWidget);
-    expect(find.text('RECEIVABLES'), findsOneWidget);
-    expect(find.text('PAYABLES'), findsOneWidget);
-    expect(find.text("TODAY'S PROFIT"), findsOneWidget);
+    expect(find.text('Total assets · PKR'), findsOneWidget);
+    expect(find.text('Equity · PKR'), findsOneWidget);
+    expect(find.text('Liabilities · PKR'), findsOneWidget);
+    expect(find.text("Today's profit"), findsOneWidget);
   });
 }

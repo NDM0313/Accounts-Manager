@@ -4,11 +4,11 @@ import 'package:accounts_manager/features/slip_import/ocr/pak_bank_slip_parser.d
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final dir = Directory('tmp/ocr_slips/ocr_texts');
+  final dir = Directory('test/fixtures/slip_transcripts');
 
   String read(String name) => File('${dir.path}/$name').readAsStringSync();
 
-  test('01 clear screenshot OCR→parser', () {
+  test('01 synthetic clear transcript parser', () {
     final e = PakBankSlipParser.parse(read('01_clear.txt'));
     expect(e.amount, 12500);
     expect(e.currencyCode, 'PKR');
@@ -19,7 +19,7 @@ void main() {
     expect(e.printedStatus?.toLowerCase(), contains('success'));
   });
 
-  test('02 dense OCR→parser', () {
+  test('02 synthetic dense transcript parser', () {
     final e = PakBankSlipParser.parse(read('02_dense.txt'));
     expect(e.amount, 75000.50);
     expect(e.bankReference, anyOf('000998877665', 'FT2604220001'));

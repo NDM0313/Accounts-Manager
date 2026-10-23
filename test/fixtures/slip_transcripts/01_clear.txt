@@ -1,0 +1,8 @@
+Meezan Bank
+Transaction Successful
+Amount: PKR 12,500.00
+Date: 21 Oct 2026
+Time: 02:15 PM
+From: ALI CUSTOMER
+To: NDM FX
+TID: 000123456789
