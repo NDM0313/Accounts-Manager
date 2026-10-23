@@ -16,8 +16,10 @@ Not ERP. No real IBANs, account numbers, or personal information. Slip refs use 
 | Owned banks match computed plan | **PASS** (see below) |
 | Third-party receipt Dr 2100 / Cr 1160 only (no bank) | **PASS** |
 | DEAL5 remittance **draft**, paid_amount 0 | **PASS** |
-| Browser UI walkthrough of training screens | **NOT RUN** |
-| Frontend redeploy for this dataset | **NOT RUN** (SQL/RPC only; no new UI required) |
+| Browser UI walkthrough of training screens | **PASS** (authenticated AM_DEMO; see UI section; evidence under `tmp/training_ui_evidence_20261023/`) |
+| Frontend redeploy for auth hang fix | **PASS** (`cb8d6c3` on `fx.ndmcore.com`; rollback `fx_app_web_rollback_20261023T172445Z`) |
+| UI create: third-party client→agent payment | **MISSING** (RPC only; Receive/Pay = Bank/Cash only) |
+| UI create: agent-advance funded FX purchase | **MISSING** (RPC `purchase_funded` / advance; Buy FX has Pay later→2100 credit only) |
 
 ## Files
 
@@ -217,7 +219,35 @@ Deliveries use client-operation keys `AM_TRAINING_20261023_V1:dN_deliver` (idemp
 7. **Remittances** — `RM-20261023-0001` status **draft**, paid 0.
 8. **Reports / trial balance** — training journals balance; compare 1180 and TRAINING banks.
 
-Browser verification of these screens was **NOT RUN** in the apply session (SQL proof only).
+### Authenticated UI walkthrough (2026-10-23, deploy `cb8d6c3`)
+
+Read-only; **no new financial posts**. Compared to SQL + this guide.
+
+| Surface | Result vs guide/SQL | Notes |
+|---------|----------------------|-------|
+| Home KPIs (desktop + mobile) | **PASS** | Assets **18,470,100** / Equity **16,001,500** / Liabilities **1,807,000** match `fx_get_balance_sheet` |
+| Currency Position Actual | **PARTIAL** | CNY **64,500** = vault 8,500 + agent-owned 56,000 (sums custody into “Actual”); PKR Actual **1,349,001** is vault cash only — **excludes** TRAINING banks 1211–1213 |
+| Deals list 0001–0004 | **PASS** | Amounts/rates/status match; list “Recv” = **remaining receivable** (not paid) |
+| Deal 1 detail + third-party line | **PASS** | Shows 400k + **350k third-party** + 287.5k; remaining due **1,037,500**; text includes `NO owned-bank movement [third_party]` |
+| Parties TRAINING A–D / Agents A–B | **PASS** (visibility) | Present with codes `TRAIN_CLI_*` / `TRAIN_AGT_*` |
+| Party directory PKR chips | **MISMATCH** | Control-account rollup ≠ deal dues / raw 1180: e.g. Agent B shows **3,130,000** (≈ 3,346,000 − 216,000 Deal4 payable netting); Client A **765,000** ≠ deal1 due **1,037,500**. Do not “fix” postings to match chips |
+| Remittance list TT draft | **PASS** | `RM-20261023-0001` **DRAFT**, PKR 562,000 → USD 2,000 |
+| Agent SAMPLE external banks in UI | **NOT RUN** | Party form bank tab not opened this session (API confirms SAMPLE rows) |
+| Chart of accounts TRAINING bank balances | **NOT RUN** | Covered by home BS + SQL |
+| Agent custody FX grid in UI | **NOT RUN** | “Show FX balances” expand not exercised; SQL custody table verified |
+| Receive composer create UI | **EXERCISED** | Bank/Cash only — **no** third-party settlement method |
+| Buy FX / advance-funded purchase UI | **NOT RUN** / **MISSING** | Hash to `currency_buy` did not land on buy form; code path is Pay later→2100 only (no 1180 advance funding) |
+
+Evidence screenshots (local, not committed): `tmp/training_ui_evidence_20261023/`.
+
+### Create-flow gap (separate from existing-data visibility)
+
+| Workflow | Backend | UI create |
+|----------|---------|-----------|
+| Client pays agent’s external account (cashless third-party) | `fx_record_deal_third_party_payment` | **Missing** — MoneyMovementComposer `FxSettlementMethodToggle` is Bank/Cash only |
+| Buy FX applying agent PKR advance (1180) | `fx_purchase_currency_funded` / advance funding in training SQL | **Missing** — draft Buy FX supports cash vs **credit (2100)** only |
+
+Existing training rows **are** visible on deal detail / remittance / parties without those create UIs.
 
 ---
 
