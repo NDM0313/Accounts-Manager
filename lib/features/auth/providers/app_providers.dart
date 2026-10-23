@@ -88,8 +88,19 @@ class AuthRefreshListenable extends ChangeNotifier {
   }
 }
 
-final authSessionProvider = StreamProvider<AuthState>((ref) {
-  return supabase.auth.onAuthStateChange;
+/// Seeds the current session immediately so dependents do not hang when
+/// `onAuthStateChange` has already emitted `initialSession` before subscribe.
+final authSessionProvider = StreamProvider<AuthState>((ref) async* {
+  final current = supabase.auth.currentSession;
+  yield AuthState(
+    current == null
+        ? AuthChangeEvent.signedOut
+        : AuthChangeEvent.initialSession,
+    current,
+  );
+  await for (final state in supabase.auth.onAuthStateChange) {
+    yield state;
+  }
 });
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
@@ -103,7 +114,8 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final currentProfileProvider = FutureProvider<FxUserProfile?>((ref) async {
   final authenticated = ref.watch(isAuthenticatedProvider);
   if (!authenticated) return null;
-  ref.watch(authSessionProvider);
+  // Refresh on auth changes without blocking on AsyncLoading.
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   return ref.read(profileRepositoryProvider).fetchCurrentProfile();
 });
 
@@ -165,8 +177,7 @@ class TrialBalanceAsOfNotifier extends Notifier<DateTime> {
 final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(transactionRepositoryProvider).fetchDrafts(profile.branchId);
@@ -175,8 +186,7 @@ final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((
 final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(transactionRepositoryProvider).fetchVoided(profile.branchId);
@@ -185,8 +195,7 @@ final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((
 final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref
@@ -901,7 +910,7 @@ final branchContextProvider = FutureProvider<BranchContext?>((ref) async {
 final myWorkspacesProvider = FutureProvider<List<FxWorkspace>>((ref) async {
   final authenticated = ref.watch(isAuthenticatedProvider);
   if (!authenticated) return const [];
-  ref.watch(authSessionProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   ref.watch(currentProfileProvider);
   return ref.read(profileRepositoryProvider).listMyWorkspaces();
 });
