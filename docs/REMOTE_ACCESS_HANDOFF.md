@@ -135,7 +135,26 @@ Until both steps succeed off the home LAN, do **not** claim office-ready remote 
 
 - URL: https://fx.ndmcore.com  
 - Approved redesign commit (deployed): `787de8b0b68c8e84a99aa9a730b709fe174a3bca`  
+- Docs tip may be ahead of the deployed web SHA (handoff-only commits do not require redeploy).  
 - Financial UI testing: **AM_DEMO only**
+
+## Verification log (2026-10-23 Mac)
+
+| Check | Result |
+|-------|--------|
+| Mac OS | macOS 26.7.1 (`x86_64`) |
+| Tailscale install | Official standalone `Tailscale-1.104.2-macos.pkg` → `/Applications/Tailscale.app` |
+| Mac CLI | `/Applications/Tailscale.app/Contents/MacOS/Tailscale` |
+| Mac Tailscale login | Connected as `ndmcodex@` (`nadeems-macbook-pro`, `100.105.208.20`) |
+| Same tailnet as server | Yes — `dinserver-1` at `100.127.166.65` active |
+| `dinserver-cf` SSH | PASS → hostname `dinserver` |
+| `dinserver-cf` SFTP/SCP | PASS (labelled probe file uploaded and deleted) |
+| `dinserver-ts` SSH (on home LAN) | PASS → hostname `dinserver` / `ndm313` |
+| Outside-home CF (phone hotspot) | Pending — requires leaving home LAN |
+| Outside-home TS (phone hotspot) | Pending — requires leaving home LAN |
+| SSH keys / aliases | Preserved (`~/.ssh/config` unchanged by Tailscale install) |
+
+Host-key note: `terminal.ndmcore.com` and `100.127.166.65` were pinned to the same ED25519 fingerprint already trusted for `192.168.86.235` (`SHA256:cb+Rn43Xqs1hg07XVcUjZpWrmoPaXZGybshF73hil/s`). Do not use `StrictHostKeyChecking=no`.
 
 ## Security reminders
 
