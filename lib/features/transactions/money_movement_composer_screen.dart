@@ -38,6 +38,7 @@ class MoneyMovementComposerScreen extends ConsumerStatefulWidget {
   });
 
   final TransactionDraftMode mode;
+
   /// When [mode] is standard, explicitly choose receive vs pay.
   final bool? forceReceive;
   final String? initialPartyId;
@@ -105,9 +106,7 @@ class _MoneyMovementComposerScreenState
     _partyId = widget.initialPartyId;
     if (widget.initialAmount != null) {
       _amountCtrl.text = widget.initialAmount!.toStringAsFixed(
-        widget.initialAmount! == widget.initialAmount!.roundToDouble()
-            ? 0
-            : 2,
+        widget.initialAmount! == widget.initialAmount!.roundToDouble() ? 0 : 2,
       );
     }
     if (widget.initialCurrency != null &&
@@ -204,8 +203,8 @@ class _MoneyMovementComposerScreenState
     return MoneyMovementDescription.build(
       mode: widget.mode == TransactionDraftMode.standard
           ? (_isReceiveFlow
-              ? TransactionDraftMode.customerReceipt
-              : TransactionDraftMode.agentPayment)
+                ? TransactionDraftMode.customerReceipt
+                : TransactionDraftMode.agentPayment)
           : widget.mode,
       currencyCode: _currencyCode,
       amount: _amount,
@@ -288,8 +287,7 @@ class _MoneyMovementComposerScreenState
       context.go('/transactions/$_postedTxId');
       return;
     }
-    final dealLabel =
-        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final dealLabel = allocatedDeal == null ? null : _dealLabel(allocatedDeal);
     final desc = _finalDescription(party, vault, dealLabel: dealLabel);
     if (desc.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -328,7 +326,9 @@ class _MoneyMovementComposerScreenState
           deal.id,
           _amount,
         );
-        txId = await ref.read(dealRepositoryProvider).recordCustomerPayment(
+        txId = await ref
+            .read(dealRepositoryProvider)
+            .recordCustomerPayment(
               dealId: deal.id,
               amountPkr: _amount,
               notes: desc,
@@ -363,10 +363,16 @@ class _MoneyMovementComposerScreenState
         txId = posted.id;
       }
 
+      var attachmentFailures = 0;
       for (final f in _pendingFiles) {
-        if (f.bytes == null) continue;
+        if (f.bytes == null) {
+          attachmentFailures++;
+          continue;
+        }
         try {
-          await ref.read(attachmentRepositoryProvider).upload(
+          await ref
+              .read(attachmentRepositoryProvider)
+              .upload(
                 companyId: profile.companyId,
                 branchId: profile.branchId,
                 transactionId: txId,
@@ -375,7 +381,7 @@ class _MoneyMovementComposerScreenState
                 attachmentType: 'proof',
               );
         } catch (_) {
-          // Keep posting; surface attachment failure after success.
+          attachmentFailures++;
         }
       }
 
@@ -388,18 +394,20 @@ class _MoneyMovementComposerScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            deal == null
-                ? widget.mode.successTitle
-                : 'Deal receipt posted (no extra settlement)',
+            attachmentFailures > 0
+                ? 'Payment saved. $attachmentFailures attachment(s) failed to upload. Open the transaction to add them again; do not repeat the payment.'
+                : (deal == null
+                      ? widget.mode.successTitle
+                      : 'Deal receipt posted'),
           ),
         ),
       );
-      context.go('/transactions/$txId');
+      context.go('/transactions/$txId/complete?mode=${widget.mode.dbValue}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(friendlyDealPostingError(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(friendlyDealPostingError(e))));
       setState(() => _reviewing = true);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -415,7 +423,7 @@ class _MoneyMovementComposerScreenState
         ? ref.watch(dealsListProvider)
         : const AsyncValue<List<FxDeal>>.data([]);
     final fmt = NumberFormat('#,##0.##');
-    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    final isWide = MediaQuery.sizeOf(context).width >= 1280;
 
     return FxPremiumScaffold(
       title: Text(_reviewing ? 'Review' : _title),
@@ -426,8 +434,8 @@ class _MoneyMovementComposerScreenState
           onPressed: _busy
               ? null
               : () => context.push(
-                    '/slips/import?returnTo=money&mode=${widget.mode.dbValue}',
-                  ),
+                  '/slips/import?returnTo=money&mode=${widget.mode.dbValue}',
+                ),
           icon: const Icon(Icons.document_scanner_outlined),
         ),
       ],
@@ -464,8 +472,9 @@ class _MoneyMovementComposerScreenState
                             p.code.toLowerCase().contains(q);
                       })
                       .toList();
-                  final party =
-                      allParties.where((p) => p.id == _partyId).firstOrNull;
+                  final party = allParties
+                      .where((p) => p.id == _partyId)
+                      .firstOrNull;
                   final allDeals = dealsAsync.asData?.value ?? const <FxDeal>[];
                   final deals = _allocatableDeals(allDeals);
                   // Only clear after deals finished loading — never wipe
@@ -488,7 +497,7 @@ class _MoneyMovementComposerScreenState
                   final selectedDeal = _dealId == null
                       ? null
                       : (deals.where((d) => d.id == _dealId).firstOrNull ??
-                          allDeals.where((d) => d.id == _dealId).firstOrNull);
+                            allDeals.where((d) => d.id == _dealId).firstOrNull);
 
                   if (_reviewing) {
                     return _buildReview(
@@ -538,6 +547,57 @@ class _MoneyMovementComposerScreenState
     required bool isWide,
   }) {
     final fx = context.fx;
+    final reviewAction = FilledButton(
+      onPressed: _busy
+          ? null
+          : () {
+              if (_partyId == null || party == null) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Select a party')));
+                return;
+              }
+              if (_amount <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter a valid amount')),
+                );
+                return;
+              }
+              if (_vaultAccountCode == null || vault == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Select a ${_method == 'bank' ? 'bank' : 'cash'} account',
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (_finalDescription(
+                party,
+                vault,
+                dealLabel: allocatedDeal == null
+                    ? null
+                    : _dealLabel(allocatedDeal),
+              ).isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Description cannot be empty')),
+                );
+                return;
+              }
+              if (allocatedDeal != null &&
+                  _amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Amount cannot exceed deal outstanding'),
+                  ),
+                );
+                return;
+              }
+              setState(() => _reviewing = true);
+            },
+      child: Text(_isReceiveFlow ? 'Review receipt' : 'Review payment'),
+    );
     final form = ListView(
       padding: EdgeInsets.fromLTRB(
         isWide ? 24 : 16,
@@ -547,7 +607,7 @@ class _MoneyMovementComposerScreenState
       ),
       children: [
         FxFormSection(
-          title: _isReceiveFlow ? 'Receive from' : 'Pay to',
+          title: _isReceiveFlow ? 'Who is paying you?' : 'Who are you paying?',
           children: [
             TextField(
               controller: _partySearchCtrl,
@@ -575,9 +635,9 @@ class _MoneyMovementComposerScreenState
               onChanged: _busy
                   ? null
                   : (v) => setState(() {
-                        _partyId = v;
-                        _dealId = null;
-                      }),
+                      _partyId = v;
+                      _dealId = null;
+                    }),
             ),
           ],
         ),
@@ -588,9 +648,8 @@ class _MoneyMovementComposerScreenState
             title: 'Deal allocation',
             optional: true,
             subtitle:
-                'Optional. Allocating posts via the deal payment engine only — '
-                'not a second generic settlement. Leave empty for a general '
-                'party receipt.',
+                'Choose an unpaid deal to reduce its outstanding balance. '
+                'Otherwise, record a general party receipt.',
             children: [
               if (dealsLoading) const LinearProgressIndicator(),
               if (dealsError)
@@ -627,12 +686,12 @@ class _MoneyMovementComposerScreenState
                 onChanged: _busy
                     ? null
                     : (v) => setState(() {
-                          _dealId = v;
-                          if (v != null && _currencyCode != 'PKR') {
-                            _currencyCode = 'PKR';
-                            _vaultAccountCode = null;
-                          }
-                        }),
+                        _dealId = v;
+                        if (v != null && _currencyCode != 'PKR') {
+                          _currencyCode = 'PKR';
+                          _vaultAccountCode = null;
+                        }
+                      }),
               ),
               if (allocatedDeal != null)
                 Text(
@@ -659,8 +718,9 @@ class _MoneyMovementComposerScreenState
                   flex: 3,
                   child: TextFormField(
                     controller: _amountCtrl,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(labelText: 'Amount'),
                   ),
                 ),
@@ -670,7 +730,10 @@ class _MoneyMovementComposerScreenState
                     decoration: const InputDecoration(labelText: 'Currency'),
                     child: Text(
                       _currencyCode,
-                      style: AppTypography.headlineSm(fx.onSurface, context: context),
+                      style: AppTypography.headlineSm(
+                        fx.onSurface,
+                        context: context,
+                      ),
                     ),
                   ),
                 ),
@@ -679,7 +742,10 @@ class _MoneyMovementComposerScreenState
             if (_currencyCode == 'PKR')
               Text(
                 'Settlement currency is PKR for this workflow.',
-                style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
+                style: AppTypography.bodySm(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
           ],
         ),
@@ -689,16 +755,24 @@ class _MoneyMovementComposerScreenState
           children: [
             SegmentedButton<String>(
               segments: const [
-                ButtonSegment(value: 'bank', label: Text('Bank'), icon: Icon(Icons.account_balance)),
-                ButtonSegment(value: 'cash', label: Text('Cash'), icon: Icon(Icons.payments_outlined)),
+                ButtonSegment(
+                  value: 'bank',
+                  label: Text('Bank'),
+                  icon: Icon(Icons.account_balance),
+                ),
+                ButtonSegment(
+                  value: 'cash',
+                  label: Text('Cash'),
+                  icon: Icon(Icons.payments_outlined),
+                ),
               ],
               selected: {_method},
               onSelectionChanged: _busy
                   ? null
                   : (s) => setState(() {
-                        _method = s.first;
-                        _vaultAccountCode = null;
-                      }),
+                      _method = s.first;
+                      _vaultAccountCode = null;
+                    }),
             ),
             DropdownButtonFormField<String>(
               key: ValueKey('vault-$_method-$_currencyCode-$_vaultAccountCode'),
@@ -778,12 +852,14 @@ class _MoneyMovementComposerScreenState
               onChanged: _busy
                   ? null
                   : (v) => setState(() {
-                        if (!v && _manualDescCtrl.text.trim().isEmpty) {
-                          _manualDescCtrl.text =
-                              _generatedDescription(party, vault);
-                        }
-                        _autoDescription = v;
-                      }),
+                      if (!v && _manualDescCtrl.text.trim().isEmpty) {
+                        _manualDescCtrl.text = _generatedDescription(
+                          party,
+                          vault,
+                        );
+                      }
+                      _autoDescription = v;
+                    }),
             ),
             if (_autoDescription) ...[
               Container(
@@ -820,9 +896,11 @@ class _MoneyMovementComposerScreenState
                   onPressed: _busy
                       ? null
                       : () => setState(() {
-                            _manualDescCtrl.text =
-                                _generatedDescription(party, vault);
-                          }),
+                          _manualDescCtrl.text = _generatedDescription(
+                            party,
+                            vault,
+                          );
+                        }),
                   child: const Text('Regenerate from details'),
                 ),
               ),
@@ -854,70 +932,35 @@ class _MoneyMovementComposerScreenState
             ),
           ],
         ),
-        const SizedBox(height: 28),
-        FilledButton(
-          onPressed: _busy
-              ? null
-              : () {
-                  if (_partyId == null || party == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Select a party')),
-                    );
-                    return;
-                  }
-                  if (_amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Enter a valid amount')),
-                    );
-                    return;
-                  }
-                  if (_vaultAccountCode == null || vault == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Select a ${_method == 'bank' ? 'bank' : 'cash'} account',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                  if (_finalDescription(
-                    party,
-                    vault,
-                    dealLabel: allocatedDeal == null
-                        ? null
-                        : _dealLabel(allocatedDeal),
-                  ).isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Description cannot be empty'),
-                      ),
-                    );
-                    return;
-                  }
-                  if (allocatedDeal != null &&
-                      _amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Amount cannot exceed deal outstanding'),
-                      ),
-                    );
-                    return;
-                  }
-                  setState(() => _reviewing = true);
-                },
-          child: Text(
-            _isReceiveFlow ? 'Review receipt' : 'Review payment',
-          ),
-        ),
       ],
     );
 
-    if (!isWide) return form;
+    final formWithAction = Column(
+      children: [
+        Expanded(child: form),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: fx.surface,
+            border: Border(top: BorderSide(color: fx.outlineVariant)),
+          ),
+          child: SafeArea(top: false, child: reviewAction),
+        ),
+      ],
+    );
+    if (!isWide) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 740),
+          child: formWithAction,
+        ),
+      );
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(flex: 3, child: form),
+        Expanded(flex: 3, child: formWithAction),
         Expanded(
           flex: 2,
           child: Padding(
@@ -994,12 +1037,14 @@ class _MoneyMovementComposerScreenState
       partyName: party?.name ?? '—',
       vaultAccount: vault,
     );
-    final dealLabel =
-        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final dealLabel = allocatedDeal == null ? null : _dealLabel(allocatedDeal);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(sentence, style: AppTypography.headlineSm(fx.onSurface, context: context)),
+        Text(
+          sentence,
+          style: AppTypography.headlineSm(fx.onSurface, context: context),
+        ),
         const SizedBox(height: 12),
         Text(
           allocatedDeal == null
@@ -1012,7 +1057,10 @@ class _MoneyMovementComposerScreenState
           Text('Deal: $dealLabel'),
         ],
         const SizedBox(height: 16),
-        Text('Description', style: AppTypography.headlineSm(fx.onSurface, context: context)),
+        Text(
+          'Description',
+          style: AppTypography.headlineSm(fx.onSurface, context: context),
+        ),
         const SizedBox(height: 8),
         Text(
           _finalDescription(party, vault, dealLabel: dealLabel),
@@ -1024,13 +1072,17 @@ class _MoneyMovementComposerScreenState
         ],
         if (_pendingFiles.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text('${_pendingFiles.length} attachment(s) will upload with this post.'),
+          Text(
+            '${_pendingFiles.length} attachment(s) will upload with this post.',
+          ),
         ],
         const SizedBox(height: 24),
         Row(
           children: [
             OutlinedButton(
-              onPressed: _busy ? null : () => setState(() => _reviewing = false),
+              onPressed: _busy
+                  ? null
+                  : () => setState(() => _reviewing = false),
               child: const Text('Back'),
             ),
             const SizedBox(width: 12),
@@ -1039,11 +1091,11 @@ class _MoneyMovementComposerScreenState
                 onPressed: _busy || party == null || vault == null
                     ? null
                     : () => _confirmAndPost(
-                          party: party,
-                          vault: vault,
-                          accounts: accounts,
-                          allocatedDeal: allocatedDeal,
-                        ),
+                        party: party,
+                        vault: vault,
+                        accounts: accounts,
+                        allocatedDeal: allocatedDeal,
+                      ),
                 child: _busy
                     ? const SizedBox(
                         width: 20,

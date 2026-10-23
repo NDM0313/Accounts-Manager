@@ -1,3 +1,4 @@
+import 'package:accounts_manager/app/theme/fx_design_tokens.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
@@ -14,6 +15,7 @@ class FxCompactMetric extends StatelessWidget {
     this.subtitle,
     this.valueColor,
     this.onTap,
+    this.accent = FxAccent.brand,
   });
 
   final String label;
@@ -22,13 +24,15 @@ class FxCompactMetric extends StatelessWidget {
   final String? subtitle;
   final Color? valueColor;
   final VoidCallback? onTap;
+  final FxAccent accent;
 
   @override
   Widget build(BuildContext context) {
     final card = FxStitchCard(
+      color: context.fxAccentSurface(accent),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.stackMd,
-        vertical: AppSpacing.stackSm + 2,
+        vertical: 18,
       ),
       onTap: onTap,
       child: Column(
@@ -57,9 +61,9 @@ class FxCompactMetric extends StatelessWidget {
             FxMoneyLabel(
               amount: amount!,
               currencyCode: currencyCode,
-              color: valueColor ?? context.fx.onSurface,
+              color: valueColor ?? context.fxAccent(accent),
               bold: true,
-              fontSize: 16,
+              fontSize: 24,
               align: TextAlign.start,
             ),
           if (subtitle != null) ...[

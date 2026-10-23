@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Executive FX Ledger premium tokens (Stitch DESIGN.md M3 roles).
+/// Approved FX Ledger Figma palette (23 October 2026).
 abstract final class AppColors {
   // Shared semantic
   static const premiumPrimary = Color(0xFF002045);
@@ -13,62 +13,62 @@ abstract final class AppColors {
   static const premiumDanger = Color(0xFFBA1A1A);
 
   // Light — unified financial workspace (see docs/UI_DESIGN_SYSTEM.md)
-  static const lightBackground = Color(0xFFF5F7FB);
+  static const lightBackground = Color(0xFFF5F7FA);
   static const lightSurface = Color(0xFFFFFFFF);
   static const lightSurfaceContainerLowest = Color(0xFFFFFFFF);
-  static const lightSurfaceContainerLow = Color(0xFFF8FAFC);
-  static const lightSurfaceContainer = Color(0xFFF1F5F9);
-  static const lightSurfaceContainerHigh = Color(0xFFE2E8F0);
-  static const lightSurfaceContainerHighest = Color(0xFFCBD5E1);
-  static const lightPrimary = Color(0xFF14263D);
-  static const lightPrimaryContainer = Color(0xFF1E3A5F);
-  static const lightOnPrimaryContainer = Color(0xFFB8C7DB);
-  static const lightSecondary = Color(0xFF2563EB);
-  static const lightSecondaryContainer = Color(0xFF3B82F6);
-  static const lightTertiary = Color(0xFF064E3B);
-  static const lightTertiaryContainer = Color(0xFF047857);
-  static const lightOnTertiaryContainer = Color(0xFF047857);
-  static const lightTertiaryFixedDim = Color(0xFF10B981);
-  static const lightOnSurface = Color(0xFF14263D);
-  static const lightOnSurfaceVariant = Color(0xFF64748B);
-  static const lightOutline = Color(0xFF94A3B8);
-  static const lightOutlineVariant = Color(0xFFE2E8F0);
+  static const lightSurfaceContainerLow = Color(0xFFF5F7FA);
+  static const lightSurfaceContainer = Color(0xFFEAF1FF);
+  static const lightSurfaceContainerHigh = Color(0xFFEAF1FF);
+  static const lightSurfaceContainerHighest = Color(0xFFDFE6EC);
+  static const lightPrimary = Color(0xFF145CDE);
+  static const lightPrimaryContainer = Color(0xFFEAF1FF);
+  static const lightOnPrimaryContainer = Color(0xFF145CDE);
+  static const lightSecondary = Color(0xFF145CDE);
+  static const lightSecondaryContainer = Color(0xFFEAF1FF);
+  static const lightTertiary = Color(0xFF077563);
+  static const lightTertiaryContainer = Color(0xFFE5F6EF);
+  static const lightOnTertiaryContainer = Color(0xFF077563);
+  static const lightTertiaryFixedDim = Color(0xFF077563);
+  static const lightOnSurface = Color(0xFF172B3A);
+  static const lightOnSurfaceVariant = Color(0xFF586B7D);
+  static const lightOutline = Color(0xFF657787);
+  static const lightOutlineVariant = Color(0xFFDFE6EC);
   static const lightOnPrimary = Color(0xFFFFFFFF);
   static const lightOnTertiary = Color(0xFFFFFFFF);
-  static const lightError = Color(0xFFB91C1C);
-  static const lightErrorContainer = Color(0xFFFEE2E2);
-  static const lightWarningContainer = Color(0xFFFEF3C7);
-  static const lightWarning = Color(0xFFB45309);
-  static const lightSuccess = Color(0xFF047857);
+  static const lightError = Color(0xFFBD3B44);
+  static const lightErrorContainer = Color(0xFFFCECEF);
+  static const lightWarningContainer = Color(0xFFFFF4DC);
+  static const lightWarning = Color(0xFF926116);
+  static const lightSuccess = Color(0xFF077563);
 
   // Dark — charcoal graphite (not pure black)
-  static const darkBackground = Color(0xFF1A1D24);
-  static const darkSurface = Color(0xFF252830);
-  static const darkSurfaceDim = Color(0xFF1E2128);
-  static const darkSurfaceBright = Color(0xFF2D3139);
-  static const darkSurfaceContainerLowest = Color(0xFF1A1D24);
-  static const darkSurfaceContainerLow = Color(0xFF252830);
-  static const darkSurfaceContainer = Color(0xFF2D3139);
-  static const darkSurfaceContainerHigh = Color(0xFF353A44);
-  static const darkSurfaceContainerHighest = Color(0xFF3D4350);
-  static const darkSurfaceVariant = Color(0xFF353A44);
-  static const darkOutline = Color(0xFF64748B);
-  static const darkOutlineVariant = Color(0xFF3D4350);
-  static const darkPrimary = Color(0xFF3B82F6);
-  static const darkPrimaryContainer = Color(0xFF1E3A8A);
+  static const darkBackground = Color(0xFF0C1421);
+  static const darkSurface = Color(0xFF152235);
+  static const darkSurfaceDim = Color(0xFF0C1421);
+  static const darkSurfaceBright = Color(0xFF203A66);
+  static const darkSurfaceContainerLowest = Color(0xFF152235);
+  static const darkSurfaceContainerLow = Color(0xFF152235);
+  static const darkSurfaceContainer = Color(0xFF152235);
+  static const darkSurfaceContainerHigh = Color(0xFF203A66);
+  static const darkSurfaceContainerHighest = Color(0xFF344860);
+  static const darkSurfaceVariant = Color(0xFF203A66);
+  static const darkOutline = Color(0xFFA5B6CC);
+  static const darkOutlineVariant = Color(0xFF344860);
+  static const darkPrimary = Color(0xFF2563EB);
+  static const darkPrimaryContainer = Color(0xFF203A66);
   static const darkOnPrimary = Color(0xFFFFFFFF);
-  static const darkSecondary = Color(0xFF60A5FA);
-  static const darkSecondaryContainer = Color(0xFF1E40AF);
-  static const darkTertiary = Color(0xFF10B981);
-  static const darkTertiaryContainer = Color(0xFF065F46);
-  static const darkTertiaryFixedDim = Color(0xFF34D399);
+  static const darkSecondary = Color(0xFF91B9FF);
+  static const darkSecondaryContainer = Color(0xFF203A66);
+  static const darkTertiary = Color(0xFF61D5B1);
+  static const darkTertiaryContainer = Color(0xFF153D37);
+  static const darkTertiaryFixedDim = Color(0xFF61D5B1);
   static const darkOnTertiary = Color(0xFF001A12);
-  static const darkOnSurface = Color(0xFFF1F5F9);
-  static const darkOnBackground = Color(0xFFF1F5F9);
-  static const darkOnSurfaceVariant = Color(0xFF94A3B8);
-  static const darkError = Color(0xFFF87171);
-  static const darkErrorContainer = Color(0xFF3F1D1D);
-  static const darkWarningContainer = Color(0xFF422006);
+  static const darkOnSurface = Color(0xFFEDF3FC);
+  static const darkOnBackground = Color(0xFFEDF3FC);
+  static const darkOnSurfaceVariant = Color(0xFFA5B6CC);
+  static const darkError = Color(0xFFFF9BA4);
+  static const darkErrorContainer = Color(0xFF462632);
+  static const darkWarningContainer = Color(0xFF40351E);
 }
 
 /// Theme-aware palette.
@@ -149,7 +149,7 @@ class FxColors extends ThemeExtension<FxColors> {
     secondary: AppColors.darkSecondary,
     onSecondary: AppColors.darkBackground,
     secondaryContainer: AppColors.darkSecondaryContainer,
-    onSecondaryContainer: Colors.white,
+    onSecondaryContainer: AppColors.darkSecondary,
     tertiary: AppColors.darkTertiary,
     tertiaryContainer: AppColors.darkTertiaryContainer,
     onTertiary: AppColors.darkOnTertiary,
@@ -158,7 +158,7 @@ class FxColors extends ThemeExtension<FxColors> {
     onSurfaceVariant: AppColors.darkOnSurfaceVariant,
     error: AppColors.darkError,
     errorContainer: AppColors.darkErrorContainer,
-    warning: AppColors.premiumWarning,
+    warning: Color(0xFFF1C575),
     warningContainer: AppColors.darkWarningContainer,
   );
 
@@ -179,7 +179,7 @@ class FxColors extends ThemeExtension<FxColors> {
     secondary: AppColors.lightSecondary,
     onSecondary: Colors.white,
     secondaryContainer: AppColors.lightSecondaryContainer,
-    onSecondaryContainer: Colors.white,
+    onSecondaryContainer: AppColors.lightSecondary,
     tertiary: AppColors.lightOnTertiaryContainer,
     tertiaryContainer: AppColors.lightTertiaryContainer,
     onTertiary: AppColors.lightOnTertiary,
@@ -241,8 +241,7 @@ class FxColors extends ThemeExtension<FxColors> {
       secondary: secondary ?? this.secondary,
       onSecondary: onSecondary ?? this.onSecondary,
       secondaryContainer: secondaryContainer ?? this.secondaryContainer,
-      onSecondaryContainer:
-          onSecondaryContainer ?? this.onSecondaryContainer,
+      onSecondaryContainer: onSecondaryContainer ?? this.onSecondaryContainer,
       tertiary: tertiary ?? this.tertiary,
       tertiaryContainer: tertiaryContainer ?? this.tertiaryContainer,
       onTertiary: onTertiary ?? this.onTertiary,
@@ -283,10 +282,7 @@ class FxColors extends ThemeExtension<FxColors> {
       secondary: l(secondary, other.secondary),
       onSecondary: l(onSecondary, other.onSecondary),
       secondaryContainer: l(secondaryContainer, other.secondaryContainer),
-      onSecondaryContainer: l(
-        onSecondaryContainer,
-        other.onSecondaryContainer,
-      ),
+      onSecondaryContainer: l(onSecondaryContainer, other.onSecondaryContainer),
       tertiary: l(tertiary, other.tertiary),
       tertiaryContainer: l(tertiaryContainer, other.tertiaryContainer),
       onTertiary: l(onTertiary, other.onTertiary),
@@ -314,13 +310,14 @@ abstract final class AppSpacing {
   static const chipGap = 6.0;
   static const marginMobile = 16.0;
   static const marginDesktop = 32.0;
-  static const containerMax = 1140.0;
+  static const containerMax = 1280.0;
   static const radiusSm = 4.0;
   static const radiusMd = 8.0;
   static const radiusLg = 12.0;
-  static const radiusXl = 16.0;
+  static const radiusXl = 12.0;
   static const buttonHeight = 48.0;
   static const appBarHeight = 64.0;
+
   /// Bottom nav (56) + safe padding buffer for scroll content.
   static const shellBottomInset = 88.0;
 }
@@ -330,13 +327,12 @@ abstract final class FxLayoutBreakpoints {
   static const compact = 600.0;
   static const tablet = 1024.0;
   static const desktopWide = 1440.0;
-  static const contentMax = 1440.0;
-  static const formMax = 960.0;
-  static const sidebarWidth = 232.0;
+  static const contentMax = 1280.0;
+  static const formMax = 740.0;
+  static const sidebarWidth = 224.0;
 
   static bool isCompact(double width) => width < compact;
-  static bool isTablet(double width) =>
-      width >= compact && width < tablet;
+  static bool isTablet(double width) => width >= compact && width < tablet;
   static bool isDesktop(double width) => width >= tablet;
 }
 

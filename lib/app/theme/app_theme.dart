@@ -77,7 +77,7 @@ abstract final class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
       ),
       dialogTheme: DialogThemeData(
@@ -140,7 +140,7 @@ abstract final class AppTheme {
         ),
       ),
       cardTheme: _cardTheme(
-        AppColors.darkSurfaceContainer,
+        AppColors.darkSurface,
         AppColors.darkOutlineVariant,
       ),
       filledButtonTheme: _filledButtonTheme(
@@ -171,7 +171,7 @@ abstract final class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
       ),
       dialogTheme: DialogThemeData(
@@ -202,11 +202,15 @@ abstract final class AppTheme {
   }) => NavigationBarThemeData(
     backgroundColor: bg,
     indicatorColor: indicator,
-    height: 56,
+    height: 72,
     labelTextStyle: WidgetStateProperty.resolveWith((states) {
       final active = states.contains(WidgetState.selected);
       return AppTypography.labelCaps(
-        active ? AppColors.premiumPrimary : labelColor,
+        active
+            ? (brightness == Brightness.dark
+                  ? AppColors.darkSecondary
+                  : AppColors.lightSecondary)
+            : labelColor,
         brightness: brightness,
       ).copyWith(fontSize: 11);
     }),
@@ -240,7 +244,7 @@ abstract final class AppTheme {
           minimumSize: const Size(0, AppSpacing.buttonHeight),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
         ),
       );
@@ -253,7 +257,7 @@ abstract final class AppTheme {
           minimumSize: const Size(0, AppSpacing.buttonHeight),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
         ),
       );
@@ -279,15 +283,15 @@ abstract final class AppTheme {
     fillColor: fill,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       borderSide: BorderSide(color: border),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       borderSide: BorderSide(color: border),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       borderSide: BorderSide(color: focus, width: 2),
     ),
   );

@@ -1,5 +1,4 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
-import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/config/feature_flags.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/features/auth/providers/messaging_providers.dart';

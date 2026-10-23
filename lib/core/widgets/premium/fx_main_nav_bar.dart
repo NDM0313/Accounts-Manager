@@ -15,10 +15,10 @@ class FxMainNavDestinations {
     (
       Icons.account_balance_wallet_outlined,
       Icons.account_balance_wallet,
-      'Ledger',
+      'Accounts',
     ),
     (Icons.bar_chart_outlined, Icons.bar_chart, 'Reports'),
-    (Icons.settings_outlined, Icons.settings, 'Settings'),
+    (Icons.more_horiz, Icons.more_horiz, 'More'),
   ];
 
   static const paths = <String>[
@@ -58,7 +58,7 @@ class FxMainNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 56,
+          height: 72,
           child: Row(
             children: List.generate(tabs.length, (i) {
               final tab = tabs[i];
@@ -89,13 +89,13 @@ class FxMainNavBar extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          tab.$3.toUpperCase(),
+                          tab.$3,
                           style: AppTypography.labelCaps(
                             active
                                 ? context.fx.secondary
                                 : context.fx.onSurfaceVariant,
                             context: context,
-                          ).copyWith(fontSize: 9),
+                          ).copyWith(fontSize: 11, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),

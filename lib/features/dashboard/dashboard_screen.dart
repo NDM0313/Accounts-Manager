@@ -1,13 +1,13 @@
+import 'package:accounts_manager/app/theme/fx_design_tokens.dart';
+import 'package:intl/intl.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_currency_position_card.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_marquee_rate_strip.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_next_action_row.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_quick_action_button.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_responsive_grid.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_section_header.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_stitch_scaffold.dart';
-import 'package:accounts_manager/core/widgets/premium/fx_transaction_menu_sheet.dart';
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
 import 'package:accounts_manager/features/dashboard/dashboard_kpi_row.dart';
@@ -36,6 +36,23 @@ class DashboardScreen extends ConsumerWidget {
       child: ListView(
         padding: EdgeInsets.only(bottom: bottomInset),
         children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(horizontal, 24, horizontal, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your money. Clear.',
+                  style: AppTypography.headlineLg(context.fx.onSurface),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  DateFormat('EEEE, d MMMM').format(DateTime.now()),
+                  style: AppTypography.bodyMd(context.fx.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
           ratesAsync.when(
             data: (rates) => FxMarqueeRateStrip(rates: rates),
             loading: () => const SizedBox.shrink(),
@@ -72,40 +89,74 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _quickActions(BuildContext context, double horizontal) {
+    final actions = <(String, IconData, FxAccent, String)>[
+      (
+        'Receive',
+        Icons.south_west,
+        FxAccent.receive,
+        '/transactions/money?direction=receive&mode=customer_receipt',
+      ),
+      (
+        'Pay',
+        Icons.north_east,
+        FxAccent.pay,
+        '/transactions/money?direction=pay&mode=agent_payment',
+      ),
+      (
+        'Buy FX',
+        Icons.swap_horiz,
+        FxAccent.brand,
+        '/transactions/new?type=currency_buy',
+      ),
+      (
+        'Scan slip',
+        Icons.document_scanner_outlined,
+        FxAccent.scan,
+        '/slips/import',
+      ),
+    ];
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontal),
       child: FxStitchCard(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.stackSm,
-          vertical: AppSpacing.stackMd,
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.spaceEvenly,
-          spacing: AppSpacing.stackSm,
-          runSpacing: AppSpacing.stackMd,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FxQuickActionButton(
-              icon: Icons.add_card,
-              label: 'New Deal',
-              onTap: () => context.push('/deals/new'),
+            Text(
+              'Quick actions',
+              style: AppTypography.headlineSm(context.fx.onSurface),
             ),
-            FxQuickActionButton(
-              icon: Icons.call_received,
-              label: 'Receive Pay',
-              backgroundColor: context.fx.secondary,
-              onTap: () => context.push('/transactions/receive-payment'),
-            ),
-            FxQuickActionButton(
-              icon: Icons.person_pin_outlined,
-              label: 'Pay Agent',
-              outlined: true,
-              onTap: () => context.push('/parties/agents'),
-            ),
-            FxQuickActionButton(
-              icon: Icons.currency_exchange,
-              label: 'Buy Currency',
-              outlined: true,
-              onTap: () => FxTransactionMenuSheet.show(context),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 680
+                    ? 4
+                    : constraints.maxWidth >= 270
+                    ? 2
+                    : 1;
+                final tileWidth =
+                    (constraints.maxWidth - (columns - 1) * 8) / columns;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final item in actions)
+                      SizedBox(
+                        width: tileWidth,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            foregroundColor: context.fxAccent(item.$3),
+                            backgroundColor: context.fxAccentSurface(item.$3),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          onPressed: () => context.push(item.$4),
+                          icon: Icon(item.$2, size: 20),
+                          label: Text(item.$1),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -183,7 +234,7 @@ class DashboardScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FxSectionHeader(label: 'Next Actions'),
+        FxSectionHeader(label: 'Needs your attention'),
         dealsAsync.when(
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
@@ -220,7 +271,6 @@ class DashboardScreen extends ConsumerWidget {
       ],
     );
   }
-
 }
 
 class _NextActionItem {
@@ -258,28 +308,31 @@ List<_NextActionItem> _buildNextActions(
       iconBg: useSecondary
           ? context.fx.secondaryContainer
           : context.fx.errorContainer,
-      iconFg: useSecondary
-          ? context.fx.onSecondaryContainer
-          : context.fx.error,
+      iconFg: useSecondary ? context.fx.onSecondaryContainer : context.fx.error,
     );
   }).toList();
 }
 
 (String, IconData) _actionForStatus(FxDealStatus status) => switch (status) {
-      FxDealStatus.customerPaid =>
-        ('Confirm USD Received', Icons.pending_actions_outlined),
-      FxDealStatus.customerPartiallyPaid ||
-      FxDealStatus.booked ||
-      FxDealStatus.quoted =>
-        ('Receive payment from Customer', Icons.payments_outlined),
-      FxDealStatus.sourcingRequired ||
-      FxDealStatus.sourcingInProgress =>
-        ('Source currency from agent', Icons.currency_exchange),
-      FxDealStatus.agentPartiallyPaid ||
-      FxDealStatus.agentPaid =>
-        ('Pay agent settlement', Icons.person_pin_outlined),
-      FxDealStatus.currencyReceived ||
-      FxDealStatus.delivered =>
-        ('Confirm delivery to customer', Icons.local_shipping_outlined),
-      _ => ('Review deal workflow', Icons.sync_alt),
-    };
+  FxDealStatus.customerPaid => (
+    'Confirm USD Received',
+    Icons.pending_actions_outlined,
+  ),
+  FxDealStatus.customerPartiallyPaid ||
+  FxDealStatus.booked ||
+  FxDealStatus.quoted => (
+    'Receive payment from Customer',
+    Icons.payments_outlined,
+  ),
+  FxDealStatus.sourcingRequired || FxDealStatus.sourcingInProgress => (
+    'Source currency from agent',
+    Icons.currency_exchange,
+  ),
+  FxDealStatus.agentPartiallyPaid ||
+  FxDealStatus.agentPaid => ('Pay agent settlement', Icons.person_pin_outlined),
+  FxDealStatus.currencyReceived || FxDealStatus.delivered => (
+    'Confirm delivery to customer',
+    Icons.local_shipping_outlined,
+  ),
+  _ => ('Review deal workflow', Icons.sync_alt),
+};

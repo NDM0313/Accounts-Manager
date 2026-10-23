@@ -1,3 +1,6 @@
+import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
+import 'package:accounts_manager/core/widgets/system/fx_confirmation_emblem.dart';
+import 'package:accounts_manager/core/widgets/system/fx_status_badge.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/utils/transaction_receipt.dart';
@@ -24,120 +27,94 @@ class TransactionCompleteScreen extends ConsumerWidget {
     final txAsync = ref.watch(transactionDetailProvider(transactionId));
     final fmt = NumberFormat('#,##0.00');
 
-    return Scaffold(
-      backgroundColor: context.fx.background,
+    return FxPremiumScaffold(
+      title: const Text('Confirmation'),
+      fallbackRoute: '/',
       body: txAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (tx) => Stack(
-          children: [
-            Positioned(
-              top: -80,
-              right: -80,
+        error: (e, _) => Center(child: Text('Unable to load transaction: $e')),
+        data: (tx) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
               child: Container(
-                width: 200,
-                height: 200,
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: context.fx.primary.withValues(alpha: 0.1),
+                  color: context.fx.surface,
+                  border: Border.all(color: context.fx.outlineVariant),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-            ),
-            Positioned(
-              bottom: 100,
-              left: -60,
-              child: Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: context.fx.tertiary.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Spacer(),
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: context.fx.tertiary.withValues(alpha: 0.15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: context.fx.tertiary.withValues(alpha: 0.2),
-                            blurRadius: 40,
-                            spreadRadius: -10,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.check_circle,
-                        color: context.fx.secondary,
-                        size: 48,
-                      ),
-                    ),
+                    if (tx.isPosted)
+                      const Center(child: FxConfirmationEmblem()),
                     const SizedBox(height: 24),
                     Text(
-                      draftMode != TransactionDraftMode.standard
-                          ? draftMode.successTitle
-                          : 'Transaction Posted',
-                      style: AppTypography.headlineLg(
-                        context.fx.onSurface,
-                        context: context,
-                      ),
+                      tx.isPosted
+                          ? (draftMode == TransactionDraftMode.standard
+                                ? 'Transaction recorded'
+                                : draftMode.successTitle)
+                          : 'Transaction ${tx.status}',
+                      style: AppTypography.headlineLg(context.fx.onSurface),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      tx.partyName != null
-                          ? '${tx.currencyCode} ${fmt.format(tx.totalForeignAmount)} · ${tx.partyName}'
-                          : 'Your ledger has been updated successfully.',
-                      style: AppTypography.bodyMd(
-                        context.fx.onSurfaceVariant,
-                        context: context,
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.center,
+                      child: FxStatusBadge(
+                        label: tx.status,
+                        tone: tx.isPosted
+                            ? FxStatusTone.success
+                            : FxStatusTone.warning,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
                     _ReceiptCard(tx: tx, fmt: fmt),
-                    const Spacer(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => shareTransactionReceipt(tx),
-                        child: const Text('Share Receipt'),
-                      ),
+                    if (tx.partyName != null) ...[
+                      const SizedBox(height: 12),
+                      Text(tx.partyName!),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      tx.isPosted
+                          ? 'Saved to the ledger. You can share the receipt or view the updated statement.'
+                          : 'This transaction is not currently posted.',
+                      style: AppTypography.bodyMd(context.fx.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: tx.isPosted
+                          ? () => shareTransactionReceipt(tx)
+                          : null,
+                      icon: const Icon(Icons.ios_share, size: 20),
+                      label: const Text('Share receipt'),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: tx.partyId != null
-                            ? () => context.go('/parties/${tx.partyId}/ledger')
-                            : () => context.go('/transactions/$transactionId'),
-                        child: Text(
-                          tx.partyId != null ? 'View Statement' : 'View Detail',
-                        ),
-                      ),
+                    OutlinedButton(
+                      onPressed: () =>
+                          context.go('/transactions/$transactionId'),
+                      child: const Text('View transaction'),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => context.go('/'),
-                        child: const Text('Done'),
+                    if (tx.partyId != null) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () =>
+                            context.go('/parties/${tx.partyId}/ledger'),
+                        child: const Text('View statement'),
                       ),
+                    ],
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () => context.go('/'),
+                      child: const Text('Done · Back to Home'),
                     ),
                   ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:async';
 
 import 'package:accounts_manager/data/repositories/account_repository.dart';
@@ -291,8 +293,9 @@ final cashBalancesProvider = FutureProvider<List<CashBalanceRow>>((ref) async {
 });
 
 /// Batch PKR balances for party directory. Errors surface to UI (not silent {}).
-final partyDirectoryBalancesProvider =
-    FutureProvider<Map<String, double>>((ref) async {
+final partyDirectoryBalancesProvider = FutureProvider<Map<String, double>>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) {
     throw StateError('Sign in required to load party balances');
@@ -304,29 +307,34 @@ final partyDirectoryBalancesProvider =
 
 /// Agent custody inventory; [agentPartyId] null loads all agents for the company.
 final agentCustodyProvider =
-    FutureProvider.family<List<AgentCustodyRow>, String?>((ref, agentPartyId) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchAgentCustody(
-        companyId: profile.companyId,
-        agentPartyId: agentPartyId,
-      );
-});
+    FutureProvider.family<List<AgentCustodyRow>, String?>((
+      ref,
+      agentPartyId,
+    ) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(reportRepositoryProvider)
+          .fetchAgentCustody(
+            companyId: profile.companyId,
+            agentPartyId: agentPartyId,
+          );
+    });
 
 /// Party foreign control nets by currency (not summed across currencies).
 final partyDirectoryCurrencyBalancesProvider =
     FutureProvider<Map<String, List<PartyCurrencyBalance>>>((ref) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return {};
-  return ref.read(reportRepositoryProvider).fetchPartyDirectoryCurrencyBalances(
-        companyId: profile.companyId,
-      );
-});
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return {};
+      return ref
+          .read(reportRepositoryProvider)
+          .fetchPartyDirectoryCurrencyBalances(companyId: profile.companyId);
+    });
 
 final roznamchaAccountFilterProvider =
     NotifierProvider<RoznamchaAccountFilterNotifier, String?>(
-  RoznamchaAccountFilterNotifier.new,
-);
+      RoznamchaAccountFilterNotifier.new,
+    );
 
 class RoznamchaAccountFilterNotifier extends Notifier<String?> {
   @override
@@ -947,18 +955,48 @@ final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
 );
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
+  static const preferenceKey = 'fx.appearance';
+  int _revision = 0;
+
   @override
-  ThemeMode build() => ThemeMode.light;
+  ThemeMode build() {
+    final revision = ++_revision;
+    Future<void>(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (!ref.mounted || revision != _revision) return;
+        final saved = prefs.getString(preferenceKey);
+        state = ThemeMode.values.firstWhere(
+          (mode) => mode.name == saved,
+          orElse: () => ThemeMode.system,
+        );
+      } catch (_) {
+        // A blocked browser store must not prevent opening the app.
+      }
+    });
+    return ThemeMode.system;
+  }
 
   void toggle() {
-    state = switch (state) {
+    set(switch (state) {
       ThemeMode.light => ThemeMode.dark,
       ThemeMode.dark => ThemeMode.light,
       ThemeMode.system => ThemeMode.dark,
-    };
+    });
   }
 
-  void set(ThemeMode mode) => state = mode;
+  void set(ThemeMode mode) {
+    _revision++;
+    state = mode;
+    Future<void>(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(preferenceKey, mode.name);
+      } catch (_) {
+        // The selected appearance still applies for this session.
+      }
+    });
+  }
 }
 
 String friendlyAuthError(Object error) {
