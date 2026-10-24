@@ -230,7 +230,7 @@ Read-only; **no new financial posts**. Compared to SQL + this guide.
 | Deals list 0001–0004 | **PASS** | Amounts/rates/status match; list “Recv” = **remaining receivable** (not paid) |
 | Deal 1 detail + third-party line | **PASS** | Shows 400k + **350k third-party** + 287.5k; remaining due **1,037,500**; text includes `NO owned-bank movement [third_party]` |
 | Parties TRAINING A–D / Agents A–B | **PASS** (visibility) | Present with codes `TRAIN_CLI_*` / `TRAIN_AGT_*` |
-| Party directory PKR chips | **EXPLAINED** (2026-10-24) | **Not a posting bug.** Unpaid deals (Client A **1,037,500**) ≠ control ledger net (**142,500** after 1160 included; was **765,000** when 1160 omitted). Agents show Advance 1180 / Payable 2100 separately (Agent B **3,346,000** / **216,000**). Do not force equality. |
+| Party directory PKR chips | **FIXED** (2026-10-24 AA_) | Third-party Dr 2100 now line-attributed to Agent A; Client A control **−207,500** (1190+1160 only); unpaid deals still **1,037,500**. Agent A payable chip **356,000**; Agent B **216,000**. See `docs/verification/20261024_third_party_attribution_fix.md`. |
 | Remittance list TT draft | **PASS** | `RM-20261023-0001` **DRAFT**, payout USD 2,000 |
 | Agent SAMPLE external banks in UI | **PASS** (SQL 2026-10-24) | SAMPLE Meezan/HBL + IBAN present; form tab browser still optional |
 | Chart of accounts TRAINING bank balances | **PASS** (SQL) | Included in PKR Actual breakdown |
