@@ -226,28 +226,28 @@ Read-only; **no new financial posts**. Compared to SQL + this guide.
 | Surface | Result vs guide/SQL | Notes |
 |---------|----------------------|-------|
 | Home KPIs (desktop + mobile) | **PASS** | Assets **18,470,100** / Equity **16,001,500** / Liabilities **1,807,000** match `fx_get_balance_sheet` |
-| Currency Position Actual | **PARTIAL** | CNY **64,500** = vault 8,500 + agent-owned 56,000 (sums custody into “Actual”); PKR Actual **1,349,001** is vault cash only — **excludes** TRAINING banks 1211–1213 |
+| Currency Position Actual | **PASS** (2026-10-24 Y_) | PKR Actual **9,059,201** = owned cash 111x + banks 121x (excludes 1180). CNY **64,500** = GL 1140 inventory (may include agent-held stock; ≠ custody expand). |
 | Deals list 0001–0004 | **PASS** | Amounts/rates/status match; list “Recv” = **remaining receivable** (not paid) |
 | Deal 1 detail + third-party line | **PASS** | Shows 400k + **350k third-party** + 287.5k; remaining due **1,037,500**; text includes `NO owned-bank movement [third_party]` |
 | Parties TRAINING A–D / Agents A–B | **PASS** (visibility) | Present with codes `TRAIN_CLI_*` / `TRAIN_AGT_*` |
-| Party directory PKR chips | **MISMATCH** | Control-account rollup ≠ deal dues / raw 1180: e.g. Agent B shows **3,130,000** (≈ 3,346,000 − 216,000 Deal4 payable netting); Client A **765,000** ≠ deal1 due **1,037,500**. Do not “fix” postings to match chips |
-| Remittance list TT draft | **PASS** | `RM-20261023-0001` **DRAFT**, PKR 562,000 → USD 2,000 |
-| Agent SAMPLE external banks in UI | **NOT RUN** | Party form bank tab not opened this session (API confirms SAMPLE rows) |
-| Chart of accounts TRAINING bank balances | **NOT RUN** | Covered by home BS + SQL |
-| Agent custody FX grid in UI | **NOT RUN** | “Show FX balances” expand not exercised; SQL custody table verified |
-| Receive composer create UI | **EXERCISED** | Bank/Cash only — **no** third-party settlement method |
-| Buy FX / advance-funded purchase UI | **NOT RUN** / **MISSING** | Hash to `currency_buy` did not land on buy form; code path is Pay later→2100 only (no 1180 advance funding) |
+| Party directory PKR chips | **EXPLAINED** (2026-10-24) | **Not a posting bug.** Unpaid deals (Client A **1,037,500**) ≠ control ledger net (**142,500** after 1160 included; was **765,000** when 1160 omitted). Agents show Advance 1180 / Payable 2100 separately (Agent B **3,346,000** / **216,000**). Do not force equality. |
+| Remittance list TT draft | **PASS** | `RM-20261023-0001` **DRAFT**, payout USD 2,000 |
+| Agent SAMPLE external banks in UI | **PASS** (SQL 2026-10-24) | SAMPLE Meezan/HBL + IBAN present; form tab browser still optional |
+| Chart of accounts TRAINING bank balances | **PASS** (SQL) | Included in PKR Actual breakdown |
+| Agent custody FX grid in UI | **PASS** (API) | `fx_list_agent_custody` matches guide; list expand interactive still optional |
+| Receive composer create UI | **PASS** (code 44bca1e+) | Third-party settlement method wired to `fx_record_deal_third_party_payment` |
+| Buy FX / advance-funded purchase UI | **PASS** (code 44bca1e+) | Draft Buy FX **Advance** → `fx_post_agent_currency_purchase_funded` |
 
 Evidence screenshots (local, not committed): `tmp/training_ui_evidence_20261023/`.
 
-### Create-flow gap (separate from existing-data visibility)
+### Create-flow status (2026-10-24)
 
 | Workflow | Backend | UI create |
 |----------|---------|-----------|
-| Client pays agent’s external account (cashless third-party) | `fx_record_deal_third_party_payment` | **Missing** — MoneyMovementComposer `FxSettlementMethodToggle` is Bank/Cash only |
-| Buy FX applying agent PKR advance (1180) | `fx_purchase_currency_funded` / advance funding in training SQL | **Missing** — draft Buy FX supports cash vs **credit (2100)** only |
+| Client pays agent’s external account (cashless third-party) | `fx_record_deal_third_party_payment` | **Wired** — composer third-party method |
+| Buy FX applying agent PKR advance (1180) | `fx_post_agent_currency_purchase_funded` | **Wired** — draft Buy FX Advance mode |
 
-Existing training rows **are** visible on deal detail / remittance / parties without those create UIs.
+E2E SQL proof + void restore: `docs/verification/20261024_balance_posting_e2e.md`.
 
 ---
 

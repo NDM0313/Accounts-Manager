@@ -491,6 +491,7 @@ class _MoneyMovementComposerScreenState
 
       _postedTxId = txId;
       ref.invalidate(partyDirectoryBalancesProvider);
+      ref.invalidate(partyDirectoryMeasuresProvider);
       if (_partyId != null) {
         ref.invalidate(partyStatementProvider(_partyId!));
       }

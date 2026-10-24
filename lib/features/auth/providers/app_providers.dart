@@ -15,6 +15,7 @@ import 'package:accounts_manager/data/repositories/rate_repository.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
 import 'package:accounts_manager/domain/models/agent_custody.dart';
+import 'package:accounts_manager/domain/models/party_directory_measure.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
 import 'package:accounts_manager/domain/models/roznamcha.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
@@ -312,6 +313,18 @@ final partyDirectoryBalancesProvider = FutureProvider<Map<String, double>>((
   return ref
       .read(reportRepositoryProvider)
       .fetchPartyDirectoryBalances(companyId: profile.companyId);
+});
+
+/// Distinct measures for directory chips (control net ≠ deal due ≠ advance).
+final partyDirectoryMeasuresProvider =
+    FutureProvider<Map<String, PartyDirectoryMeasure>>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) {
+    throw StateError('Sign in required to load party balances');
+  }
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchPartyDirectoryMeasures(companyId: profile.companyId);
 });
 
 /// Agent custody inventory; [agentPartyId] null loads all agents for the company.

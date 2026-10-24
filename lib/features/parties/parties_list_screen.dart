@@ -2,6 +2,7 @@ import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
+import 'package:accounts_manager/domain/models/party_directory_measure.dart';
 import 'package:accounts_manager/features/auth/providers/app_providers.dart';
 import 'package:accounts_manager/features/parties/widgets/party_directory_list_tile.dart';
 import 'package:flutter/material.dart';
@@ -30,15 +31,13 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
   @override
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesProvider(_filter));
-    final balancesAsync = ref.watch(partyDirectoryBalancesProvider);
+    final measuresAsync = ref.watch(partyDirectoryMeasuresProvider);
     final currencyBalancesAsync = ref.watch(
       partyDirectoryCurrencyBalancesProvider,
     );
-    final fmt = NumberFormat('#,##0.00');
+    final fmt = NumberFormat('#,##0.##');
 
-    final fallback = widget.initialFilter == FxPartyType.agent
-        ? '/accounts-hub'
-        : '/accounts-hub';
+    final fallback = '/accounts-hub';
     final pageTitle = widget.initialFilter == FxPartyType.agent
         ? 'Agents'
         : 'Party directory';
@@ -77,21 +76,23 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
             ),
             const SizedBox(height: AppSpacing.stackSm),
             Text(
-              'Current PKR balance uses control accounts (not a currency sum). '
-              'Tap a row to open the party ledger. Zero = Settled.',
+              'Control ledger net ≠ unpaid deal amount. Agents also show '
+              'advance (1180) and payable (2100) separately. FX custody is '
+              'under the expand arrow — do not sum currencies.',
               style: AppTypography.bodyMd(
                 context.fx.onSurfaceVariant,
                 context: context,
               ).copyWith(fontSize: 12),
             ),
             const SizedBox(height: AppSpacing.stackMd),
-            if (balancesAsync.hasError)
+            if (measuresAsync.hasError)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.stackSm),
                 child: FxErrorState(
                   message:
                       'Balances could not be loaded. Tap retry to refresh them.',
-                  onRetry: () => ref.invalidate(partyDirectoryBalancesProvider),
+                  onRetry: () =>
+                      ref.invalidate(partyDirectoryMeasuresProvider),
                 ),
               ),
             Expanded(
@@ -105,8 +106,8 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                   if (parties.isEmpty) {
                     return const FxEmptyState(message: 'No parties found.');
                   }
-                  final balancesLoading = balancesAsync.isLoading;
-                  final balances = balancesAsync.asData?.value;
+                  final measuresLoading = measuresAsync.isLoading;
+                  final measures = measuresAsync.asData?.value;
                   final currencyByParty =
                       currencyBalancesAsync.asData?.value ?? const {};
                   return ListView.separated(
@@ -116,18 +117,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
                     itemBuilder: (context, i) {
                       final p = parties[i];
                       final String balanceLabel;
-                      if (balancesLoading && balances == null) {
+                      if (measuresLoading && measures == null) {
                         balanceLabel = 'Loading balance…';
-                      } else if (balancesAsync.hasError) {
+                      } else if (measuresAsync.hasError) {
                         balanceLabel = 'Balance unavailable — retry';
-                      } else if (balances == null ||
-                          !balances.containsKey(p.id)) {
+                      } else if (measures == null ||
+                          !measures.containsKey(p.id)) {
                         balanceLabel = 'Balance unavailable — retry';
                       } else {
-                        final bal = balances[p.id]!;
-                        balanceLabel = bal.abs() < 0.005
-                            ? 'Settled'
-                            : _balanceMeaning(p.partyType, bal, fmt);
+                        balanceLabel = _formatMeasures(
+                          p.partyType,
+                          measures[p.id]!,
+                          fmt,
+                        );
                       }
                       return PartyDirectoryListTile(
                         party: p,
@@ -148,23 +150,44 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
     );
   }
 
-  String _balanceMeaning(FxPartyType type, double bal, NumberFormat fmt) {
-    final abs = fmt.format(bal.abs());
-    return switch (type) {
-      FxPartyType.customer || FxPartyType.supplier =>
-        bal > 0 ? 'Receivable PKR $abs' : 'Advance/credit PKR $abs',
-      FxPartyType.agent || FxPartyType.settlement =>
-        bal > 0 ? 'Payable/custody PKR $abs' : 'Receivable PKR $abs',
-    };
-  }
-}
-
-/// Agent ledger entry point — same list filtered to agents.
-class AgentLedgerScreen extends StatelessWidget {
-  const AgentLedgerScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const PartiesListScreen(initialFilter: FxPartyType.agent);
+  String _formatMeasures(
+    FxPartyType type,
+    PartyDirectoryMeasure m,
+    NumberFormat fmt,
+  ) {
+    final lines = <String>[];
+    if (type == FxPartyType.customer || type == FxPartyType.supplier) {
+      if (m.openDealReceivablePkr.abs() >= 0.005) {
+        lines.add('Unpaid deals PKR ${fmt.format(m.openDealReceivablePkr)}');
+      }
+      if (m.controlNetPkr.abs() >= 0.005) {
+        lines.add(
+          m.controlNetPkr > 0
+              ? 'Control net receivable PKR ${fmt.format(m.controlNetPkr)}'
+              : 'Control net credit PKR ${fmt.format(m.controlNetPkr.abs())}',
+        );
+      } else if (lines.isEmpty) {
+        lines.add('Settled');
+      }
+    } else {
+      if (m.agentAdvancePkr >= 0.005) {
+        lines.add('Advance 1180 PKR ${fmt.format(m.agentAdvancePkr)}');
+      }
+      if (m.agentPayablePkr >= 0.005) {
+        lines.add('Payable 2100 PKR ${fmt.format(m.agentPayablePkr)}');
+      }
+      if (lines.isEmpty) {
+        if (m.controlNetPkr.abs() < 0.005) {
+          lines.add('Settled');
+        } else {
+          lines.add(
+            m.controlNetPkr > 0
+                ? 'Control net payable PKR ${fmt.format(m.controlNetPkr)}'
+                : 'Control net receivable PKR ${fmt.format(m.controlNetPkr.abs())}',
+          );
+        }
+      }
+    }
+    return lines.join('\n');
   }
 }

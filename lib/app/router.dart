@@ -17,6 +17,7 @@ import 'package:accounts_manager/features/dashboard/dashboard_screen.dart';
 import 'package:accounts_manager/features/demo/demo_walkthrough_screen.dart';
 import 'package:accounts_manager/features/journal/journal_entry_detail_screen.dart';
 import 'package:accounts_manager/features/journal/manual_journal_screen.dart';
+import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/parties/parties_list_screen.dart';
 import 'package:accounts_manager/features/parties/party_form_screen.dart';
 import 'package:accounts_manager/features/parties/party_ledger_screen.dart';
@@ -553,7 +554,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/parties/agents',
-            builder: (context, state) => const AgentLedgerScreen(),
+            builder: (context, state) => const PartiesListScreen(
+              initialFilter: FxPartyType.agent,
+            ),
           ),
           GoRoute(
             path: '/parties/new',

@@ -19,8 +19,8 @@ Legend:
 | `/transactions/:id/complete` | `TransactionCompleteScreen` | A | yes | Posted-only success | PASS (prior live) |
 | `/transactions/:id` | `TransactionDetailScreen` | B | yes | Theme + actions; not full frame rebuild | PARTIAL |
 | `/slips/import` OCR | `ImportPaymentSlipScreen` | **A** | yes | Capture→Review→Action; `returnTo=money` wired | PASS unit; browser after redeploy |
-| Buy/Sell / transfer draft | `DraftTransactionScreen` | B→mixed | yes | Buy FX **Advance** funding wired; body still B | PASS create path code; layout polish remaining |
-| `/deals*` | deal screens | B | yes | Chrome applied | PARTIAL |
+| Buy/Sell / transfer draft | `DraftTransactionScreen` | B→mixed | yes | Buy FX **Advance** funding wired + E2E; body still B (Figma MCP unavailable — no pixel claim) | PASS RPC E2E; layout polish remaining |
+| `/deals*` | deal screens | B→mixed | yes | Stitch summary/timeline on detail; list uses `FxStitchCard`; Figma MCP unavailable | PARTIAL (structure, not pixel) |
 | `/expenses` | `ExpenseListScreen` | B | yes | | PARTIAL |
 | Opening balances | wizard | B | yes | | PARTIAL |
 | `/parties*` | list/form/ledger | B→mixed | yes | Ledger data OK | PARTIAL |

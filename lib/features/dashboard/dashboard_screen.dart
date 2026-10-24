@@ -185,9 +185,10 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         Text(
-          'Actual = vault stock · Committed = open sale commitments · '
-          'Required = shortfall (max(0, committed − actual − on-order)). '
-          'Negative Actual is shown as-is.',
+          'Actual FX = company inventory GL (may include agent-held stock). '
+          'Actual PKR = owned cash + banks (not 1180 advance). '
+          'Committed = open sales · Required = shortfall. '
+          'Custody table is separate — do not double-count.',
           style: AppTypography.bodyMd(
             context.fx.onSurfaceVariant,
             context: context,
