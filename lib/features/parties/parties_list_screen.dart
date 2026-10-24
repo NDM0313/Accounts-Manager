@@ -76,8 +76,9 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
             ),
             const SizedBox(height: AppSpacing.stackSm),
             Text(
-              'Control ledger net ≠ unpaid deal amount. Agents also show '
-              'advance (1180) and payable (2100) separately. FX custody is '
+              'Customers: unpaid deals, posted 1190, unapplied 1160 and '
+              'control net are different measures — control is not deal due '
+              'or cash. Agents: advance 1180 / payable 2100. FX custody is '
               'under the expand arrow — do not sum currencies.',
               style: AppTypography.bodyMd(
                 context.fx.onSurfaceVariant,
@@ -160,11 +161,19 @@ class _PartiesListScreenState extends ConsumerState<PartiesListScreen> {
       if (m.openDealReceivablePkr.abs() >= 0.005) {
         lines.add('Unpaid deals PKR ${fmt.format(m.openDealReceivablePkr)}');
       }
+      if (m.postedReceivable1190Pkr.abs() >= 0.005) {
+        lines.add(
+          'Posted receivable 1190 PKR ${fmt.format(m.postedReceivable1190Pkr)}',
+        );
+      }
+      if (m.unappliedAdvance1160Pkr.abs() >= 0.005) {
+        lines.add(
+          'Unapplied advance 1160 PKR ${fmt.format(m.unappliedAdvance1160Pkr)}',
+        );
+      }
       if (m.controlNetPkr.abs() >= 0.005) {
         lines.add(
-          m.controlNetPkr > 0
-              ? 'Control net receivable PKR ${fmt.format(m.controlNetPkr)}'
-              : 'Control net credit PKR ${fmt.format(m.controlNetPkr.abs())}',
+          'Control net (not deal due, not cash) PKR ${fmt.format(m.controlNetPkr)}',
         );
       } else if (lines.isEmpty) {
         lines.add('Settled');

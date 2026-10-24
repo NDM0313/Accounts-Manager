@@ -352,12 +352,18 @@ class TransactionRepository {
     String partyId, {
     int limit = 100,
   }) async {
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+    );
+    if (ids.isEmpty) return const [];
+
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .order('transaction_date', ascending: false)
         .limit(limit);
 
@@ -369,7 +375,32 @@ class TransactionRepository {
 
   static String get _txSelectWithLines =>
       '$_txSelect, fx_transaction_lines(id, line_no, account_id, currency_code, '
-      'foreign_amount, rate_used, debit_pkr, credit_pkr, memo, fx_accounts(code, name))';
+      'foreign_amount, rate_used, debit_pkr, credit_pkr, memo, party_id, '
+      'fx_accounts(code, name))';
+
+  Future<List<String>> _attributedTransactionIds({
+    required String branchId,
+    required String partyId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await supabase.rpc(
+      'fx_list_party_attributed_transaction_ids',
+      params: {
+        'p_branch_id': branchId,
+        'p_party_id': partyId,
+        'p_from': from?.toIso8601String().split('T').first,
+        'p_to': to?.toIso8601String().split('T').first,
+      },
+    );
+    return (rows as List)
+        .map((r) {
+          if (r is Map) return r['transaction_id'] as String?;
+          return r as String?;
+        })
+        .whereType<String>()
+        .toList();
+  }
 
   Future<List<FxTransaction>> fetchPartyTransactionsForStatement({
     required String branchId,
@@ -385,12 +416,20 @@ class TransactionRepository {
     final fromIso = from.toIso8601String().split('T').first;
     final toIso = to.toIso8601String().split('T').first;
 
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+      from: from,
+      to: to,
+    );
+    if (ids.isEmpty) return const [];
+
     var query = supabase
         .from('fx_transactions')
         .select(_txSelectWithLines)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .gte('transaction_date', fromIso)
         .lte('transaction_date', toIso);
 
@@ -441,13 +480,20 @@ class TransactionRepository {
     int limit = 2000,
   }) async {
     final beforeIso = before.toIso8601String().split('T').first;
+    final priorDay = before.subtract(const Duration(days: 1));
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+      to: priorDay,
+    );
+    if (ids.isEmpty) return const [];
 
     var query = supabase
         .from('fx_transactions')
         .select(_txSelectWithLines)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .lt('transaction_date', beforeIso);
 
     switch (status) {
