@@ -10,10 +10,17 @@ import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/domain/services/draft_line_builder.dart';
 
 class TransactionRepository {
-  static const _txSelect =
+  /// PostgREST select for transactions.
+  ///
+  /// Must use `fx_parties!party_id` — after `counterparty_party_id` was added,
+  /// bare `fx_parties(...)` is ambiguous (PGRST201 / HTTP 300) and leaves
+  /// party ledgers stuck retrying while Activity shows an indefinite spinner.
+  static const txSelect =
       'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, deal_id, exchange_group_id, '
       'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
-      'fx_parties(code, name), fx_deals(deal_no)';
+      'fx_parties!party_id(code, name), fx_deals(deal_no)';
+
+  static const _txSelect = txSelect;
 
   static String _localDateIso([DateTime? date]) =>
       localTransactionDateIso(date ?? DateTime.now());
