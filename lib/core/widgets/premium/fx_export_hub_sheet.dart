@@ -19,6 +19,11 @@ class FxExportHubSheet extends StatelessWidget {
     this.lifecycleSteps = const [],
     this.shareUrl,
     this.mode = FxExportMode.internal,
+    this.printActionLabel = 'Print',
+    this.printActionSubtitle = 'Opens the system print / PDF preview dialog',
+    this.omitImageShare = false,
+    this.omitEmailShare = false,
+    this.omitCopyLink = false,
   });
 
   final FxExportDocument document;
@@ -28,6 +33,11 @@ class FxExportHubSheet extends StatelessWidget {
   final List<FxStitchExportLifecycleStep> lifecycleSteps;
   final String? shareUrl;
   final FxExportMode mode;
+  final String printActionLabel;
+  final String printActionSubtitle;
+  final bool omitImageShare;
+  final bool omitEmailShare;
+  final bool omitCopyLink;
 
   static Future<void> show(
     BuildContext context, {
@@ -38,6 +48,12 @@ class FxExportHubSheet extends StatelessWidget {
     List<FxStitchExportLifecycleStep> lifecycleSteps = const [],
     String? shareUrl,
     FxExportMode mode = FxExportMode.internal,
+    String printActionLabel = 'Print',
+    String printActionSubtitle =
+        'Opens the system print / PDF preview dialog',
+    bool omitImageShare = false,
+    bool omitEmailShare = false,
+    bool omitCopyLink = false,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -52,6 +68,11 @@ class FxExportHubSheet extends StatelessWidget {
         lifecycleSteps: lifecycleSteps,
         shareUrl: shareUrl,
         mode: mode,
+        printActionLabel: printActionLabel,
+        printActionSubtitle: printActionSubtitle,
+        omitImageShare: omitImageShare,
+        omitEmailShare: omitEmailShare,
+        omitCopyLink: omitCopyLink,
       ),
     );
   }
@@ -151,50 +172,65 @@ class FxExportHubSheet extends StatelessWidget {
                   if (document.pdfBytes != null)
                     FxStitchExportOptionRow(
                       icon: Icons.print,
-                      title: 'Print Transaction',
-                      subtitle: 'Direct to connected network printer',
+                      title: printActionLabel,
+                      subtitle: printActionSubtitle,
                       style: FxStitchExportOptionStyle.print,
                       onTap: () async {
                         Navigator.pop(context);
                         await Printing.layoutPdf(
                           onLayout: (_) async => document.pdfBytes!,
+                          name: document.title,
                         );
                       },
                     ),
-                  FxStitchExportOptionRow(
-                    icon: Icons.image_outlined,
-                    title: 'Share Image',
-                    subtitle: 'High-resolution deal confirmation',
-                    style: FxStitchExportOptionStyle.image,
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await SharePlus.instance.share(
-                        ShareParams(
-                          text: document.textBody,
-                          subject: document.subject ?? document.title,
-                        ),
-                      );
-                    },
-                  ),
-                  FxStitchExportOptionRow(
-                    icon: Icons.mail_outline,
-                    title: 'Send via Email',
-                    subtitle: 'To finance or treasury contact',
-                    style: FxStitchExportOptionStyle.email,
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await SharePlus.instance.share(
-                        ShareParams(
-                          text: document.textBody,
-                          subject: document.subject ?? document.title,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  FxStitchExportCopyLinkButton(
-                    onTap: () => _copyLink(context),
-                  ),
+                  if (!omitImageShare && document.pdfBytes != null)
+                    FxStitchExportOptionRow(
+                      icon: Icons.picture_as_pdf_outlined,
+                      title: 'Share PDF again',
+                      subtitle: 'Same selected statement document',
+                      style: FxStitchExportOptionStyle.image,
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await Printing.sharePdf(
+                          bytes: document.pdfBytes!,
+                          filename:
+                              '${document.title.replaceAll(' ', '_')}.pdf',
+                        );
+                      },
+                    ),
+                  if (!omitEmailShare)
+                    FxStitchExportOptionRow(
+                      icon: Icons.mail_outline,
+                      title: 'Send via Email',
+                      subtitle: document.pdfBytes != null
+                          ? 'Shares the selected statement PDF'
+                          : 'Shares statement text',
+                      style: FxStitchExportOptionStyle.email,
+                      onTap: () async {
+                        Navigator.pop(context);
+                        if (document.pdfBytes != null) {
+                          await Printing.sharePdf(
+                            bytes: document.pdfBytes!,
+                            filename:
+                                '${document.title.replaceAll(' ', '_')}.pdf',
+                          );
+                        } else {
+                          await SharePlus.instance.share(
+                            ShareParams(
+                              text: document.textBody,
+                              subject: document.subject ?? document.title,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  if (!omitCopyLink) ...[
+                    const SizedBox(height: 16),
+                    FxStitchExportCopyLinkButton(
+                      onTap: () => _copyLink(context),
+                    ),
+                  ],
+                  SizedBox(height: MediaQuery.paddingOf(context).bottom + 8),
                 ],
               ),
             );

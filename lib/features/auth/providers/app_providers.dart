@@ -579,6 +579,16 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((
         accountCode: accountCode,
       );
 
+  final workspaces = ref.watch(myWorkspacesProvider).asData?.value;
+  final ws = workspaces?.where((w) => w.isActiveWorkspace).firstOrNull;
+  final company = AccountStatementCompanyMeta(
+    companyName: (ws?.companyName.isNotEmpty == true)
+        ? ws!.companyName
+        : 'FX Cash Ledger',
+    branchName: ws?.branchName,
+    isDemo: ws?.isDemo ?? false,
+  );
+
   return AccountStatementView.build(
     accountCode: account.code,
     accountName: account.name,
@@ -587,6 +597,8 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((
     to: range.to,
     openingBalancePkr: openingBalance,
     ledgerRows: ledgerRows,
+    company: company,
+    generatedAt: DateTime.now(),
   );
 });
 

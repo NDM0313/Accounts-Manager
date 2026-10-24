@@ -1,7 +1,7 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
-import 'package:accounts_manager/core/export/fx_report_export.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_account_statement_table.dart';
+import 'package:accounts_manager/features/ledger/account_statement_export_sheet.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_pickers.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_report_panel.dart';
@@ -118,11 +118,9 @@ class AccountStatementScreen extends ConsumerWidget {
                       .read(accountStatementProvider)
                       .whenOrNull(data: (v) => v);
                   if (view == null || !context.mounted) return;
-                  await exportAccountStatementReport(
+                  await showAccountStatementExportSheet(
                     context,
                     view: view,
-                    converter: converter,
-                    currencyView: currencyView,
                   );
                 },
               ),

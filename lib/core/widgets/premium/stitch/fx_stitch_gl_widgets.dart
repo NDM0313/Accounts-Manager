@@ -432,46 +432,57 @@ class _ActivityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final net = row.debitPkr - row.creditPkr;
     final amountColor = net >= 0 ? context.fx.secondary : context.fx.error;
-    final dateFmt = DateFormat('MMM d, yyyy');
-    final timeFmt = DateFormat('hh:mm a');
+    final dateFmt = DateFormat('dd MMM yyyy');
+    final movement =
+        '${net >= 0 ? '+' : ''}${fmt.format(net)} ${row.currencyCode == 'PKR' ? 'PKR' : 'PKR'}';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: context.fx.outlineVariant.withValues(alpha: 0.5)),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 72,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  dateFmt.format(row.entryDate),
-                  style: AppTypography.dataMd(
-                    context.fx.onSurface,
-                    context: context,
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 560;
+        if (compact) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: context.fx.outlineVariant.withValues(alpha: 0.5),
                 ),
-                Text(
-                  timeFmt.format(row.entryDate),
-                  style: AppTypography.bodySm(
-                    context.fx.onSurfaceVariant,
-                    context: context,
-                  ).copyWith(fontSize: 11),
-                ),
-              ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    Text(
+                      dateFmt.format(row.entryDate),
+                      style: AppTypography.bodySm(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        row.entryNo,
+                        style: AppTypography.bodySm(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (row.currencyCode != 'PKR')
+                      Text(
+                        row.currencyCode,
+                        style: AppTypography.labelCaps(
+                          context.fx.primary,
+                          context: context,
+                        ).copyWith(fontSize: 9),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Text(
                   row.description ?? row.entryNo,
                   style: AppTypography.dataMd(
@@ -479,8 +490,32 @@ class _ActivityRow extends StatelessWidget {
                     context: context,
                   ),
                 ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Movement $movement',
+                        style: AppTypography.dataMd(
+                          amountColor,
+                          context: context,
+                        ),
+                      ),
+                    ),
+                    if (row.foreignAmount.abs() >= 0.005 &&
+                        row.currencyCode != 'PKR')
+                      Text(
+                        'FX ${fmt.format(row.foreignAmount.abs())} ${row.currencyCode}',
+                        style: AppTypography.bodySm(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 11),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 2),
                 Text(
-                  'REF: ${row.entryNo}',
+                  'Debit ${fmt.format(row.debitPkr)} · Credit ${fmt.format(row.creditPkr)}',
                   style: AppTypography.bodySm(
                     context.fx.onSurfaceVariant,
                     context: context,
@@ -488,41 +523,78 @@ class _ActivityRow extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          SizedBox(
-            width: 48,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: context.fx.surfaceContainer,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                row.currencyCode,
-                style: AppTypography.labelCaps(
-                  context.fx.primary,
-                  context: context,
-                ).copyWith(fontSize: 9),
-                textAlign: TextAlign.center,
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: context.fx.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              '${net >= 0 ? '+' : ''}${fmt.format(net)}',
-              style: AppTypography.dataMd(amountColor, context: context),
-              textAlign: TextAlign.right,
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 88,
+                child: Text(
+                  dateFmt.format(row.entryDate),
+                  style: AppTypography.dataMd(
+                    context.fx.onSurface,
+                    context: context,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      row.description ?? row.entryNo,
+                      style: AppTypography.dataMd(
+                        context.fx.onSurface,
+                        context: context,
+                      ),
+                    ),
+                    Text(
+                      'REF: ${row.entryNo}',
+                      style: AppTypography.bodySm(
+                        context.fx.onSurfaceVariant,
+                        context: context,
+                      ).copyWith(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 48,
+                child: Text(
+                  row.currencyCode,
+                  style: AppTypography.labelCaps(
+                    context.fx.primary,
+                    context: context,
+                  ).copyWith(fontSize: 9),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(
+                width: 110,
+                child: Text(
+                  movement,
+                  style: AppTypography.dataMd(amountColor, context: context),
+                  textAlign: TextAlign.right,
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Text(
-              fmt.format(row.foreignAmount.abs()),
-              style: AppTypography.dataMd(context.fx.onSurface, context: context),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

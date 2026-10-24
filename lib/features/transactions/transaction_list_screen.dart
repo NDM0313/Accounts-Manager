@@ -163,11 +163,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           hintText: 'Search party or reference…',
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         FxPremiumFilterChips(
           selected: _filter,
           onChanged: (f) => setState(() => _filter = f),
-          showLast30Days: true,
+          showLast30Days: !widget.embeddedInHub,
           last30DaysOnly: _last30DaysOnly,
           onLast30DaysChanged: (v) => setState(() => _last30DaysOnly = v),
           showCurrencyAndMore: true,
@@ -176,7 +176,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
           sortOrder: _sortOrder,
           onSortChanged: (s) => setState(() => _sortOrder = s),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: switch (_filter) {
             FxLedgerFilter.draft => _buildList(

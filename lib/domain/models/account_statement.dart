@@ -22,6 +22,22 @@ class AccountStatementLine {
   final double runningBalancePkr;
 }
 
+class AccountStatementCompanyMeta {
+  const AccountStatementCompanyMeta({
+    required this.companyName,
+    this.branchName,
+    this.isDemo = false,
+  });
+
+  final String companyName;
+  final String? branchName;
+  final bool isDemo;
+}
+
+enum AccountStatementFormat { simple, detailed }
+
+enum AccountStatementAudience { external, internal }
+
 class AccountStatementView {
   const AccountStatementView({
     required this.accountCode,
@@ -32,6 +48,9 @@ class AccountStatementView {
     required this.openingBalancePkr,
     required this.closingBalancePkr,
     required this.lines,
+    this.company,
+    this.generatedAt,
+    this.statementCurrency = 'PKR',
   });
 
   final String accountCode;
@@ -42,6 +61,20 @@ class AccountStatementView {
   final double openingBalancePkr;
   final double closingBalancePkr;
   final List<AccountStatementLine> lines;
+  final AccountStatementCompanyMeta? company;
+  final DateTime? generatedAt;
+  final String statementCurrency;
+
+  /// Period movement totals (unsigned sum of line debits / credits).
+  double get periodDebitPkr =>
+      lines.fold<double>(0, (s, l) => s + l.debitPkr);
+
+  double get periodCreditPkr =>
+      lines.fold<double>(0, (s, l) => s + l.creditPkr);
+
+  /// True for asset/expense — running balance uses debit − credit.
+  /// Liability/equity/income use credit − debit (same as [build]).
+  bool get isDebitNormalAccount => isDebitNormal(accountType);
 
   static bool isDebitNormal(String accountType) {
     final t = accountType.toLowerCase();
@@ -49,6 +82,10 @@ class AccountStatementView {
   }
 
   /// Builds statement lines with running balance from GL rows and opening balance.
+  ///
+  /// Balance convention: opening ± period movements using [isDebitNormal].
+  /// Reconciliation: for debit-normal accounts,
+  /// `closing ≈ opening + periodDebits − periodCredits`.
   static AccountStatementView build({
     required String accountCode,
     required String accountName,
@@ -57,6 +94,9 @@ class AccountStatementView {
     required DateTime to,
     required double openingBalancePkr,
     required List<GeneralLedgerRow> ledgerRows,
+    AccountStatementCompanyMeta? company,
+    DateTime? generatedAt,
+    String statementCurrency = 'PKR',
   }) {
     final debitNormal = isDebitNormal(accountType);
     var balance = openingBalancePkr;
@@ -91,6 +131,9 @@ class AccountStatementView {
           ? openingBalancePkr
           : lines.last.runningBalancePkr,
       lines: lines,
+      company: company,
+      generatedAt: generatedAt,
+      statementCurrency: statementCurrency,
     );
   }
 }
