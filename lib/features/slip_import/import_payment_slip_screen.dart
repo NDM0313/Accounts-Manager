@@ -25,11 +25,19 @@ enum _SlipPhase { capture, review, action }
 
 /// Import Payment Slip → OCR draft → human review → choose action → composer/post.
 class ImportPaymentSlipScreen extends ConsumerStatefulWidget {
-  const ImportPaymentSlipScreen({super.key, this.dealId});
+  const ImportPaymentSlipScreen({
+    super.key,
+    this.dealId,
+    this.returnTo,
+    this.moneyMode,
+  });
 
   static const leaveFallback = '/accounts-hub';
 
   final String? dealId;
+  /// When `money`, leave/handoff returns to the money composer.
+  final String? returnTo;
+  final String? moneyMode;
 
   @override
   ConsumerState<ImportPaymentSlipScreen> createState() =>
@@ -534,9 +542,13 @@ class _ImportPaymentSlipScreenState
       _SlipPhase.action => 'Choose action',
     };
 
+    final leave = widget.returnTo == 'money'
+        ? '/transactions/money${widget.moneyMode != null ? '?mode=${widget.moneyMode}' : ''}'
+        : ImportPaymentSlipScreen.leaveFallback;
+
     return FxPremiumScaffold(
       title: Text(title),
-      fallbackRoute: ImportPaymentSlipScreen.leaveFallback,
+      fallbackRoute: leave,
       backgroundColor: fx.background,
       actions: [
         IconButton(

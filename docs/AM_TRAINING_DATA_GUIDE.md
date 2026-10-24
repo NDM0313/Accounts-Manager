@@ -16,10 +16,10 @@ Not ERP. No real IBANs, account numbers, or personal information. Slip refs use 
 | Owned banks match computed plan | **PASS** (see below) |
 | Third-party receipt Dr 2100 / Cr 1160 only (no bank) | **PASS** |
 | DEAL5 remittance **draft**, paid_amount 0 | **PASS** |
-| Browser UI walkthrough of training screens | **PASS** (authenticated AM_DEMO; see UI section; evidence under `tmp/training_ui_evidence_20261023/`) |
-| Frontend redeploy for auth hang fix | **PASS** (`cb8d6c3` on `fx.ndmcore.com`; rollback `fx_app_web_rollback_20261023T172445Z`) |
-| UI create: third-party client→agent payment | **MISSING** (RPC only; Receive/Pay = Bank/Cash only) |
-| UI create: agent-advance funded FX purchase | **MISSING** (RPC `purchase_funded` / advance; Buy FX has Pay later→2100 credit only) |
+| Browser UI walkthrough of training screens | **PASS** (authenticated AM_DEMO 2026-10-24; evidence `tmp/training_ui_evidence_20261024/`) |
+| Frontend redeploy for auth hang fix | **PASS** (`cb8d6c3`; superseded by create-flow + deep-link deploy below) |
+| UI create: third-party client→agent payment | **WIRED** (Receive Money → deal allocate → settlement **Agent external** → `fx_record_deal_third_party_payment`) |
+| UI create: agent-advance funded FX purchase | **WIRED** (Buy FX → **Advance** → `fx_post_agent_currency_purchase_funded` mode=advance / 1180) |
 
 ## Files
 

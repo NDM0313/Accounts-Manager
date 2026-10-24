@@ -684,4 +684,36 @@ class TransactionRepository {
       );
     }
   }
+
+  /// Agent-held FX purchase funded by cash, credit (2100), or agent advance (1180).
+  /// Posts immediately and updates [fx_agent_currency_balances].
+  Future<String> postAgentCurrencyPurchaseFunded({
+    required String companyId,
+    required String branchId,
+    required String agentPartyId,
+    required String currency,
+    required double foreignAmount,
+    required double ratePkr,
+    required String fundingMode,
+    String? settleAccountCode,
+    String? notes,
+    String? clientOperationId,
+  }) async {
+    final txId = await supabase.rpc(
+      'fx_post_agent_currency_purchase_funded',
+      params: {
+        'p_company_id': companyId,
+        'p_branch_id': branchId,
+        'p_agent_party_id': agentPartyId,
+        'p_currency': currency,
+        'p_foreign_amount': foreignAmount,
+        'p_rate_pkr': ratePkr,
+        'p_funding_mode': fundingMode,
+        'p_settle_account_code': settleAccountCode,
+        'p_notes': notes,
+        'p_client_operation_id': clientOperationId,
+      },
+    );
+    return txId as String;
+  }
 }

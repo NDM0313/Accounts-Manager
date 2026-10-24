@@ -8,6 +8,7 @@ import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/cash_bank_account.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
+import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
@@ -65,11 +66,16 @@ class _MoneyMovementComposerScreenState
   final _referenceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   final _manualDescCtrl = TextEditingController();
+  final _externalBankCtrl = TextEditingController();
   String? _partyId;
   String _currencyCode = 'PKR';
-  String _method = 'bank'; // bank | cash
+  String _method = 'bank'; // bank | cash | third_party
   String? _vaultAccountCode;
   String? _dealId;
+  String? _thirdPartyAgentId;
+  String? _thirdPartySourceLegId;
+
+  bool get _isThirdParty => _method == 'third_party';
   DateTime _date = DateTime.now();
   bool _autoDescription = true;
   bool _reviewing = false;
@@ -110,7 +116,9 @@ class _MoneyMovementComposerScreenState
         _supportedCodes.contains(widget.initialCurrency!.toUpperCase())) {
       _currencyCode = widget.initialCurrency!.toUpperCase();
     }
-    if (widget.initialMethod == 'cash' || widget.initialMethod == 'bank') {
+    if (widget.initialMethod == 'cash' ||
+        widget.initialMethod == 'bank' ||
+        widget.initialMethod == 'third_party') {
       _method = widget.initialMethod!;
     }
     _vaultAccountCode = widget.initialAccountCode;
@@ -136,6 +144,7 @@ class _MoneyMovementComposerScreenState
     _referenceCtrl.dispose();
     _notesCtrl.dispose();
     _manualDescCtrl.dispose();
+    _externalBankCtrl.dispose();
     super.dispose();
   }
 
@@ -232,6 +241,23 @@ class _MoneyMovementComposerScreenState
     FxAccount? vault, {
     String? dealLabel,
   }) {
+    if (_isThirdParty) {
+      final amt = NumberFormat('#,##0.##').format(_amount);
+      final bits = <String>[
+        'Received $_currencyCode $amt from ${party?.name ?? 'party'} '
+            'paid direct to agent external account [third_party].',
+      ];
+      if (dealLabel != null && dealLabel.trim().isNotEmpty) {
+        bits.add('Deal: ${dealLabel.trim()}.');
+      }
+      final bank = _externalBankCtrl.text.trim();
+      if (bank.isNotEmpty) bits.add('External bank: $bank.');
+      final ref = _referenceCtrl.text.trim();
+      if (ref.isNotEmpty) bits.add('Ref: $ref.');
+      final notes = _notesCtrl.text.trim();
+      if (notes.isNotEmpty) bits.add(notes);
+      return bits.join(' ');
+    }
     return MoneyMovementDescription.build(
       mode: widget.mode == TransactionDraftMode.standard
           ? (_isReceiveFlow
@@ -278,6 +304,10 @@ class _MoneyMovementComposerScreenState
   }
 
   void _invalidateVaultIfNeeded(List<FxAccount> accounts) {
+    if (_isThirdParty) {
+      _vaultAccountCode = null;
+      return;
+    }
     if (_vaultAccountCode == null) return;
     final eligible = CashBankAccountRules.filterEligible(
       accounts: accounts,
@@ -307,7 +337,7 @@ class _MoneyMovementComposerScreenState
 
   Future<void> _confirmAndPost({
     required FxParty party,
-    required FxAccount vault,
+    required FxAccount? vault,
     required List<FxAccount> accounts,
     FxDeal? allocatedDeal,
   }) async {
@@ -347,7 +377,39 @@ class _MoneyMovementComposerScreenState
       }
 
       late final String txId;
-      if (deal != null) {
+      if (_isThirdParty) {
+        if (deal == null) {
+          throw StateError('Agent-external settlement requires a deal');
+        }
+        if (_thirdPartyAgentId == null) {
+          throw StateError('Select the agent whose external account was paid');
+        }
+        final opId = await ClientOperationId.beginAmounted(
+          'composer_deal_third_party',
+          deal.id,
+          _amount,
+        );
+        final bankLabel = _externalBankCtrl.text.trim();
+        final refText = _referenceCtrl.text.trim();
+        txId = await ref.read(dealRepositoryProvider).recordThirdPartyPayment(
+              dealId: deal.id,
+              amountPkr: _amount,
+              agentPartyId: _thirdPartyAgentId!,
+              agentSourceLegId: _thirdPartySourceLegId,
+              externalBankLabel: bankLabel.isEmpty ? null : bankLabel,
+              reference: refText.isEmpty ? null : refText,
+              notes: desc,
+              clientOperationId: opId,
+            );
+        await ClientOperationId.completeAmounted(
+          'composer_deal_third_party',
+          deal.id,
+        );
+        ref.read(dealsRefreshProvider.notifier).refresh();
+      } else if (deal != null) {
+        if (vault == null) {
+          throw StateError('Select a bank or cash account');
+        }
         // Deal-linked receipt uses the deal payment engine only — no second
         // generic settlement draft.
         final opId = await ClientOperationId.beginAmounted(
@@ -370,6 +432,9 @@ class _MoneyMovementComposerScreenState
         );
         ref.read(dealsRefreshProvider.notifier).refresh();
       } else {
+        if (vault == null) {
+          throw StateError('Select a bank or cash account');
+        }
         // Generic settlement has no RPC client_operation_id; guard repeats via
         // [_postedTxId] so Confirm cannot create a second draft after success.
         final repo = ref.read(transactionRepositoryProvider);
@@ -508,11 +573,13 @@ class _MoneyMovementComposerScreenState
             error: (e, _) => FxErrorState(message: '$e'),
             data: (accounts) {
               _invalidateVaultIfNeeded(accounts);
-              final eligible = CashBankAccountRules.filterEligible(
-                accounts: accounts,
-                method: _method,
-                currencyCode: _currencyCode,
-              );
+              final eligible = _isThirdParty
+                  ? const <FxAccount>[]
+                  : CashBankAccountRules.filterEligible(
+                      accounts: accounts,
+                      method: _method,
+                      currencyCode: _currencyCode,
+                    );
               final vault = eligible
                   .where((a) => a.code == _vaultAccountCode)
                   .firstOrNull;
@@ -615,7 +682,26 @@ class _MoneyMovementComposerScreenState
                 );
                 return;
               }
-              if (_vaultAccountCode == null || vault == null) {
+              if (_isThirdParty) {
+                if (allocatedDeal == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Select a deal before agent-external settlement',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                if (_thirdPartyAgentId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Select the agent who received the funds'),
+                    ),
+                  );
+                  return;
+                }
+              } else if (_vaultAccountCode == null || vault == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -682,6 +768,11 @@ class _MoneyMovementComposerScreenState
               onSelected: (v) => setState(() {
                 _partyId = v;
                 _dealId = null;
+                if (_method == 'third_party') {
+                  _method = 'bank';
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                }
               }),
               onAddNew: _busy
                   ? null
@@ -692,6 +783,11 @@ class _MoneyMovementComposerScreenState
                         setState(() {
                           _partyId = id;
                           _dealId = null;
+                          if (_method == 'third_party') {
+                            _method = 'bank';
+                            _thirdPartyAgentId = null;
+                            _thirdPartySourceLegId = null;
+                          }
                         });
                       }
                     },
@@ -732,6 +828,11 @@ class _MoneyMovementComposerScreenState
                     .toList(),
                 onSelected: (v) => setState(() {
                   _dealId = v;
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                  if (v == null && _method == 'third_party') {
+                    _method = 'bank';
+                  }
                   if (v != null && _currencyCode != 'PKR') {
                     _currencyCode = 'PKR';
                     _vaultAccountCode = null;
@@ -769,47 +870,87 @@ class _MoneyMovementComposerScreenState
         const SizedBox(height: 16),
         FxFormBlock(
           dense: true,
-          title: _isReceiveFlow ? 'Receive into' : 'Pay from',
+          title: _isThirdParty
+              ? 'Settlement (cashless)'
+              : (_isReceiveFlow ? 'Receive into' : 'Pay from'),
           children: [
             FxSettlementMethodToggle(
               value: _method,
               enabled: !_busy,
+              showThirdParty:
+                  _supportsDealAllocation && allocatedDeal != null,
               onChanged: (m) => setState(() {
                 _method = m;
                 _vaultAccountCode = null;
+                if (m != 'third_party') {
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                }
               }),
             ),
-            FxSearchableSelect<String>(
-              key: ValueKey(
-                'vault-$_method-$_currencyCode-$_vaultAccountCode',
-              ),
-              labelText: _method == 'bank' ? 'Bank account' : 'Cash account',
-              hintText: 'Search account…',
-              value: _vaultAccountCode,
-              enabled: !_busy,
-              addNewLabel: 'Add account',
-              options: eligible
-                  .map(
-                    (a) => FxSearchableOption(
-                      value: a.code,
-                      label: CashBankAccountRules.displayLabel(a),
-                      subtitle: '${a.code} · ${a.currencyCode ?? _currencyCode}',
-                      searchText:
-                          '${a.code} ${a.name} ${a.currencyCode ?? ''}',
-                    ),
-                  )
-                  .toList(),
-              onSelected: (v) => setState(() => _vaultAccountCode = v),
-              onAddNew: _busy
-                  ? null
-                  : () => context.push('/accounts/new-cash?kind=$_method'),
-            ),
-            if (eligible.isEmpty)
+            if (_isThirdParty) ...[
+              const SizedBox(height: 8),
               Text(
-                'No active ${_method == 'bank' ? 'bank' : 'cash'} accounts '
-                'for $_currencyCode.',
-                style: AppTypography.bodySm(fx.error, context: context),
+                'Customer paid the agent’s external bank. Owned cash/banks '
+                'are unchanged (Dr 2100 / Cr 1160).',
+                style: AppTypography.bodySm(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
+              if (allocatedDeal != null)
+                _ThirdPartyAgentPicker(
+                  dealId: allocatedDeal.id,
+                  selectedAgentId: _thirdPartyAgentId,
+                  enabled: !_busy,
+                  onSelected: (agentId, legId) => setState(() {
+                    _thirdPartyAgentId = agentId;
+                    _thirdPartySourceLegId =
+                        agentId == null ? null : legId;
+                  }),
+                ),
+              TextField(
+                controller: _externalBankCtrl,
+                enabled: !_busy,
+                decoration: const InputDecoration(
+                  labelText: 'External bank label (optional)',
+                  hintText: 'e.g. SAMPLE Meezan External',
+                ),
+              ),
+            ] else ...[
+              FxSearchableSelect<String>(
+                key: ValueKey(
+                  'vault-$_method-$_currencyCode-$_vaultAccountCode',
+                ),
+                labelText: _method == 'bank' ? 'Bank account' : 'Cash account',
+                hintText: 'Search account…',
+                value: _vaultAccountCode,
+                enabled: !_busy,
+                addNewLabel: 'Add account',
+                options: eligible
+                    .map(
+                      (a) => FxSearchableOption(
+                        value: a.code,
+                        label: CashBankAccountRules.displayLabel(a),
+                        subtitle:
+                            '${a.code} · ${a.currencyCode ?? _currencyCode}',
+                        searchText:
+                            '${a.code} ${a.name} ${a.currencyCode ?? ''}',
+                      ),
+                    )
+                    .toList(),
+                onSelected: (v) => setState(() => _vaultAccountCode = v),
+                onAddNew: _busy
+                    ? null
+                    : () => context.push('/accounts/new-cash?kind=$_method'),
+              ),
+              if (eligible.isEmpty)
+                Text(
+                  'No active ${_method == 'bank' ? 'bank' : 'cash'} accounts '
+                  'for $_currencyCode.',
+                  style: AppTypography.bodySm(fx.error, context: context),
+                ),
+            ],
           ],
         ),
         const SizedBox(height: 16),
@@ -1052,8 +1193,14 @@ class _MoneyMovementComposerScreenState
       amount: _amount,
       partyName: party?.name ?? '—',
       vaultAccount: vault,
+      thirdParty: _isThirdParty,
     );
     final dealLabel = allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final canConfirm = !_busy &&
+        party != null &&
+        (_isThirdParty
+            ? allocatedDeal != null && _thirdPartyAgentId != null
+            : vault != null);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -1063,9 +1210,12 @@ class _MoneyMovementComposerScreenState
         ),
         const SizedBox(height: 12),
         Text(
-          allocatedDeal == null
-              ? 'General party receipt (not allocated to a deal).'
-              : 'Deal-allocated receipt — posts once via deal payment engine.',
+          _isThirdParty
+              ? 'Cashless third-party — posts once via deal third-party RPC '
+                  '(no owned-bank movement).'
+              : allocatedDeal == null
+                  ? 'General party receipt (not allocated to a deal).'
+                  : 'Deal-allocated receipt — posts once via deal payment engine.',
           style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context),
         ),
         if (dealLabel != null) ...[
@@ -1074,7 +1224,11 @@ class _MoneyMovementComposerScreenState
         ],
         const SizedBox(height: 16),
         Text(
-          'Settlement method: ${_method == 'bank' ? 'Bank' : 'Cash'}',
+          'Settlement method: ${switch (_method) {
+            'cash' => 'Cash',
+            'third_party' => 'Agent external (third-party)',
+            _ => 'Bank',
+          }}',
           style: AppTypography.bodyMd(fx.onSurface, context: context),
         ),
         if (vault != null) ...[
@@ -1083,6 +1237,10 @@ class _MoneyMovementComposerScreenState
             'Account: ${CashBankAccountRules.displayLabel(vault)}',
             style: AppTypography.bodyMd(fx.onSurface, context: context),
           ),
+        ],
+        if (_isThirdParty && _externalBankCtrl.text.trim().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text('External bank: ${_externalBankCtrl.text.trim()}'),
         ],
         const SizedBox(height: 16),
         Text(
@@ -1116,14 +1274,18 @@ class _MoneyMovementComposerScreenState
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: _busy || party == null || vault == null
+                onPressed: !canConfirm || party == null
                     ? null
-                    : () => _confirmAndPost(
-                        party: party,
-                        vault: vault,
-                        accounts: accounts,
-                        allocatedDeal: allocatedDeal,
-                      ),
+                    : () {
+                        final p = party;
+                        if (p == null) return;
+                        _confirmAndPost(
+                          party: p,
+                          vault: vault,
+                          accounts: accounts,
+                          allocatedDeal: allocatedDeal,
+                        );
+                      },
                 child: _busy
                     ? const SizedBox(
                         width: 20,
@@ -1131,13 +1293,84 @@ class _MoneyMovementComposerScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        _isReceiveFlow ? 'Confirm receipt' : 'Confirm payment',
+                        _isThirdParty
+                            ? 'Confirm third-party'
+                            : (_isReceiveFlow
+                                  ? 'Confirm receipt'
+                                  : 'Confirm payment'),
                       ),
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Picks an agent_source counterparty on the allocated deal for third-party.
+class _ThirdPartyAgentPicker extends ConsumerWidget {
+  const _ThirdPartyAgentPicker({
+    required this.dealId,
+    required this.selectedAgentId,
+    required this.onSelected,
+    this.enabled = true,
+  });
+
+  final String dealId;
+  final String? selectedAgentId;
+  final bool enabled;
+  final void Function(String? agentId, String? sourceLegId) onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final legsAsync = ref.watch(dealTimelineProvider(dealId));
+    return legsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      ),
+      error: (e, _) => Text('Could not load deal agents: $e'),
+      data: (legs) {
+        final sources = legs
+            .where(
+              (l) =>
+                  l.legType == FxDealLegType.agentSource &&
+                  l.counterpartyPartyId != null,
+            )
+            .toList();
+        if (sources.isEmpty) {
+          return Text(
+            'This deal has no agent source leg — add sourcing before '
+            'recording a third-party payment.',
+            style: AppTypography.bodySm(context.fx.error, context: context),
+          );
+        }
+        return FxSearchableSelect<String>(
+          key: ValueKey('tp-agent-$dealId-$selectedAgentId'),
+          labelText: 'Agent who received funds',
+          hintText: 'Search agent…',
+          value: selectedAgentId,
+          enabled: enabled,
+          options: sources
+              .map(
+                (l) => FxSearchableOption(
+                  value: l.counterpartyPartyId!,
+                  label: l.counterpartyName ?? l.counterpartyPartyId!,
+                  subtitle: 'Source leg · ${l.receiveCurrency ?? ''}',
+                  searchText:
+                      '${l.counterpartyName ?? ''} ${l.counterpartyPartyId}',
+                ),
+              )
+              .toList(),
+          onSelected: (agentId) {
+            final match = sources
+                .where((l) => l.counterpartyPartyId == agentId)
+                .firstOrNull;
+            onSelected(agentId, match?.id);
+          },
+        );
+      },
     );
   }
 }

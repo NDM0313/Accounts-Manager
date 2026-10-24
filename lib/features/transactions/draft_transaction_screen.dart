@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
+import 'package:accounts_manager/core/utils/client_operation_id.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_attachments_section.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_page_scaffold.dart';
 import 'package:accounts_manager/core/widgets/obsidian/fx_obsidian_action_bar.dart';
@@ -66,7 +67,12 @@ class _DraftTransactionScreenState
   String? _settlementAccountCode;
   String? _partyId;
   bool _onCredit = false;
+  /// Buy FX only: apply agent PKR advance (1180) via funded purchase RPC.
+  bool _applyAgentAdvance = false;
   DateTime? _transactionDate;
+
+  bool get _isAdvanceFundedBuy =>
+      widget.type == FxTransactionType.currencyBuy && _applyAgentAdvance;
   bool _busy = false;
   String? _draftId;
   bool _rateInitialized = false;
@@ -547,29 +553,65 @@ class _DraftTransactionScreenState
           label: isBuy ? 'C. Payment' : 'Payment',
         ),
         const SizedBox(height: 8),
-        SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(
-              value: false,
-              label: Text('Pay now'),
-              icon: Icon(Icons.payments_outlined, size: 18),
-            ),
-            ButtonSegment(
-              value: true,
-              label: Text('Pay later'),
-              icon: Icon(Icons.account_balance_outlined, size: 18),
-            ),
-          ],
-          selected: {_onCredit},
-          onSelectionChanged: _busy
-              ? null
-              : (s) => setState(() {
-                  _onCredit = s.first;
-                  _settlementAccountCode = _onCredit
-                      ? (isBuy ? '2100' : '1190')
-                      : null;
-                }),
-        ),
+        if (isBuy)
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(
+                value: 'cash',
+                label: Text('Pay now'),
+                icon: Icon(Icons.payments_outlined, size: 18),
+              ),
+              ButtonSegment(
+                value: 'credit',
+                label: Text('Pay later'),
+                icon: Icon(Icons.account_balance_outlined, size: 18),
+              ),
+              ButtonSegment(
+                value: 'advance',
+                label: Text('Advance'),
+                icon: Icon(Icons.savings_outlined, size: 18),
+              ),
+            ],
+            selected: {
+              _applyAgentAdvance
+                  ? 'advance'
+                  : (_onCredit ? 'credit' : 'cash'),
+            },
+            onSelectionChanged: _busy
+                ? null
+                : (s) => setState(() {
+                    final mode = s.first;
+                    _applyAgentAdvance = mode == 'advance';
+                    _onCredit = mode == 'credit';
+                    _settlementAccountCode = switch (mode) {
+                      'credit' => '2100',
+                      'advance' => '1180',
+                      _ => null,
+                    };
+                  }),
+          )
+        else
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: false,
+                label: Text('Pay now'),
+                icon: Icon(Icons.payments_outlined, size: 18),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text('Pay later'),
+                icon: Icon(Icons.account_balance_outlined, size: 18),
+              ),
+            ],
+            selected: {_onCredit},
+            onSelectionChanged: _busy
+                ? null
+                : (s) => setState(() {
+                    _onCredit = s.first;
+                    _settlementAccountCode = _onCredit ? '1190' : null;
+                  }),
+          ),
         const SizedBox(height: 12),
         Consumer(
           builder: (context, ref, _) {
@@ -578,8 +620,9 @@ class _DraftTransactionScreenState
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => const SizedBox.shrink(),
               data: (parties) {
+                final requireAgent = _onCredit || _applyAgentAdvance;
                 final filtered = parties.where((p) {
-                  if (_onCredit) {
+                  if (requireAgent) {
                     return isBuy
                         ? p.partyType == FxPartyType.agent
                         : p.partyType == FxPartyType.customer;
@@ -589,22 +632,27 @@ class _DraftTransactionScreenState
                             p.partyType == FxPartyType.settlement
                       : p.partyType == FxPartyType.customer ||
                             p.partyType == FxPartyType.settlement;
-                }).toList()..sort((a, b) => a.name.compareTo(b.name));
+                }).toList()
+                  ..sort((a, b) => a.name.compareTo(b.name));
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DropdownButtonFormField<String>(
-                      key: ValueKey('party_${_partyId}_$_onCredit'),
+                      key: ValueKey(
+                        'party_${_partyId}_${_onCredit}_$_applyAgentAdvance',
+                      ),
                       initialValue: _partyId,
                       decoration: InputDecoration(
-                        labelText: _onCredit
+                        labelText: requireAgent
                             ? (isBuy
-                                  ? 'Agent (required for credit)'
+                                  ? (_applyAgentAdvance
+                                      ? 'Agent (required for advance)'
+                                      : 'Agent (required for credit)')
                                   : 'Customer (required for credit)')
                             : 'Party (optional)',
                       ),
                       items: [
-                        if (!_onCredit)
+                        if (!requireAgent)
                           const DropdownMenuItem<String>(
                             value: null,
                             child: Text('—'),
@@ -619,13 +667,13 @@ class _DraftTransactionScreenState
                       onChanged: _busy
                           ? null
                           : (v) => setState(() => _partyId = v),
-                      validator: _onCredit
+                      validator: requireAgent
                           ? (v) => v == null
-                                ? 'Select a party for credit transactions'
+                                ? 'Select a party for this funding mode'
                                 : null
                           : null,
                     ),
-                    if (_onCredit) ...[
+                    if (_onCredit && !_applyAgentAdvance) ...[
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         key: ValueKey(
@@ -643,7 +691,7 @@ class _DraftTransactionScreenState
                                 '2100' => 'Agent Payables',
                                 '2200' => 'Customer Payables',
                                 '1190' => 'Customer Receivables',
-                                '1180' => 'Agent Receivables',
+                                '1180' => 'Agent Receivables / advances',
                                 _ => code,
                               };
                               return DropdownMenuItem(
@@ -654,21 +702,39 @@ class _DraftTransactionScreenState
                             .toList(),
                         onChanged: _busy
                             ? null
-                            : (v) => setState(() => _settlementAccountCode = v),
+                            : (v) =>
+                                setState(() => _settlementAccountCode = v),
                         validator: (v) => v == null ? 'Select account' : null,
                       ),
                     ],
+                    if (_applyAgentAdvance) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Apply existing Agent Receivable / advance (1180). '
+                        'Currency stays in agent custody — not company vault. '
+                        'Posts immediately via funded purchase.',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
+                      ),
+                    ],
                     const SizedBox(height: 4),
-                    Text(
-                      isBuy
-                          ? 'Buy on credit: Dr foreign cash, Cr agent/customer payable.'
-                          : 'Sell on credit: Dr customer/agent receivable, Cr foreign cash.',
-                      style: AppTypography.bodyMd(
-                        context.fx.onSurfaceVariant,
-                        context: context,
-                      ).copyWith(fontSize: 12),
-                    ),
-                    if (isBuy) ...[
+                    if (!_applyAgentAdvance)
+                      Text(
+                        isBuy
+                            ? (_onCredit
+                                  ? 'Buy on credit: agent payable (2100); '
+                                      'currency typically held with the agent.'
+                                  : 'Pay now: vault receipt with PKR payment.')
+                            : 'Sell on credit: Dr customer/agent receivable, '
+                                'Cr foreign cash.',
+                        style: AppTypography.bodyMd(
+                          context.fx.onSurfaceVariant,
+                          context: context,
+                        ).copyWith(fontSize: 12),
+                      ),
+                    if (isBuy && !_applyAgentAdvance) ...[
                       const SizedBox(height: 16),
                       FxSectionLabel(label: 'D. Where is the currency?'),
                       const SizedBox(height: 4),
@@ -1276,13 +1342,19 @@ class _DraftTransactionScreenState
           ),
           FxObsidianActionBar(
             busy: _busy,
-            saveLabel: widget.editDraftId != null || _draftId != null
-                ? 'Save Changes'
-                : 'Save draft',
+            saveLabel: _isAdvanceFundedBuy
+                ? 'Post advance purchase'
+                : (widget.editDraftId != null || _draftId != null
+                      ? 'Save Changes'
+                      : 'Save draft'),
             onCancel: () => context.pop(),
-            onSave: () => _saveDraft(profile, accounts),
+            onSave: () => _isAdvanceFundedBuy
+                ? _postAdvanceFundedBuy(profile)
+                : _saveDraft(profile, accounts),
           ),
-          if (_draftId != null && widget.editDraftId == null)
+          if (_draftId != null &&
+              widget.editDraftId == null &&
+              !_isAdvanceFundedBuy)
             Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.marginMobile,
@@ -1486,10 +1558,90 @@ class _DraftTransactionScreenState
     );
   }
 
+  Future<void> _postAdvanceFundedBuy(FxUserProfile profile) async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_ensureTransactionDate(context)) return;
+    if (_partyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select an agent for advance funding')),
+      );
+      return;
+    }
+    if (_currencyCode == null || _foreignAmount <= 0 || _rateUsed <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter currency, amount and rate')),
+      );
+      return;
+    }
+    final confirmed = await showFxPostConfirmationDialog(
+      context,
+      FxPostConfirmationData(
+        title: 'Confirm advance-funded purchase',
+        partyLabel: null,
+        accountLabel: '1180 · Agent advance',
+        currencyCode: _currencyCode!,
+        amount: _foreignAmount,
+        rate: _rateUsed,
+        pkrEquivalent: _baseAmountPkr,
+        notes: _descriptionCtrl.text.trim().isEmpty
+            ? 'Apply agent PKR advance (1180); currency in agent custody'
+            : _descriptionCtrl.text.trim(),
+      ),
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final opId = await ClientOperationId.beginAmounted(
+        'agent_purchase_advance',
+        _partyId!,
+        _foreignAmount,
+      );
+      final txId = await ref
+          .read(transactionRepositoryProvider)
+          .postAgentCurrencyPurchaseFunded(
+            companyId: profile.companyId,
+            branchId: profile.branchId,
+            agentPartyId: _partyId!,
+            currency: _currencyCode!,
+            foreignAmount: _foreignAmount,
+            ratePkr: _rateUsed,
+            fundingMode: 'advance',
+            settleAccountCode: '1180',
+            notes: _descriptionCtrl.text.trim().isEmpty
+                ? null
+                : _descriptionCtrl.text.trim(),
+            clientOperationId: opId,
+          );
+      await ClientOperationId.completeAmounted(
+        'agent_purchase_advance',
+        _partyId!,
+      );
+      ref.invalidate(draftTransactionsProvider);
+      ref.invalidate(todayTransactionsProvider);
+      ref.invalidate(cashBalancesProvider);
+      if (mounted) {
+        context.pushReplacement('/transactions/$txId/complete');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Advance purchase failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _saveDraft(
     FxUserProfile profile,
     List<FxAccount> accounts,
   ) async {
+    if (_isAdvanceFundedBuy) {
+      await _postAdvanceFundedBuy(profile);
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     if (!_ensureTransactionDate(context)) return;
     setState(() => _busy = true);

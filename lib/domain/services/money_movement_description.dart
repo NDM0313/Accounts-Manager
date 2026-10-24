@@ -57,8 +57,16 @@ abstract final class MoneyMovementDescription {
     required double amount,
     required String partyName,
     required FxAccount? vaultAccount,
+    bool thirdParty = false,
+    String? agentName,
   }) {
     final amt = '${currencyCode.toUpperCase()} ${_amt.format(amount)}';
+    if (thirdParty) {
+      final agent = (agentName == null || agentName.trim().isEmpty)
+          ? 'agent external account'
+          : '${agentName.trim()} external account';
+      return 'Record $amt from $partyName paid direct to $agent (no owned bank).';
+    }
     final vault = accountPhrase(vaultAccount);
     if (isReceive) {
       return 'Receive $amt from $partyName into $vault.';

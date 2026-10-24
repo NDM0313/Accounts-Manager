@@ -180,6 +180,34 @@ class DealRepository {
     return txId as String;
   }
 
+  /// Customer pays agent's external bank (cashless). Journal Dr 2100 / Cr 1160.
+  Future<String> recordThirdPartyPayment({
+    required String dealId,
+    required double amountPkr,
+    required String agentPartyId,
+    String? agentSourceLegId,
+    String? externalBankLabel,
+    String? reference,
+    String? notes,
+    String? clientOperationId,
+  }) async {
+    final txId = await supabase.rpc(
+      'fx_record_deal_third_party_payment',
+      params: {
+        'p_deal_id': dealId,
+        'p_amount_pkr': amountPkr,
+        'p_agent_party_id': agentPartyId,
+        'p_agent_source_leg_id': agentSourceLegId,
+        'p_external_bank_label': externalBankLabel,
+        'p_reference': reference,
+        'p_notes': notes,
+        'p_client_operation_id': clientOperationId,
+      },
+    );
+
+    return txId as String;
+  }
+
   Future<String> addLeg({
     required String dealId,
 

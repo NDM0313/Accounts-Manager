@@ -13,13 +13,13 @@ Legend:
 |-------|--------|-------|-------|--------------|--------|
 | `/` dashboard | `DashboardScreen` | A/B | yes | Semantic actions; KPI honesty | PASS (prior) |
 | Shell nav | `FxWorkspaceNavigation` / `FxMainNavBar` | A | yes | Material icons (SVG pending) | PASS |
-| `/transactions/money` Receive/Pay | `MoneyMovementComposerScreen` | **A** | yes | Searchable party/deal/account; amount chip; focused flow; draft discard | PASS unit / browser pending redeploy |
+| `/transactions/money` Receive/Pay | `MoneyMovementComposerScreen` | **A** | yes | + Agent-external third-party when deal allocated | PASS unit; live layout PASS; create third-party after redeploy |
 | `/transactions/receive-payment` | same composer | A | yes | Alias of money receive | same |
-| Review step | composer `_buildReview` | A | yes | Retains method/account/ref | PASS (prior live) |
+| Review step | composer `_buildReview` | A | yes | Retains method/account/ref + third-party copy | PASS |
 | `/transactions/:id/complete` | `TransactionCompleteScreen` | A | yes | Posted-only success | PASS (prior live) |
 | `/transactions/:id` | `TransactionDetailScreen` | B | yes | Theme + actions; not full frame rebuild | PARTIAL |
-| `/slips/import` OCR | `ImportPaymentSlipScreen` | **A** | yes | Progressive Capture→Review→Action | PASS unit / browser pending |
-| Buy/Sell / transfer draft | `DraftTransactionScreen` | B | yes | Needs layout pass | NOT RUN |
+| `/slips/import` OCR | `ImportPaymentSlipScreen` | **A** | yes | Capture→Review→Action; `returnTo=money` wired | PASS unit; browser after redeploy |
+| Buy/Sell / transfer draft | `DraftTransactionScreen` | B→mixed | yes | Buy FX **Advance** funding wired; body still B | PASS create path code; layout polish remaining |
 | `/deals*` | deal screens | B | yes | Chrome applied | PARTIAL |
 | `/expenses` | `ExpenseListScreen` | B | yes | | PARTIAL |
 | Opening balances | wizard | B | yes | | PARTIAL |

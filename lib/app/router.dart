@@ -82,8 +82,13 @@ FxTransactionType _transactionTypeFromQuery(String? value) {
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(authRefreshListenableProvider);
 
+  // Prefer the browser URL on web (deep links / refresh). Forcing '/' made
+  // `/deals`, `/parties`, etc. paint the dashboard while the address bar lied.
+  final bootPath = Uri.base.path;
+  final bootLocation = (bootPath.isEmpty || bootPath == '/') ? '/' : bootPath;
+
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: bootLocation,
     refreshListenable: refresh,
     redirect: (context, state) {
       final loggedIn = supabase.auth.currentSession != null;
@@ -473,8 +478,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/slips/import',
             builder: (context, state) {
-              final dealId = state.uri.queryParameters['dealId'];
-              return ImportPaymentSlipScreen(dealId: dealId);
+              final q = state.uri.queryParameters;
+              return ImportPaymentSlipScreen(
+                dealId: q['dealId'],
+                returnTo: q['returnTo'],
+                moneyMode: q['mode'],
+              );
             },
           ),
           GoRoute(
