@@ -46,6 +46,7 @@ class FxTransactionLine {
     required this.debitPkr,
     required this.creditPkr,
     this.memo,
+    this.partyId,
   });
 
   final String id;
@@ -59,6 +60,9 @@ class FxTransactionLine {
   final double debitPkr;
   final double creditPkr;
   final String? memo;
+
+  /// Subledger party for this line; null falls back to transaction.partyId.
+  final String? partyId;
 
   factory FxTransactionLine.fromJson(Map<String, dynamic> json) {
     final account = json['fx_accounts'] as Map<String, dynamic>?;
@@ -74,6 +78,7 @@ class FxTransactionLine {
       debitPkr: (json['debit_pkr'] as num).toDouble(),
       creditPkr: (json['credit_pkr'] as num).toDouble(),
       memo: json['memo'] as String?,
+      partyId: json['party_id'] as String?,
     );
   }
 }

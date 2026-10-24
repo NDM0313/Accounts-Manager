@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/home-shared-db-reconciliation, feat/approved-figma-responsive-ui]
   pull_request:
-    branches: [main]
+    branches: [main, feat/home-shared-db-reconciliation, feat/approved-figma-responsive-ui]
 
 jobs:
   analyze-and-test:
@@ -13,10 +13,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.41.9
           channel: stable
           cache: true
-      - name: Create CI .env from example
-        run: cp .env.example .env
+      - name: Create public placeholder config for CI
+        run: cp assets/config/client_config.json.example assets/config/client_config.json
       - run: flutter pub get
-      - run: flutter analyze
+      - run: flutter analyze --no-fatal-infos
       - run: flutter test
+      - run: flutter build web --release

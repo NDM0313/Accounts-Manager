@@ -165,7 +165,7 @@ class RoznamchaScreen extends ConsumerWidget {
                               ? '+ ${fmt.format(line.moneyInPkr)}'
                               : '− ${fmt.format(line.moneyOutPkr)}';
                           final movementColor = line.moneyInPkr > 0
-                              ? AppColors.lightSuccess
+                              ? context.fx.tertiary
                               : context.fx.error;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8),

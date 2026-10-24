@@ -1,5 +1,6 @@
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/agent_custody.dart';
+import 'package:accounts_manager/domain/models/party_directory_measure.dart';
 import 'package:accounts_manager/domain/models/roznamcha.dart';
 
 class TrialBalanceRow {
@@ -441,6 +442,38 @@ class ReportRepository {
       map[id] = (row['balance_pkr'] as num?)?.toDouble() ?? 0;
     }
     return map;
+  }
+
+  /// Labelled measures: control net ≠ open deal due ≠ agent advance/payable.
+  Future<Map<String, PartyDirectoryMeasure>> fetchPartyDirectoryMeasures({
+    String? companyId,
+  }) async {
+    try {
+      final rows = await supabase.rpc(
+        'fx_party_directory_measures',
+        params: {'p_company_id': companyId},
+      );
+      final map = <String, PartyDirectoryMeasure>{};
+      for (final row in (rows as List).cast<Map<String, dynamic>>()) {
+        final m = PartyDirectoryMeasure.fromJson(row);
+        map[m.partyId] = m;
+      }
+      return map;
+    } catch (_) {
+      // Fallback until Y_ SQL is applied: control net only.
+      final legacy = await fetchPartyDirectoryBalances(companyId: companyId);
+      return {
+        for (final e in legacy.entries)
+          e.key: PartyDirectoryMeasure(
+            partyId: e.key,
+            partyType: '',
+            controlNetPkr: e.value,
+            openDealReceivablePkr: 0,
+            agentAdvancePkr: 0,
+            agentPayablePkr: 0,
+          ),
+      };
+    }
   }
 
   /// Agent FX custody rows from balance book (`fx_list_agent_custody`).

@@ -1,3 +1,4 @@
+import 'package:accounts_manager/core/widgets/system/fx_appearance_button.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_premium_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +17,8 @@ class FxAppBar {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       tooltip: 'Back',
-      onPressed: () => fxSafePop(
-        context,
-        fallbackRoute: fallbackRoute,
-        result: result,
-      ),
+      onPressed: () =>
+          fxSafePop(context, fallbackRoute: fallbackRoute, result: result),
     );
   }
 
@@ -42,7 +40,7 @@ class FxAppBar {
     Color? backgroundColor,
     bool showHome = true,
   }) {
-    final bg = backgroundColor ?? context.fx.background;
+    final bg = context.fx.surface;
     return AppBar(
       toolbarHeight: AppSpacing.appBarHeight,
       backgroundColor: bg,
@@ -52,6 +50,8 @@ class FxAppBar {
       actions: [
         ...?actions,
         if (showHome) homeAction(context),
+        const FxAppearanceButton(),
+        const SizedBox(width: 8),
       ],
     );
   }

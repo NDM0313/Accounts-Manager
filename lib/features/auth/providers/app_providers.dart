@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:async';
 
 import 'package:accounts_manager/data/repositories/account_repository.dart';
@@ -13,6 +15,7 @@ import 'package:accounts_manager/data/repositories/rate_repository.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
 import 'package:accounts_manager/domain/models/agent_custody.dart';
+import 'package:accounts_manager/domain/models/party_directory_measure.dart';
 import 'package:accounts_manager/domain/models/party_statement.dart';
 import 'package:accounts_manager/domain/models/roznamcha.dart';
 import 'package:accounts_manager/domain/services/party_statement_builder.dart';
@@ -86,8 +89,19 @@ class AuthRefreshListenable extends ChangeNotifier {
   }
 }
 
-final authSessionProvider = StreamProvider<AuthState>((ref) {
-  return supabase.auth.onAuthStateChange;
+/// Seeds the current session immediately so dependents do not hang when
+/// `onAuthStateChange` has already emitted `initialSession` before subscribe.
+final authSessionProvider = StreamProvider<AuthState>((ref) async* {
+  final current = supabase.auth.currentSession;
+  yield AuthState(
+    current == null
+        ? AuthChangeEvent.signedOut
+        : AuthChangeEvent.initialSession,
+    current,
+  );
+  await for (final state in supabase.auth.onAuthStateChange) {
+    yield state;
+  }
 });
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
@@ -101,7 +115,8 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final currentProfileProvider = FutureProvider<FxUserProfile?>((ref) async {
   final authenticated = ref.watch(isAuthenticatedProvider);
   if (!authenticated) return null;
-  ref.watch(authSessionProvider);
+  // Refresh on auth changes without blocking on AsyncLoading.
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   return ref.read(profileRepositoryProvider).fetchCurrentProfile();
 });
 
@@ -163,8 +178,7 @@ class TrialBalanceAsOfNotifier extends Notifier<DateTime> {
 final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(transactionRepositoryProvider).fetchDrafts(profile.branchId);
@@ -173,8 +187,7 @@ final draftTransactionsProvider = FutureProvider<List<FxTransaction>>((
 final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref.read(transactionRepositoryProvider).fetchVoided(profile.branchId);
@@ -183,8 +196,7 @@ final voidedTransactionsProvider = FutureProvider<List<FxTransaction>>((
 final todayTransactionsProvider = FutureProvider<List<FxTransaction>>((
   ref,
 ) async {
-  ref.watch(authSessionProvider);
-  ref.watch(currentProfileProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) return [];
   return ref
@@ -291,8 +303,9 @@ final cashBalancesProvider = FutureProvider<List<CashBalanceRow>>((ref) async {
 });
 
 /// Batch PKR balances for party directory. Errors surface to UI (not silent {}).
-final partyDirectoryBalancesProvider =
-    FutureProvider<Map<String, double>>((ref) async {
+final partyDirectoryBalancesProvider = FutureProvider<Map<String, double>>((
+  ref,
+) async {
   final profile = await ref.watch(currentProfileProvider.future);
   if (profile == null) {
     throw StateError('Sign in required to load party balances');
@@ -302,31 +315,48 @@ final partyDirectoryBalancesProvider =
       .fetchPartyDirectoryBalances(companyId: profile.companyId);
 });
 
+/// Distinct measures for directory chips (control net ≠ deal due ≠ advance).
+final partyDirectoryMeasuresProvider =
+    FutureProvider<Map<String, PartyDirectoryMeasure>>((ref) async {
+  final profile = await ref.watch(currentProfileProvider.future);
+  if (profile == null) {
+    throw StateError('Sign in required to load party balances');
+  }
+  return ref
+      .read(reportRepositoryProvider)
+      .fetchPartyDirectoryMeasures(companyId: profile.companyId);
+});
+
 /// Agent custody inventory; [agentPartyId] null loads all agents for the company.
 final agentCustodyProvider =
-    FutureProvider.family<List<AgentCustodyRow>, String?>((ref, agentPartyId) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return [];
-  return ref.read(reportRepositoryProvider).fetchAgentCustody(
-        companyId: profile.companyId,
-        agentPartyId: agentPartyId,
-      );
-});
+    FutureProvider.family<List<AgentCustodyRow>, String?>((
+      ref,
+      agentPartyId,
+    ) async {
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return [];
+      return ref
+          .read(reportRepositoryProvider)
+          .fetchAgentCustody(
+            companyId: profile.companyId,
+            agentPartyId: agentPartyId,
+          );
+    });
 
 /// Party foreign control nets by currency (not summed across currencies).
 final partyDirectoryCurrencyBalancesProvider =
     FutureProvider<Map<String, List<PartyCurrencyBalance>>>((ref) async {
-  final profile = await ref.watch(currentProfileProvider.future);
-  if (profile == null) return {};
-  return ref.read(reportRepositoryProvider).fetchPartyDirectoryCurrencyBalances(
-        companyId: profile.companyId,
-      );
-});
+      final profile = await ref.watch(currentProfileProvider.future);
+      if (profile == null) return {};
+      return ref
+          .read(reportRepositoryProvider)
+          .fetchPartyDirectoryCurrencyBalances(companyId: profile.companyId);
+    });
 
 final roznamchaAccountFilterProvider =
     NotifierProvider<RoznamchaAccountFilterNotifier, String?>(
-  RoznamchaAccountFilterNotifier.new,
-);
+      RoznamchaAccountFilterNotifier.new,
+    );
 
 class RoznamchaAccountFilterNotifier extends Notifier<String?> {
   @override
@@ -549,6 +579,16 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((
         accountCode: accountCode,
       );
 
+  final workspaces = ref.watch(myWorkspacesProvider).asData?.value;
+  final ws = workspaces?.where((w) => w.isActiveWorkspace).firstOrNull;
+  final company = AccountStatementCompanyMeta(
+    companyName: (ws?.companyName.isNotEmpty == true)
+        ? ws!.companyName
+        : 'FX Cash Ledger',
+    branchName: ws?.branchName,
+    isDemo: ws?.isDemo ?? false,
+  );
+
   return AccountStatementView.build(
     accountCode: account.code,
     accountName: account.name,
@@ -557,6 +597,8 @@ final accountStatementProvider = FutureProvider<AccountStatementView?>((
     to: range.to,
     openingBalancePkr: openingBalance,
     ledgerRows: ledgerRows,
+    company: company,
+    generatedAt: DateTime.now(),
   );
 });
 
@@ -893,7 +935,7 @@ final branchContextProvider = FutureProvider<BranchContext?>((ref) async {
 final myWorkspacesProvider = FutureProvider<List<FxWorkspace>>((ref) async {
   final authenticated = ref.watch(isAuthenticatedProvider);
   if (!authenticated) return const [];
-  ref.watch(authSessionProvider);
+  ref.listen<AsyncValue<AuthState>>(authSessionProvider, (_, _) {});
   ref.watch(currentProfileProvider);
   return ref.read(profileRepositoryProvider).listMyWorkspaces();
 });
@@ -947,18 +989,48 @@ final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
 );
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
+  static const preferenceKey = 'fx.appearance';
+  int _revision = 0;
+
   @override
-  ThemeMode build() => ThemeMode.light;
+  ThemeMode build() {
+    final revision = ++_revision;
+    Future<void>(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (!ref.mounted || revision != _revision) return;
+        final saved = prefs.getString(preferenceKey);
+        state = ThemeMode.values.firstWhere(
+          (mode) => mode.name == saved,
+          orElse: () => ThemeMode.system,
+        );
+      } catch (_) {
+        // A blocked browser store must not prevent opening the app.
+      }
+    });
+    return ThemeMode.system;
+  }
 
   void toggle() {
-    state = switch (state) {
+    set(switch (state) {
       ThemeMode.light => ThemeMode.dark,
       ThemeMode.dark => ThemeMode.light,
       ThemeMode.system => ThemeMode.dark,
-    };
+    });
   }
 
-  void set(ThemeMode mode) => state = mode;
+  void set(ThemeMode mode) {
+    _revision++;
+    state = mode;
+    Future<void>(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(preferenceKey, mode.name);
+      } catch (_) {
+        // The selected appearance still applies for this session.
+      }
+    });
+  }
 }
 
 String friendlyAuthError(Object error) {

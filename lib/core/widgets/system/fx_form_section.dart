@@ -20,43 +20,51 @@ class FxFormSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fx = context.fx;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: AppTypography.headlineSm(
-                  fx.onSurface,
-                  context: context,
-                ).copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-            if (optional)
-              Text(
-                'Optional',
-                style: AppTypography.bodySm(
-                  fx.onSurfaceVariant,
-                  context: context,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: fx.surface,
+        border: Border.all(color: fx.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.headlineSm(
+                    fx.onSurface,
+                    context: context,
+                  ).copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
-          ],
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            subtitle!,
-            style: AppTypography.bodySm(
-              fx.onSurfaceVariant,
-              context: context,
-            ),
+              if (optional)
+                Text(
+                  'Optional',
+                  style: AppTypography.bodySm(
+                    fx.onSurfaceVariant,
+                    context: context,
+                  ),
+                ),
+            ],
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle!,
+              style: AppTypography.bodySm(
+                fx.onSurfaceVariant,
+                context: context,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.stackSm),
+          ..._spaced(children),
         ],
-        const SizedBox(height: AppSpacing.stackSm),
-        ..._spaced(children),
-      ],
+      ),
     );
   }
 

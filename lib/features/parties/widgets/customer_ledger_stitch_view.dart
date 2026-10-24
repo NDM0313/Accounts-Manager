@@ -95,7 +95,7 @@ class _CustomerLedgerStitchViewState
                 Text(
                   'Settled / No outstanding',
                   style: AppTypography.headlineSm(
-                    AppColors.lightSuccess,
+                    context.fx.tertiary,
                     context: context,
                   ),
                 )

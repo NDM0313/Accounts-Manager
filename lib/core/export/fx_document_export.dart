@@ -36,6 +36,12 @@ Future<void> showFxExportSheet(
   List<(String label, String value)> summaryLines = const [],
   List<FxStitchExportLifecycleStep> lifecycleSteps = const [],
   String? shareUrl,
+  String printActionLabel = 'Print',
+  String printActionSubtitle =
+      'Opens the system print / PDF preview dialog',
+  bool omitImageShare = false,
+  bool omitEmailShare = false,
+  bool omitCopyLink = false,
 }) async {
   await FxExportHubSheet.show(
     context,
@@ -46,5 +52,10 @@ Future<void> showFxExportSheet(
     summaryLines: summaryLines,
     lifecycleSteps: lifecycleSteps,
     shareUrl: shareUrl,
+    printActionLabel: printActionLabel,
+    printActionSubtitle: printActionSubtitle,
+    omitImageShare: omitImageShare,
+    omitEmailShare: omitEmailShare,
+    omitCopyLink: omitCopyLink,
   );
 }

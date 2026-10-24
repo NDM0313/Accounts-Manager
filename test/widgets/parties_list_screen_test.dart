@@ -11,6 +11,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          partyDirectoryBalancesProvider.overrideWith((ref) async => {'p1': 0}),
+          partyDirectoryCurrencyBalancesProvider.overrideWith(
+            (ref) async => {},
+          ),
           partiesProvider(null).overrideWith(
             (ref) async => [
               const FxParty(
@@ -31,7 +35,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Parties'), findsOneWidget);
+    expect(find.text('Party directory'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Test Customer'), findsOneWidget);
   });

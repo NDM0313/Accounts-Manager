@@ -23,26 +23,18 @@ class FxStatusBadge extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final (fg, bg) = switch (tone) {
       FxStatusTone.success => (
-          isDark ? AppColors.darkTertiary : AppColors.lightSuccess,
-          (isDark ? AppColors.darkTertiary : AppColors.lightSuccess)
-              .withValues(alpha: 0.12),
+        isDark ? AppColors.darkTertiary : context.fx.tertiary,
+        (isDark ? AppColors.darkTertiary : context.fx.tertiary).withValues(
+          alpha: 0.12,
         ),
-      FxStatusTone.warning => (
-          fx.warning,
-          fx.warning.withValues(alpha: 0.12),
-        ),
-      FxStatusTone.error => (
-          fx.error,
-          fx.error.withValues(alpha: 0.12),
-        ),
-      FxStatusTone.info => (
-          fx.secondary,
-          fx.secondary.withValues(alpha: 0.12),
-        ),
+      ),
+      FxStatusTone.warning => (fx.warning, fx.warning.withValues(alpha: 0.12)),
+      FxStatusTone.error => (fx.error, fx.error.withValues(alpha: 0.12)),
+      FxStatusTone.info => (fx.secondary, fx.secondary.withValues(alpha: 0.12)),
       FxStatusTone.neutral => (
-          fx.onSurfaceVariant,
-          fx.surfaceContainerHighest.withValues(alpha: 0.35),
-        ),
+        fx.onSurfaceVariant,
+        fx.surfaceContainerHighest.withValues(alpha: 0.35),
+      ),
     };
 
     return Semantics(
@@ -63,8 +55,10 @@ class FxStatusBadge extends StatelessWidget {
             ],
             Text(
               label,
-              style: AppTypography.bodySm(fg, context: context)
-                  .copyWith(fontWeight: FontWeight.w600),
+              style: AppTypography.bodySm(
+                fg,
+                context: context,
+              ).copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),

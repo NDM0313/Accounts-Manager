@@ -9,7 +9,9 @@ import 'package:intl/intl.dart';
 /// Currency position card (Actual / Committed / Required).
 ///
 /// Definitions (from `fx_get_currency_position_extended`):
-/// - **Actual** — vault foreign stock on cash accounts (1110–1150); may be negative.
+/// - **Actual (FX)** — company inventory GL 1120–1150 (may include agent-held
+///   stock booked there). Not the same as [fx_agent_currency_balances].
+/// - **Actual (PKR)** — owned cash 111x + owned banks 121x (excludes 1180).
 /// - **Committed** — open customer_sale commitments not yet sourced/released.
 /// - **Required** — max(0, committed − actual − on_order inbound).
 class FxCurrencyPositionCard extends StatelessWidget {

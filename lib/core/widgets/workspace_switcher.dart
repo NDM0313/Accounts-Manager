@@ -1,3 +1,4 @@
+import 'package:accounts_manager/app/theme/fx_design_tokens.dart';
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:accounts_manager/app/theme/app_typography.dart';
 import 'package:accounts_manager/domain/models/fx_workspace.dart';
@@ -7,9 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Compact company/workspace picker for app bar and settings.
 class WorkspaceSwitcherButton extends ConsumerWidget {
-  const WorkspaceSwitcherButton({super.key, this.compact = true});
+  const WorkspaceSwitcherButton({
+    super.key,
+    this.compact = true,
+    this.iconOnly = false,
+  });
 
   final bool compact;
+  final bool iconOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +48,7 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
                           : Icons.circle_outlined,
                       size: 18,
                       color: ws.isDemo
-                          ? const Color(0xFF7A4E00)
+                          ? context.fxAccent(FxAccent.pending)
                           : context.fx.primary,
                     ),
                     const SizedBox(width: 8),
@@ -79,16 +85,31 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
   }
 
   Widget _chip(BuildContext context, String code, bool isDemo) {
+    if (iconOnly) {
+      return Tooltip(
+        message: 'Workspace: $code',
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            isDemo ? Icons.science_outlined : Icons.business_outlined,
+            color: isDemo
+                ? context.fxAccent(FxAccent.pending)
+                : context.fx.primary,
+          ),
+        ),
+      );
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isDemo
-            ? const Color(0xFF7A4E00).withValues(alpha: 0.12)
+            ? context.fxAccent(FxAccent.pending).withValues(alpha: 0.12)
             : context.fx.secondaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isDemo
-              ? const Color(0xFF7A4E00)
+              ? context.fxAccent(FxAccent.pending)
               : context.fx.outlineVariant,
         ),
       ),
@@ -98,13 +119,15 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
           Icon(
             isDemo ? Icons.science_outlined : Icons.business_outlined,
             size: 14,
-            color: isDemo ? const Color(0xFF7A4E00) : context.fx.primary,
+            color: isDemo
+                ? context.fxAccent(FxAccent.pending)
+                : context.fx.primary,
           ),
           const SizedBox(width: 6),
           Text(
             code,
             style: AppTypography.labelCaps(
-              isDemo ? const Color(0xFF7A4E00) : context.fx.primary,
+              isDemo ? context.fxAccent(FxAccent.pending) : context.fx.primary,
               context: context,
             ).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
           ),
@@ -112,7 +135,9 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
           Icon(
             Icons.expand_more,
             size: 16,
-            color: isDemo ? const Color(0xFF7A4E00) : context.fx.onSurfaceVariant,
+            color: isDemo
+                ? context.fxAccent(FxAccent.pending)
+                : context.fx.onSurfaceVariant,
           ),
         ],
       ),
@@ -126,10 +151,9 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
   ) async {
     if (ws.isActiveWorkspace) return;
     try {
-      await ref.read(profileRepositoryProvider).switchWorkspace(
-            companyId: ws.companyId,
-            branchId: ws.branchId,
-          );
+      await ref
+          .read(profileRepositoryProvider)
+          .switchWorkspace(companyId: ws.companyId, branchId: ws.branchId);
       invalidateWorkspaceScopedProviders(ref);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,9 +167,9 @@ class WorkspaceSwitcherButton extends ConsumerWidget {
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Workspace switch failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Workspace switch failed: $e')));
     }
   }
 }

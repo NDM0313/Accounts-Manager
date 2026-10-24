@@ -1,0 +1,7 @@
+Bank Transfer Successful
+Amount: PKR 75,000.50
+Date: 21 Oct 2026
+From: SAAD
+To: DEMO
+RRN: 000998877665
+Reference: FT2604220001

@@ -73,7 +73,7 @@ class AgentLedgerStitchView extends ConsumerWidget {
                 Text(
                   'Settled / No outstanding',
                   style: AppTypography.headlineSm(
-                    AppColors.lightSuccess,
+                    context.fx.tertiary,
                     context: context,
                   ),
                 )

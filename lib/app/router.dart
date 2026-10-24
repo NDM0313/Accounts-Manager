@@ -1,5 +1,6 @@
 import 'package:accounts_manager/app/main_shell.dart';
 import 'package:accounts_manager/core/widgets/premium/fx_authenticated_chrome.dart';
+import 'package:accounts_manager/core/widgets/system/fx_focused_flow.dart';
 import 'package:accounts_manager/data/supabase/supabase_client.dart';
 import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
@@ -16,6 +17,7 @@ import 'package:accounts_manager/features/dashboard/dashboard_screen.dart';
 import 'package:accounts_manager/features/demo/demo_walkthrough_screen.dart';
 import 'package:accounts_manager/features/journal/journal_entry_detail_screen.dart';
 import 'package:accounts_manager/features/journal/manual_journal_screen.dart';
+import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/features/parties/parties_list_screen.dart';
 import 'package:accounts_manager/features/parties/party_form_screen.dart';
 import 'package:accounts_manager/features/parties/party_ledger_screen.dart';
@@ -81,8 +83,13 @@ FxTransactionType _transactionTypeFromQuery(String? value) {
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(authRefreshListenableProvider);
 
+  // Prefer the browser URL on web (deep links / refresh). Forcing '/' made
+  // `/deals`, `/parties`, etc. paint the dashboard while the address bar lied.
+  final bootPath = Uri.base.path;
+  final bootLocation = (bootPath.isEmpty || bootPath == '/') ? '/' : bootPath;
+
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: bootLocation,
     refreshListenable: refresh,
     redirect: (context, state) {
       final loggedIn = supabase.auth.currentSession != null;
@@ -100,7 +107,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/transactions', redirect: (context, state) => '/ledger'),
       ShellRoute(
         builder: (context, state, child) {
-          return AuthGate(child: FxAuthenticatedChrome(child: child));
+          final path = state.matchedLocation;
+          final focused = path.startsWith('/transactions/money') ||
+              path.startsWith('/transactions/receive-payment') ||
+              path.startsWith('/slips/import') ||
+              (path.startsWith('/transactions/') && path.endsWith('/complete'));
+          return AuthGate(
+            child: FxFocusedFlowScope(
+              hideBottomNav: focused,
+              child: FxAuthenticatedChrome(child: child),
+            ),
+          );
         },
         routes: [
           GoRoute(
@@ -126,6 +143,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialReference: q['reference'],
                 initialDescription: q['description'],
                 initialDealId: q['dealId'],
+                attachmentImportId: q['attachmentId'],
               );
             },
           ),
@@ -153,6 +171,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialReference: q['reference'],
                 initialDescription: q['description'],
                 initialDealId: q['dealId'],
+                attachmentImportId: q['attachmentId'],
               );
             },
           ),
@@ -460,8 +479,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/slips/import',
             builder: (context, state) {
-              final dealId = state.uri.queryParameters['dealId'];
-              return ImportPaymentSlipScreen(dealId: dealId);
+              final q = state.uri.queryParameters;
+              return ImportPaymentSlipScreen(
+                dealId: q['dealId'],
+                returnTo: q['returnTo'],
+                moneyMode: q['mode'],
+              );
             },
           ),
           GoRoute(
@@ -531,7 +554,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/parties/agents',
-            builder: (context, state) => const AgentLedgerScreen(),
+            builder: (context, state) => const PartiesListScreen(
+              initialFilter: FxPartyType.agent,
+            ),
           ),
           GoRoute(
             path: '/parties/new',

@@ -1,6 +1,5 @@
 import 'package:accounts_manager/app/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Manrope headlines + Inter body (Stitch Executive FX Ledger).
 abstract final class AppTypography {
@@ -12,7 +11,8 @@ abstract final class AppTypography {
     double? letterSpacing,
     double? height,
     Color? color,
-  }) => GoogleFonts.manrope(
+  }) => TextStyle(
+    fontFamily: 'Manrope',
     fontSize: fontSize,
     fontWeight: fontWeight,
     letterSpacing: letterSpacing,
@@ -26,7 +26,8 @@ abstract final class AppTypography {
     double? height,
     Color? color,
     List<FontFeature>? fontFeatures,
-  }) => GoogleFonts.inter(
+  }) => TextStyle(
+    fontFamily: 'Inter',
     fontSize: fontSize,
     fontWeight: fontWeight,
     height: height,
@@ -52,9 +53,9 @@ abstract final class AppTypography {
     BuildContext? context,
     Brightness? brightness,
   }) => _displayStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    height: 32 / 24,
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
     color: color,
   );
 
@@ -63,9 +64,9 @@ abstract final class AppTypography {
     BuildContext? context,
     Brightness? brightness,
   }) => _displayStyle(
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
-    height: 28 / 20,
+    height: 1.4,
     color: color,
   );
 
@@ -126,7 +127,8 @@ abstract final class AppTypography {
     Color color, {
     BuildContext? context,
     Brightness? brightness,
-  }) => GoogleFonts.inter(
+  }) => TextStyle(
+    fontFamily: 'Inter',
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.08,
@@ -138,7 +140,8 @@ abstract final class AppTypography {
     Color color, {
     BuildContext? context,
     Brightness? brightness,
-  }) => GoogleFonts.jetBrainsMono(
+  }) => TextStyle(
+    fontFamily: 'JetBrains Mono',
     fontSize: 12,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.05,
@@ -159,7 +162,8 @@ abstract final class AppTypography {
       headlineSmall: headlineMd(onSurface, brightness: brightness),
       titleLarge: headlineMd(onSurface, brightness: brightness),
       titleMedium: headlineSm(onSurface, brightness: brightness),
-      titleSmall: GoogleFonts.manrope(
+      titleSmall: TextStyle(
+        fontFamily: 'Manrope',
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: onSurface,

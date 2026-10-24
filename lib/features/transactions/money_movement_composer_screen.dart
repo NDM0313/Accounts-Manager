@@ -8,6 +8,7 @@ import 'package:accounts_manager/core/widgets/system/system.dart';
 import 'package:accounts_manager/domain/models/cash_bank_account.dart';
 import 'package:accounts_manager/domain/models/fx_account.dart';
 import 'package:accounts_manager/domain/models/fx_deal.dart';
+import 'package:accounts_manager/domain/models/fx_deal_leg.dart';
 import 'package:accounts_manager/domain/models/fx_party.dart';
 import 'package:accounts_manager/domain/models/fx_transaction.dart';
 import 'package:accounts_manager/domain/models/transaction_draft_mode.dart';
@@ -38,6 +39,7 @@ class MoneyMovementComposerScreen extends ConsumerStatefulWidget {
   });
 
   final TransactionDraftMode mode;
+
   /// When [mode] is standard, explicitly choose receive vs pay.
   final bool? forceReceive;
   final String? initialPartyId;
@@ -64,20 +66,22 @@ class _MoneyMovementComposerScreenState
   final _referenceCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   final _manualDescCtrl = TextEditingController();
-  final _partySearchCtrl = TextEditingController();
-
+  final _externalBankCtrl = TextEditingController();
   String? _partyId;
   String _currencyCode = 'PKR';
-  String _method = 'bank'; // bank | cash
+  String _method = 'bank'; // bank | cash | third_party
   String? _vaultAccountCode;
   String? _dealId;
-  String _dealSearch = '';
+  String? _thirdPartyAgentId;
+  String? _thirdPartySourceLegId;
+
+  bool get _isThirdParty => _method == 'third_party';
   DateTime _date = DateTime.now();
   bool _autoDescription = true;
   bool _reviewing = false;
   bool _busy = false;
   String? _postedTxId;
-  String? _partySearch;
+  String? _linkedAttachmentId;
   final List<PlatformFile> _pendingFiles = [];
 
   static const _supportedCodes = ['PKR', 'USD', 'AED', 'CNY'];
@@ -105,16 +109,16 @@ class _MoneyMovementComposerScreenState
     _partyId = widget.initialPartyId;
     if (widget.initialAmount != null) {
       _amountCtrl.text = widget.initialAmount!.toStringAsFixed(
-        widget.initialAmount! == widget.initialAmount!.roundToDouble()
-            ? 0
-            : 2,
+        widget.initialAmount! == widget.initialAmount!.roundToDouble() ? 0 : 2,
       );
     }
     if (widget.initialCurrency != null &&
         _supportedCodes.contains(widget.initialCurrency!.toUpperCase())) {
       _currencyCode = widget.initialCurrency!.toUpperCase();
     }
-    if (widget.initialMethod == 'cash' || widget.initialMethod == 'bank') {
+    if (widget.initialMethod == 'cash' ||
+        widget.initialMethod == 'bank' ||
+        widget.initialMethod == 'third_party') {
       _method = widget.initialMethod!;
     }
     _vaultAccountCode = widget.initialAccountCode;
@@ -128,6 +132,7 @@ class _MoneyMovementComposerScreenState
     }
     if (widget.initialDate != null) _date = widget.initialDate!;
     _dealId = widget.initialDealId;
+    _linkedAttachmentId = widget.attachmentImportId;
     _amountCtrl.addListener(() => setState(() {}));
     _notesCtrl.addListener(() => setState(() {}));
     _manualDescCtrl.addListener(() => setState(() {}));
@@ -139,8 +144,43 @@ class _MoneyMovementComposerScreenState
     _referenceCtrl.dispose();
     _notesCtrl.dispose();
     _manualDescCtrl.dispose();
-    _partySearchCtrl.dispose();
+    _externalBankCtrl.dispose();
     super.dispose();
+  }
+
+  bool get _hasUnsavedDraft {
+    if (_postedTxId != null) return false;
+    return _partyId != null ||
+        _amount > 0 ||
+        _referenceCtrl.text.trim().isNotEmpty ||
+        _pendingFiles.isNotEmpty ||
+        _linkedAttachmentId != null ||
+        _manualDescCtrl.text.trim().isNotEmpty ||
+        _notesCtrl.text.trim().isNotEmpty;
+  }
+
+  Future<bool> _confirmDiscard() async {
+    if (!_hasUnsavedDraft || _busy) return true;
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Discard draft?'),
+        content: const Text(
+          'You have an unsaved receipt/payment. Leave without posting?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
+    return leave == true;
   }
 
   double get _amount =>
@@ -201,11 +241,28 @@ class _MoneyMovementComposerScreenState
     FxAccount? vault, {
     String? dealLabel,
   }) {
+    if (_isThirdParty) {
+      final amt = NumberFormat('#,##0.##').format(_amount);
+      final bits = <String>[
+        'Received $_currencyCode $amt from ${party?.name ?? 'party'} '
+            'paid direct to agent external account [third_party].',
+      ];
+      if (dealLabel != null && dealLabel.trim().isNotEmpty) {
+        bits.add('Deal: ${dealLabel.trim()}.');
+      }
+      final bank = _externalBankCtrl.text.trim();
+      if (bank.isNotEmpty) bits.add('External bank: $bank.');
+      final ref = _referenceCtrl.text.trim();
+      if (ref.isNotEmpty) bits.add('Ref: $ref.');
+      final notes = _notesCtrl.text.trim();
+      if (notes.isNotEmpty) bits.add(notes);
+      return bits.join(' ');
+    }
     return MoneyMovementDescription.build(
       mode: widget.mode == TransactionDraftMode.standard
           ? (_isReceiveFlow
-              ? TransactionDraftMode.customerReceipt
-              : TransactionDraftMode.agentPayment)
+                ? TransactionDraftMode.customerReceipt
+                : TransactionDraftMode.agentPayment)
           : widget.mode,
       currencyCode: _currencyCode,
       amount: _amount,
@@ -230,16 +287,13 @@ class _MoneyMovementComposerScreenState
 
   List<FxDeal> _allocatableDeals(List<FxDeal> all) {
     if (_partyId == null) return const [];
-    final q = _dealSearch.trim().toLowerCase();
     return all.where((d) {
       if (d.customerPartyId != _partyId) return false;
       if (!d.status.isOpen) return false;
       if (d.customerReceivablePkr <= 0.005) return false;
       // Deal customer payments are PKR settlement via existing engine.
       if (_currencyCode != 'PKR') return false;
-      if (q.isEmpty) return true;
-      final no = (d.dealNo ?? '').toLowerCase();
-      return no.contains(q) || d.id.toLowerCase().contains(q);
+      return true;
     }).toList();
   }
 
@@ -250,6 +304,10 @@ class _MoneyMovementComposerScreenState
   }
 
   void _invalidateVaultIfNeeded(List<FxAccount> accounts) {
+    if (_isThirdParty) {
+      _vaultAccountCode = null;
+      return;
+    }
     if (_vaultAccountCode == null) return;
     final eligible = CashBankAccountRules.filterEligible(
       accounts: accounts,
@@ -279,7 +337,7 @@ class _MoneyMovementComposerScreenState
 
   Future<void> _confirmAndPost({
     required FxParty party,
-    required FxAccount vault,
+    required FxAccount? vault,
     required List<FxAccount> accounts,
     FxDeal? allocatedDeal,
   }) async {
@@ -288,8 +346,7 @@ class _MoneyMovementComposerScreenState
       context.go('/transactions/$_postedTxId');
       return;
     }
-    final dealLabel =
-        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final dealLabel = allocatedDeal == null ? null : _dealLabel(allocatedDeal);
     final desc = _finalDescription(party, vault, dealLabel: dealLabel);
     if (desc.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -320,7 +377,39 @@ class _MoneyMovementComposerScreenState
       }
 
       late final String txId;
-      if (deal != null) {
+      if (_isThirdParty) {
+        if (deal == null) {
+          throw StateError('Agent-external settlement requires a deal');
+        }
+        if (_thirdPartyAgentId == null) {
+          throw StateError('Select the agent whose external account was paid');
+        }
+        final opId = await ClientOperationId.beginAmounted(
+          'composer_deal_third_party',
+          deal.id,
+          _amount,
+        );
+        final bankLabel = _externalBankCtrl.text.trim();
+        final refText = _referenceCtrl.text.trim();
+        txId = await ref.read(dealRepositoryProvider).recordThirdPartyPayment(
+              dealId: deal.id,
+              amountPkr: _amount,
+              agentPartyId: _thirdPartyAgentId!,
+              agentSourceLegId: _thirdPartySourceLegId,
+              externalBankLabel: bankLabel.isEmpty ? null : bankLabel,
+              reference: refText.isEmpty ? null : refText,
+              notes: desc,
+              clientOperationId: opId,
+            );
+        await ClientOperationId.completeAmounted(
+          'composer_deal_third_party',
+          deal.id,
+        );
+        ref.read(dealsRefreshProvider.notifier).refresh();
+      } else if (deal != null) {
+        if (vault == null) {
+          throw StateError('Select a bank or cash account');
+        }
         // Deal-linked receipt uses the deal payment engine only — no second
         // generic settlement draft.
         final opId = await ClientOperationId.beginAmounted(
@@ -328,7 +417,9 @@ class _MoneyMovementComposerScreenState
           deal.id,
           _amount,
         );
-        txId = await ref.read(dealRepositoryProvider).recordCustomerPayment(
+        txId = await ref
+            .read(dealRepositoryProvider)
+            .recordCustomerPayment(
               dealId: deal.id,
               amountPkr: _amount,
               notes: desc,
@@ -341,6 +432,9 @@ class _MoneyMovementComposerScreenState
         );
         ref.read(dealsRefreshProvider.notifier).refresh();
       } else {
+        if (vault == null) {
+          throw StateError('Select a bank or cash account');
+        }
         // Generic settlement has no RPC client_operation_id; guard repeats via
         // [_postedTxId] so Confirm cannot create a second draft after success.
         final repo = ref.read(transactionRepositoryProvider);
@@ -363,10 +457,26 @@ class _MoneyMovementComposerScreenState
         txId = posted.id;
       }
 
-      for (final f in _pendingFiles) {
-        if (f.bytes == null) continue;
+      var attachmentFailures = 0;
+      if (_linkedAttachmentId != null) {
         try {
-          await ref.read(attachmentRepositoryProvider).upload(
+          await ref.read(attachmentRepositoryProvider).linkToTransaction(
+                attachmentId: _linkedAttachmentId!,
+                transactionId: txId,
+              );
+        } catch (_) {
+          attachmentFailures++;
+        }
+      }
+      for (final f in _pendingFiles) {
+        if (f.bytes == null) {
+          attachmentFailures++;
+          continue;
+        }
+        try {
+          await ref
+              .read(attachmentRepositoryProvider)
+              .upload(
                 companyId: profile.companyId,
                 branchId: profile.branchId,
                 transactionId: txId,
@@ -375,12 +485,13 @@ class _MoneyMovementComposerScreenState
                 attachmentType: 'proof',
               );
         } catch (_) {
-          // Keep posting; surface attachment failure after success.
+          attachmentFailures++;
         }
       }
 
       _postedTxId = txId;
       ref.invalidate(partyDirectoryBalancesProvider);
+      ref.invalidate(partyDirectoryMeasuresProvider);
       if (_partyId != null) {
         ref.invalidate(partyStatementProvider(_partyId!));
       }
@@ -388,18 +499,20 @@ class _MoneyMovementComposerScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            deal == null
-                ? widget.mode.successTitle
-                : 'Deal receipt posted (no extra settlement)',
+            attachmentFailures > 0
+                ? 'Payment saved. $attachmentFailures attachment(s) failed to upload. Open the transaction to add them again; do not repeat the payment.'
+                : (deal == null
+                      ? widget.mode.successTitle
+                      : 'Deal receipt posted'),
           ),
         ),
       );
-      context.go('/transactions/$txId');
+      context.go('/transactions/$txId/complete?mode=${widget.mode.dbValue}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(friendlyDealPostingError(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(friendlyDealPostingError(e))));
       setState(() => _reviewing = true);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -415,21 +528,39 @@ class _MoneyMovementComposerScreenState
         ? ref.watch(dealsListProvider)
         : const AsyncValue<List<FxDeal>>.data([]);
     final fmt = NumberFormat('#,##0.##');
-    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    final isWide = MediaQuery.sizeOf(context).width >= 1280;
 
-    return FxPremiumScaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || _busy) return;
+        if (_reviewing) {
+          setState(() => _reviewing = false);
+          return;
+        }
+        final leave = await _confirmDiscard();
+        if (leave && mounted) {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(MoneyMovementComposerScreen.leaveFallback);
+          }
+        }
+      },
+      child: FxPremiumScaffold(
       title: Text(_reviewing ? 'Review' : _title),
       fallbackRoute: MoneyMovementComposerScreen.leaveFallback,
       actions: [
-        IconButton(
-          tooltip: 'Scan slip',
-          onPressed: _busy
-              ? null
-              : () => context.push(
+        if (!_reviewing)
+          IconButton(
+            tooltip: 'Scan slip',
+            onPressed: _busy
+                ? null
+                : () => context.push(
                     '/slips/import?returnTo=money&mode=${widget.mode.dbValue}',
                   ),
-          icon: const Icon(Icons.document_scanner_outlined),
-        ),
+            icon: const Icon(Icons.document_scanner_outlined),
+          ),
       ],
       body: profileAsync.when(
         loading: () => const FxLoadingState(),
@@ -443,11 +574,13 @@ class _MoneyMovementComposerScreenState
             error: (e, _) => FxErrorState(message: '$e'),
             data: (accounts) {
               _invalidateVaultIfNeeded(accounts);
-              final eligible = CashBankAccountRules.filterEligible(
-                accounts: accounts,
-                method: _method,
-                currencyCode: _currencyCode,
-              );
+              final eligible = _isThirdParty
+                  ? const <FxAccount>[]
+                  : CashBankAccountRules.filterEligible(
+                      accounts: accounts,
+                      method: _method,
+                      currencyCode: _currencyCode,
+                    );
               final vault = eligible
                   .where((a) => a.code == _vaultAccountCode)
                   .firstOrNull;
@@ -457,15 +590,10 @@ class _MoneyMovementComposerScreenState
                 data: (allParties) {
                   final parties = allParties
                       .where((p) => _partyTypes.contains(p.partyType))
-                      .where((p) {
-                        final q = (_partySearch ?? '').trim().toLowerCase();
-                        if (q.isEmpty) return true;
-                        return p.name.toLowerCase().contains(q) ||
-                            p.code.toLowerCase().contains(q);
-                      })
                       .toList();
-                  final party =
-                      allParties.where((p) => p.id == _partyId).firstOrNull;
+                  final party = allParties
+                      .where((p) => p.id == _partyId)
+                      .firstOrNull;
                   final allDeals = dealsAsync.asData?.value ?? const <FxDeal>[];
                   final deals = _allocatableDeals(allDeals);
                   // Only clear after deals finished loading — never wipe
@@ -488,7 +616,7 @@ class _MoneyMovementComposerScreenState
                   final selectedDeal = _dealId == null
                       ? null
                       : (deals.where((d) => d.id == _dealId).firstOrNull ??
-                          allDeals.where((d) => d.id == _dealId).firstOrNull);
+                            allDeals.where((d) => d.id == _dealId).firstOrNull);
 
                   if (_reviewing) {
                     return _buildReview(
@@ -521,6 +649,7 @@ class _MoneyMovementComposerScreenState
           );
         },
       ),
+    ),
     );
   }
 
@@ -538,108 +667,184 @@ class _MoneyMovementComposerScreenState
     required bool isWide,
   }) {
     final fx = context.fx;
+    final reviewAction = FilledButton(
+      onPressed: _busy
+          ? null
+          : () {
+              if (_partyId == null || party == null) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Select a party')));
+                return;
+              }
+              if (_amount <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter a valid amount')),
+                );
+                return;
+              }
+              if (_isThirdParty) {
+                if (allocatedDeal == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Select a deal before agent-external settlement',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                if (_thirdPartyAgentId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Select the agent who received the funds'),
+                    ),
+                  );
+                  return;
+                }
+              } else if (_vaultAccountCode == null || vault == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Select a ${_method == 'bank' ? 'bank' : 'cash'} account',
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (_finalDescription(
+                party,
+                vault,
+                dealLabel: allocatedDeal == null
+                    ? null
+                    : _dealLabel(allocatedDeal),
+              ).isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Description cannot be empty')),
+                );
+                return;
+              }
+              if (allocatedDeal != null &&
+                  _amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Amount cannot exceed deal outstanding'),
+                  ),
+                );
+                return;
+              }
+              setState(() => _reviewing = true);
+            },
+      child: Text(_isReceiveFlow ? 'Review receipt' : 'Review payment'),
+    );
     final form = ListView(
       padding: EdgeInsets.fromLTRB(
         isWide ? 24 : 16,
-        16,
+        12,
         isWide ? 24 : 16,
-        32 + MediaQuery.viewInsetsOf(context).bottom,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
       ),
       children: [
-        FxFormSection(
-          title: _isReceiveFlow ? 'Receive from' : 'Pay to',
+        FxFormBlock(
+          dense: true,
+          title: _isReceiveFlow ? 'Who is paying you?' : 'Who are you paying?',
           children: [
-            TextField(
-              controller: _partySearchCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Search party',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (v) => setState(() => _partySearch = v),
-            ),
-            DropdownButtonFormField<String>(
-              key: ValueKey('party-$_partyId'),
-              initialValue: _partyId,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: _isReceiveFlow ? 'Party' : 'Payee',
-              ),
-              items: parties
+            FxSearchableSelect<String>(
+              key: ValueKey('party-select-$_partyId'),
+              labelText: _isReceiveFlow ? 'Party' : 'Payee',
+              hintText: 'Search name or code…',
+              value: _partyId,
+              enabled: !_busy,
+              addNewLabel: 'Add new party',
+              options: parties
                   .map(
-                    (p) => DropdownMenuItem(
+                    (p) => FxSearchableOption(
                       value: p.id,
-                      child: Text('${p.name} (${p.partyType.name})'),
+                      label: p.name,
+                      subtitle: '${p.code} · ${p.partyType.label}',
+                      searchText: '${p.name} ${p.code} ${p.partyType.name}',
                     ),
                   )
                   .toList(),
-              onChanged: _busy
+              onSelected: (v) => setState(() {
+                _partyId = v;
+                _dealId = null;
+                if (_method == 'third_party') {
+                  _method = 'bank';
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                }
+              }),
+              onAddNew: _busy
                   ? null
-                  : (v) => setState(() {
-                        _partyId = v;
-                        _dealId = null;
-                      }),
+                  : () async {
+                      final id = await context.push<String>('/parties/new');
+                      ref.invalidate(partiesProvider(null));
+                      if (id != null && mounted) {
+                        setState(() {
+                          _partyId = id;
+                          _dealId = null;
+                          if (_method == 'third_party') {
+                            _method = 'bank';
+                            _thirdPartyAgentId = null;
+                            _thirdPartySourceLegId = null;
+                          }
+                        });
+                      }
+                    },
             ),
           ],
         ),
         if (_supportsDealAllocation &&
             party?.partyType == FxPartyType.customer) ...[
-          const SizedBox(height: 20),
-          FxFormSection(
+          const SizedBox(height: 16),
+          FxFormBlock(
+            dense: true,
             title: 'Deal allocation',
             optional: true,
             subtitle:
-                'Optional. Allocating posts via the deal payment engine only — '
-                'not a second generic settlement. Leave empty for a general '
-                'party receipt.',
+                'Optional. Leave empty for a general party receipt.',
             children: [
-              if (dealsLoading) const LinearProgressIndicator(),
+              if (dealsLoading) const LinearProgressIndicator(minHeight: 2),
               if (dealsError)
                 Text(
                   'Could not load deals. Retry or leave unallocated.',
                   style: AppTypography.bodySm(fx.error, context: context),
                 ),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Search deal number',
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: (v) => setState(() => _dealSearch = v),
-              ),
-              DropdownButtonFormField<String?>(
-                key: ValueKey('deal-$_partyId-$_dealId'),
-                initialValue: _dealId,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Allocate to deal (optional)',
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text('None — general party receipt'),
-                  ),
-                  ...deals.map(
-                    (d) => DropdownMenuItem<String?>(
-                      value: d.id,
-                      child: Text(_dealLabel(d)),
-                    ),
-                  ),
-                ],
-                onChanged: _busy
-                    ? null
-                    : (v) => setState(() {
-                          _dealId = v;
-                          if (v != null && _currencyCode != 'PKR') {
-                            _currencyCode = 'PKR';
-                            _vaultAccountCode = null;
-                          }
-                        }),
+              FxSearchableSelect<String>(
+                key: ValueKey('deal-select-$_partyId-$_dealId'),
+                labelText: 'Allocate to deal',
+                hintText: 'Search deal number…',
+                value: _dealId,
+                enabled: !_busy && !dealsLoading,
+                emptyMessage: 'No open deals for this party',
+                options: deals
+                    .map(
+                      (d) => FxSearchableOption(
+                        value: d.id,
+                        label: _dealLabel(d),
+                        searchText: '${d.dealNo ?? ''} ${d.id}',
+                      ),
+                    )
+                    .toList(),
+                onSelected: (v) => setState(() {
+                  _dealId = v;
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                  if (v == null && _method == 'third_party') {
+                    _method = 'bank';
+                  }
+                  if (v != null && _currencyCode != 'PKR') {
+                    _currencyCode = 'PKR';
+                    _vaultAccountCode = null;
+                  }
+                }),
               ),
               if (allocatedDeal != null)
                 Text(
                   'Outstanding PKR ${fmt.format(allocatedDeal.customerReceivablePkr)} '
                   '(paid ${fmt.format(allocatedDeal.customerPaidPkr)} of '
-                  '${fmt.format(allocatedDeal.customerPayablePkr)}). '
-                  'Partial receipts allowed; overpayment blocked.',
+                  '${fmt.format(allocatedDeal.customerPayablePkr)}).',
                   style: AppTypography.bodySm(
                     fx.onSurfaceVariant,
                     context: context,
@@ -648,105 +853,119 @@ class _MoneyMovementComposerScreenState
             ],
           ),
         ],
-        const SizedBox(height: 20),
-        FxFormSection(
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
           title: 'Amount',
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextFormField(
-                    controller: _amountCtrl,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Amount'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Currency'),
-                    child: Text(
-                      _currencyCode,
-                      style: AppTypography.headlineSm(fx.onSurface, context: context),
-                    ),
-                  ),
-                ),
-              ],
+            FxAmountEntry(
+              controller: _amountCtrl,
+              currencyCode: _currencyCode,
+              enabled: !_busy,
+              helperText: _currencyCode == 'PKR'
+                  ? 'Settlement currency is fixed to PKR for this workflow.'
+                  : null,
             ),
-            if (_currencyCode == 'PKR')
-              Text(
-                'Settlement currency is PKR for this workflow.',
-                style: AppTypography.bodySm(fx.onSurfaceVariant, context: context),
-              ),
           ],
         ),
-        const SizedBox(height: 20),
-        FxFormSection(
-          title: _isReceiveFlow ? 'Receive into' : 'Pay from',
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
+          title: _isThirdParty
+              ? 'Settlement (cashless)'
+              : (_isReceiveFlow ? 'Receive into' : 'Pay from'),
           children: [
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'bank', label: Text('Bank'), icon: Icon(Icons.account_balance)),
-                ButtonSegment(value: 'cash', label: Text('Cash'), icon: Icon(Icons.payments_outlined)),
-              ],
-              selected: {_method},
-              onSelectionChanged: _busy
-                  ? null
-                  : (s) => setState(() {
-                        _method = s.first;
-                        _vaultAccountCode = null;
-                      }),
+            FxSettlementMethodToggle(
+              value: _method,
+              enabled: !_busy,
+              showThirdParty:
+                  _supportsDealAllocation && allocatedDeal != null,
+              onChanged: (m) => setState(() {
+                _method = m;
+                _vaultAccountCode = null;
+                if (m != 'third_party') {
+                  _thirdPartyAgentId = null;
+                  _thirdPartySourceLegId = null;
+                }
+              }),
             ),
-            DropdownButtonFormField<String>(
-              key: ValueKey('vault-$_method-$_currencyCode-$_vaultAccountCode'),
-              initialValue: _vaultAccountCode,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: _method == 'bank' ? 'Bank account' : 'Cash account',
-              ),
-              items: eligible
-                  .map(
-                    (a) => DropdownMenuItem(
-                      value: a.code,
-                      child: Text(CashBankAccountRules.displayLabel(a)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _busy
-                  ? null
-                  : (v) => setState(() => _vaultAccountCode = v),
-            ),
-            if (eligible.isEmpty)
+            if (_isThirdParty) ...[
+              const SizedBox(height: 8),
               Text(
-                'No active ${_method == 'bank' ? 'bank' : 'cash'} accounts '
-                'for $_currencyCode. Add an account first.',
-                style: AppTypography.bodySm(fx.error, context: context),
+                'Customer paid the agent’s external bank. Owned cash/banks '
+                'are unchanged (Dr 2100 / Cr 1160).',
+                style: AppTypography.bodySm(
+                  fx.onSurfaceVariant,
+                  context: context,
+                ),
               ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: _busy
+              if (allocatedDeal != null)
+                _ThirdPartyAgentPicker(
+                  dealId: allocatedDeal.id,
+                  selectedAgentId: _thirdPartyAgentId,
+                  enabled: !_busy,
+                  onSelected: (agentId, legId) => setState(() {
+                    _thirdPartyAgentId = agentId;
+                    _thirdPartySourceLegId =
+                        agentId == null ? null : legId;
+                  }),
+                ),
+              TextField(
+                controller: _externalBankCtrl,
+                enabled: !_busy,
+                decoration: const InputDecoration(
+                  labelText: 'External bank label (optional)',
+                  hintText: 'e.g. SAMPLE Meezan External',
+                ),
+              ),
+            ] else ...[
+              FxSearchableSelect<String>(
+                key: ValueKey(
+                  'vault-$_method-$_currencyCode-$_vaultAccountCode',
+                ),
+                labelText: _method == 'bank' ? 'Bank account' : 'Cash account',
+                hintText: 'Search account…',
+                value: _vaultAccountCode,
+                enabled: !_busy,
+                addNewLabel: 'Add account',
+                options: eligible
+                    .map(
+                      (a) => FxSearchableOption(
+                        value: a.code,
+                        label: CashBankAccountRules.displayLabel(a),
+                        subtitle:
+                            '${a.code} · ${a.currencyCode ?? _currencyCode}',
+                        searchText:
+                            '${a.code} ${a.name} ${a.currencyCode ?? ''}',
+                      ),
+                    )
+                    .toList(),
+                onSelected: (v) => setState(() => _vaultAccountCode = v),
+                onAddNew: _busy
                     ? null
                     : () => context.push('/accounts/new-cash?kind=$_method'),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Account'),
               ),
-            ),
+              if (eligible.isEmpty)
+                Text(
+                  'No active ${_method == 'bank' ? 'bank' : 'cash'} accounts '
+                  'for $_currencyCode.',
+                  style: AppTypography.bodySm(fx.error, context: context),
+                ),
+            ],
           ],
         ),
-        const SizedBox(height: 20),
-        FxFormSection(
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
           title: 'Details',
           optional: true,
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
+              dense: true,
               title: const Text('Date'),
               subtitle: Text(DateFormat.yMMMd().format(_date)),
-              trailing: const Icon(Icons.calendar_today_outlined),
+              trailing: const Icon(Icons.calendar_today_outlined, size: 20),
               onTap: _busy
                   ? null
                   : () async {
@@ -761,29 +980,34 @@ class _MoneyMovementComposerScreenState
             ),
             TextField(
               controller: _referenceCtrl,
+              enabled: !_busy,
               decoration: const InputDecoration(
                 labelText: 'Reference (optional)',
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        FxFormSection(
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
           title: 'Description',
           children: [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
+              dense: true,
               title: const Text('Auto description'),
               value: _autoDescription,
               onChanged: _busy
                   ? null
                   : (v) => setState(() {
-                        if (!v && _manualDescCtrl.text.trim().isEmpty) {
-                          _manualDescCtrl.text =
-                              _generatedDescription(party, vault);
-                        }
-                        _autoDescription = v;
-                      }),
+                      if (!v && _manualDescCtrl.text.trim().isEmpty) {
+                        _manualDescCtrl.text = _generatedDescription(
+                          party,
+                          vault,
+                        );
+                      }
+                      _autoDescription = v;
+                    }),
             ),
             if (_autoDescription) ...[
               Container(
@@ -798,9 +1022,9 @@ class _MoneyMovementComposerScreenState
                   style: AppTypography.bodyMd(fx.onSurface, context: context),
                 ),
               ),
-              const SizedBox(height: 8),
               TextField(
                 controller: _notesCtrl,
+                enabled: !_busy,
                 decoration: const InputDecoration(
                   labelText: 'Additional notes (optional)',
                 ),
@@ -809,6 +1033,7 @@ class _MoneyMovementComposerScreenState
             ] else ...[
               TextField(
                 controller: _manualDescCtrl,
+                enabled: !_busy,
                 decoration: const InputDecoration(
                   labelText: 'Description (required)',
                 ),
@@ -820,17 +1045,20 @@ class _MoneyMovementComposerScreenState
                   onPressed: _busy
                       ? null
                       : () => setState(() {
-                            _manualDescCtrl.text =
-                                _generatedDescription(party, vault);
-                          }),
+                          _manualDescCtrl.text = _generatedDescription(
+                            party,
+                            vault,
+                          );
+                        }),
                   child: const Text('Regenerate from details'),
                 ),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 20),
-        FxFormSection(
+        const SizedBox(height: 16),
+        FxFormBlock(
+          dense: true,
           title: 'Attachments',
           optional: true,
           children: [
@@ -838,6 +1066,14 @@ class _MoneyMovementComposerScreenState
               spacing: 8,
               runSpacing: 8,
               children: [
+                if (_linkedAttachmentId != null)
+                  Chip(
+                    avatar: const Icon(Icons.image_outlined, size: 18),
+                    label: const Text('Slip proof linked'),
+                    onDeleted: _busy
+                        ? null
+                        : () => setState(() => _linkedAttachmentId = null),
+                  ),
                 for (var i = 0; i < _pendingFiles.length; i++)
                   Chip(
                     label: Text(_pendingFiles[i].name),
@@ -854,70 +1090,35 @@ class _MoneyMovementComposerScreenState
             ),
           ],
         ),
-        const SizedBox(height: 28),
-        FilledButton(
-          onPressed: _busy
-              ? null
-              : () {
-                  if (_partyId == null || party == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Select a party')),
-                    );
-                    return;
-                  }
-                  if (_amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Enter a valid amount')),
-                    );
-                    return;
-                  }
-                  if (_vaultAccountCode == null || vault == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Select a ${_method == 'bank' ? 'bank' : 'cash'} account',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                  if (_finalDescription(
-                    party,
-                    vault,
-                    dealLabel: allocatedDeal == null
-                        ? null
-                        : _dealLabel(allocatedDeal),
-                  ).isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Description cannot be empty'),
-                      ),
-                    );
-                    return;
-                  }
-                  if (allocatedDeal != null &&
-                      _amount > allocatedDeal.customerReceivablePkr + 0.0000001) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Amount cannot exceed deal outstanding'),
-                      ),
-                    );
-                    return;
-                  }
-                  setState(() => _reviewing = true);
-                },
-          child: Text(
-            _isReceiveFlow ? 'Review receipt' : 'Review payment',
-          ),
-        ),
       ],
     );
 
-    if (!isWide) return form;
+    final formWithAction = Column(
+      children: [
+        Expanded(child: form),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: fx.surface,
+            border: Border(top: BorderSide(color: fx.outlineVariant)),
+          ),
+          child: SafeArea(top: false, child: reviewAction),
+        ),
+      ],
+    );
+    if (!isWide) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 740),
+          child: formWithAction,
+        ),
+      );
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(flex: 3, child: form),
+        Expanded(flex: 3, child: formWithAction),
         Expanded(
           flex: 2,
           child: Padding(
@@ -993,18 +1194,29 @@ class _MoneyMovementComposerScreenState
       amount: _amount,
       partyName: party?.name ?? '—',
       vaultAccount: vault,
+      thirdParty: _isThirdParty,
     );
-    final dealLabel =
-        allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final dealLabel = allocatedDeal == null ? null : _dealLabel(allocatedDeal);
+    final canConfirm = !_busy &&
+        party != null &&
+        (_isThirdParty
+            ? allocatedDeal != null && _thirdPartyAgentId != null
+            : vault != null);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(sentence, style: AppTypography.headlineSm(fx.onSurface, context: context)),
+        Text(
+          sentence,
+          style: AppTypography.headlineSm(fx.onSurface, context: context),
+        ),
         const SizedBox(height: 12),
         Text(
-          allocatedDeal == null
-              ? 'General party receipt (not allocated to a deal).'
-              : 'Deal-allocated receipt — posts once via deal payment engine.',
+          _isThirdParty
+              ? 'Cashless third-party — posts once via deal third-party RPC '
+                  '(no owned-bank movement).'
+              : allocatedDeal == null
+                  ? 'General party receipt (not allocated to a deal).'
+                  : 'Deal-allocated receipt — posts once via deal payment engine.',
           style: AppTypography.bodyMd(fx.onSurfaceVariant, context: context),
         ),
         if (dealLabel != null) ...[
@@ -1012,7 +1224,30 @@ class _MoneyMovementComposerScreenState
           Text('Deal: $dealLabel'),
         ],
         const SizedBox(height: 16),
-        Text('Description', style: AppTypography.headlineSm(fx.onSurface, context: context)),
+        Text(
+          'Settlement method: ${switch (_method) {
+            'cash' => 'Cash',
+            'third_party' => 'Agent external (third-party)',
+            _ => 'Bank',
+          }}',
+          style: AppTypography.bodyMd(fx.onSurface, context: context),
+        ),
+        if (vault != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Account: ${CashBankAccountRules.displayLabel(vault)}',
+            style: AppTypography.bodyMd(fx.onSurface, context: context),
+          ),
+        ],
+        if (_isThirdParty && _externalBankCtrl.text.trim().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text('External bank: ${_externalBankCtrl.text.trim()}'),
+        ],
+        const SizedBox(height: 16),
+        Text(
+          'Description',
+          style: AppTypography.headlineSm(fx.onSurface, context: context),
+        ),
         const SizedBox(height: 8),
         Text(
           _finalDescription(party, vault, dealLabel: dealLabel),
@@ -1024,26 +1259,34 @@ class _MoneyMovementComposerScreenState
         ],
         if (_pendingFiles.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text('${_pendingFiles.length} attachment(s) will upload with this post.'),
+          Text(
+            '${_pendingFiles.length} attachment(s) will upload with this post.',
+          ),
         ],
         const SizedBox(height: 24),
         Row(
           children: [
             OutlinedButton(
-              onPressed: _busy ? null : () => setState(() => _reviewing = false),
+              onPressed: _busy
+                  ? null
+                  : () => setState(() => _reviewing = false),
               child: const Text('Back'),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: _busy || party == null || vault == null
+                onPressed: !canConfirm || party == null
                     ? null
-                    : () => _confirmAndPost(
-                          party: party,
+                    : () {
+                        final p = party;
+                        if (p == null) return;
+                        _confirmAndPost(
+                          party: p,
                           vault: vault,
                           accounts: accounts,
                           allocatedDeal: allocatedDeal,
-                        ),
+                        );
+                      },
                 child: _busy
                     ? const SizedBox(
                         width: 20,
@@ -1051,13 +1294,84 @@ class _MoneyMovementComposerScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        _isReceiveFlow ? 'Confirm receipt' : 'Confirm payment',
+                        _isThirdParty
+                            ? 'Confirm third-party'
+                            : (_isReceiveFlow
+                                  ? 'Confirm receipt'
+                                  : 'Confirm payment'),
                       ),
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Picks an agent_source counterparty on the allocated deal for third-party.
+class _ThirdPartyAgentPicker extends ConsumerWidget {
+  const _ThirdPartyAgentPicker({
+    required this.dealId,
+    required this.selectedAgentId,
+    required this.onSelected,
+    this.enabled = true,
+  });
+
+  final String dealId;
+  final String? selectedAgentId;
+  final bool enabled;
+  final void Function(String? agentId, String? sourceLegId) onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final legsAsync = ref.watch(dealTimelineProvider(dealId));
+    return legsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      ),
+      error: (e, _) => Text('Could not load deal agents: $e'),
+      data: (legs) {
+        final sources = legs
+            .where(
+              (l) =>
+                  l.legType == FxDealLegType.agentSource &&
+                  l.counterpartyPartyId != null,
+            )
+            .toList();
+        if (sources.isEmpty) {
+          return Text(
+            'This deal has no agent source leg — add sourcing before '
+            'recording a third-party payment.',
+            style: AppTypography.bodySm(context.fx.error, context: context),
+          );
+        }
+        return FxSearchableSelect<String>(
+          key: ValueKey('tp-agent-$dealId-$selectedAgentId'),
+          labelText: 'Agent who received funds',
+          hintText: 'Search agent…',
+          value: selectedAgentId,
+          enabled: enabled,
+          options: sources
+              .map(
+                (l) => FxSearchableOption(
+                  value: l.counterpartyPartyId!,
+                  label: l.counterpartyName ?? l.counterpartyPartyId!,
+                  subtitle: 'Source leg · ${l.receiveCurrency ?? ''}',
+                  searchText:
+                      '${l.counterpartyName ?? ''} ${l.counterpartyPartyId}',
+                ),
+              )
+              .toList(),
+          onSelected: (agentId) {
+            final match = sources
+                .where((l) => l.counterpartyPartyId == agentId)
+                .firstOrNull;
+            onSelected(agentId, match?.id);
+          },
+        );
+      },
     );
   }
 }

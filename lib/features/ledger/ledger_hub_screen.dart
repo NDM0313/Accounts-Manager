@@ -21,58 +21,51 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
   @override
   Widget build(BuildContext context) {
     final horizontal = context.fxHorizontalInset;
-    final bottomInset =
-        MediaQuery.paddingOf(context).bottom + AppSpacing.shellBottomInset;
+    // Scroll clearance only — list paints behind FAB; no reserved full-width strip.
+    final listBottomPad =
+        MediaQuery.paddingOf(context).bottom +
+        kBottomNavigationBarHeight +
+        (_tab == LedgerHubTab.transactions ? 72 : 16);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        FxContentContainer(
-          padding: EdgeInsets.fromLTRB(
-            horizontal,
-            AppSpacing.stackSm,
-            horizontal,
-            bottomInset,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const FxPageTitleBlock(
-                title: 'Ledger',
-                subtitle: 'Transactions and account statements.',
-              ),
-              const SizedBox(height: AppSpacing.stackSm),
-              FxPremiumSegmentedTabs(
-                tabs: const ['Transactions', 'Account statement'],
-                selectedIndex: _tab.index,
-                onChanged: (i) =>
-                    setState(() => _tab = LedgerHubTab.values[i]),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _tab == LedgerHubTab.transactions
-                    ? const TransactionListScreen(
-                        inShell: true,
-                        embeddedInHub: true,
-                      )
-                    : const AccountStatementScreen(),
-              ),
-            ],
-          ),
-        ),
-        if (_tab == LedgerHubTab.transactions)
-          Positioned(
-            right: horizontal,
-            bottom: 16,
-            child: FloatingActionButton(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: _tab == LedgerHubTab.transactions
+          ? FloatingActionButton(
               onPressed: () => FxTransactionMenuSheet.show(context),
               backgroundColor: context.fx.primary,
               foregroundColor: context.fx.onPrimary,
-              elevation: 2,
+              elevation: 3,
+              tooltip: 'New transaction',
+              heroTag: 'ledger_hub_new_transaction',
               child: const Icon(Icons.add),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: FxContentContainer(
+        padding: EdgeInsets.fromLTRB(horizontal, AppSpacing.stackSm, horizontal, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // AppBar / shell already identifies the screen — keep tabs compact.
+            FxPremiumSegmentedTabs(
+              tabs: const ['Transactions', 'Account statement'],
+              selectedIndex: _tab.index,
+              onChanged: (i) =>
+                  setState(() => _tab = LedgerHubTab.values[i]),
             ),
-          ),
-      ],
+            const SizedBox(height: 8),
+            Expanded(
+              child: _tab == LedgerHubTab.transactions
+                  ? TransactionListScreen(
+                      inShell: true,
+                      embeddedInHub: true,
+                      listBottomInset: listBottomPad,
+                    )
+                  : AccountStatementScreen(listBottomInset: listBottomPad),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

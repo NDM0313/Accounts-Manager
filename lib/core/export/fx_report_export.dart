@@ -5,6 +5,7 @@ import 'package:accounts_manager/core/widgets/obsidian/fx_converted_amount.dart'
 import 'package:accounts_manager/data/repositories/report_repository.dart';
 import 'package:accounts_manager/domain/models/account_statement.dart';
 import 'package:accounts_manager/domain/services/reporting_currency_converter.dart';
+import 'package:accounts_manager/features/ledger/account_statement_export_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -244,55 +245,9 @@ Future<void> exportAccountStatementReport(
     );
     return;
   }
-  final fmt = NumberFormat('#,##0.00');
-  final fromLabel = view.from.toIso8601String().split('T').first;
-  final toLabel = view.to.toIso8601String().split('T').first;
-  final csv = formatAccountStatementCsv(
-    view,
-    converter: converter,
-    viewMode: currencyView,
-  );
-  final text = _textFromCsv(
-    csv,
-    title: '${view.accountCode} · ${view.accountName} ($fromLabel → $toLabel)',
-  );
-  final pdfRows = view.lines
-      .map(
-        (l) => [
-          l.entryDate.toIso8601String().split('T').first,
-          l.entryNo,
-          l.description ?? '',
-          fmt.format(l.debitPkr),
-          fmt.format(l.creditPkr),
-          fmt.format(l.runningBalancePkr),
-        ],
-      )
-      .toList();
-  final pdf = await buildStatementPdf(
-    title: 'Account Statement',
-    partyName: '${view.accountCode} · ${view.accountName}',
-    periodLabel: '$fromLabel → $toLabel',
-    displayCurrency: converter?.displayCurrencyCode ?? 'PKR',
-    lineRows: pdfRows,
-    totalDebit: view.lines
-        .fold<double>(0, (s, l) => s + l.debitPkr)
-        .toStringAsFixed(2),
-    totalCredit: view.lines
-        .fold<double>(0, (s, l) => s + l.creditPkr)
-        .toStringAsFixed(2),
-    closingBalance: view.closingBalancePkr.toStringAsFixed(2),
-  );
-  if (!context.mounted) return;
-  await showFxExportSheet(
-    context,
-    document: FxExportDocument(
-      title: 'Account Statement — ${view.accountCode}',
-      textBody: text,
-      csvBody: csv,
-      pdfBytes: pdf,
-      subject: 'Account Statement ${view.accountCode}',
-    ),
-  );
+  // Professional Simple/Detailed path (same family as party statements).
+  // Ignore unused converter/viewMode here — PDF is PKR ledger amounts.
+  await showAccountStatementExportSheet(context, view: view);
 }
 
 Future<void> exportDailyClosingReport(

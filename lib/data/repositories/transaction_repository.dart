@@ -10,10 +10,17 @@ import 'package:accounts_manager/domain/models/rate_reference_snapshot.dart';
 import 'package:accounts_manager/domain/services/draft_line_builder.dart';
 
 class TransactionRepository {
-  static const _txSelect =
+  /// PostgREST select for transactions.
+  ///
+  /// Must use `fx_parties!party_id` — after `counterparty_party_id` was added,
+  /// bare `fx_parties(...)` is ambiguous (PGRST201 / HTTP 300) and leaves
+  /// party ledgers stuck retrying while Activity shows an indefinite spinner.
+  static const txSelect =
       'id, transaction_type, status, transaction_no, transaction_date, currency_code, party_id, deal_id, exchange_group_id, '
       'total_foreign_amount, rate_used, total_base_amount_pkr, description, created_at, posted_at, '
-      'fx_parties(code, name), fx_deals(deal_no)';
+      'fx_parties!party_id(code, name), fx_deals(deal_no)';
+
+  static const _txSelect = txSelect;
 
   static String _localDateIso([DateTime? date]) =>
       localTransactionDateIso(date ?? DateTime.now());
@@ -352,12 +359,18 @@ class TransactionRepository {
     String partyId, {
     int limit = 100,
   }) async {
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+    );
+    if (ids.isEmpty) return const [];
+
     final rows = await supabase
         .from('fx_transactions')
         .select(_txSelect)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .order('transaction_date', ascending: false)
         .limit(limit);
 
@@ -369,7 +382,32 @@ class TransactionRepository {
 
   static String get _txSelectWithLines =>
       '$_txSelect, fx_transaction_lines(id, line_no, account_id, currency_code, '
-      'foreign_amount, rate_used, debit_pkr, credit_pkr, memo, fx_accounts(code, name))';
+      'foreign_amount, rate_used, debit_pkr, credit_pkr, memo, party_id, '
+      'fx_accounts(code, name))';
+
+  Future<List<String>> _attributedTransactionIds({
+    required String branchId,
+    required String partyId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await supabase.rpc(
+      'fx_list_party_attributed_transaction_ids',
+      params: {
+        'p_branch_id': branchId,
+        'p_party_id': partyId,
+        'p_from': from?.toIso8601String().split('T').first,
+        'p_to': to?.toIso8601String().split('T').first,
+      },
+    );
+    return (rows as List)
+        .map((r) {
+          if (r is Map) return r['transaction_id'] as String?;
+          return r as String?;
+        })
+        .whereType<String>()
+        .toList();
+  }
 
   Future<List<FxTransaction>> fetchPartyTransactionsForStatement({
     required String branchId,
@@ -385,12 +423,20 @@ class TransactionRepository {
     final fromIso = from.toIso8601String().split('T').first;
     final toIso = to.toIso8601String().split('T').first;
 
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+      from: from,
+      to: to,
+    );
+    if (ids.isEmpty) return const [];
+
     var query = supabase
         .from('fx_transactions')
         .select(_txSelectWithLines)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .gte('transaction_date', fromIso)
         .lte('transaction_date', toIso);
 
@@ -441,13 +487,20 @@ class TransactionRepository {
     int limit = 2000,
   }) async {
     final beforeIso = before.toIso8601String().split('T').first;
+    final priorDay = before.subtract(const Duration(days: 1));
+    final ids = await _attributedTransactionIds(
+      branchId: branchId,
+      partyId: partyId,
+      to: priorDay,
+    );
+    if (ids.isEmpty) return const [];
 
     var query = supabase
         .from('fx_transactions')
         .select(_txSelectWithLines)
         .eq('branch_id', branchId)
-        .eq('party_id', partyId)
         .eq('is_deleted', false)
+        .inFilter('id', ids)
         .lt('transaction_date', beforeIso);
 
     switch (status) {
@@ -683,5 +736,37 @@ class TransactionRepository {
         'Draft lines must balance (debit=$debit credit=$credit)',
       );
     }
+  }
+
+  /// Agent-held FX purchase funded by cash, credit (2100), or agent advance (1180).
+  /// Posts immediately and updates [fx_agent_currency_balances].
+  Future<String> postAgentCurrencyPurchaseFunded({
+    required String companyId,
+    required String branchId,
+    required String agentPartyId,
+    required String currency,
+    required double foreignAmount,
+    required double ratePkr,
+    required String fundingMode,
+    String? settleAccountCode,
+    String? notes,
+    String? clientOperationId,
+  }) async {
+    final txId = await supabase.rpc(
+      'fx_post_agent_currency_purchase_funded',
+      params: {
+        'p_company_id': companyId,
+        'p_branch_id': branchId,
+        'p_agent_party_id': agentPartyId,
+        'p_currency': currency,
+        'p_foreign_amount': foreignAmount,
+        'p_rate_pkr': ratePkr,
+        'p_funding_mode': fundingMode,
+        'p_settle_account_code': settleAccountCode,
+        'p_notes': notes,
+        'p_client_operation_id': clientOperationId,
+      },
+    );
+    return txId as String;
   }
 }

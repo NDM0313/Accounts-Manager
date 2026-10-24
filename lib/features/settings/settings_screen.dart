@@ -62,7 +62,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             error: (_, _) => const SizedBox.shrink(),
             data: (profile) {
               final name = profile?.fullName ?? 'User';
-              final role = branchAsync.whenOrNull(
+              final role =
+                  branchAsync.whenOrNull(
                     data: (ctx) => ctx != null
                         ? '${ctx.companyName} · ${ctx.branchName}'
                         : null,
@@ -71,11 +72,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   '';
               final initials = name.isNotEmpty
                   ? name
-                      .split(' ')
-                      .map((p) => p.isNotEmpty ? p[0] : '')
-                      .take(2)
-                      .join()
-                      .toUpperCase()
+                        .split(' ')
+                        .map((p) => p.isNotEmpty ? p[0] : '')
+                        .take(2)
+                        .join()
+                        .toUpperCase()
                   : '?';
               return FxStitchCard(
                 color: context.fx.surfaceContainer,
@@ -208,7 +209,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     context: context,
                   ),
                 ),
-                onTap: () => ref.read(themeModeProvider.notifier).toggle(),
+                onTap: () async {
+                  final mode = await showModalBottomSheet<ThemeMode>(
+                    context: context,
+                    builder: (context) => SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final option in ThemeMode.values)
+                            ListTile(
+                              leading: Icon(switch (option) {
+                                ThemeMode.system =>
+                                  Icons.brightness_auto_outlined,
+                                ThemeMode.light => Icons.light_mode_outlined,
+                                ThemeMode.dark => Icons.dark_mode_outlined,
+                              }),
+                              title: Text(_themeLabel(option)),
+                              trailing: option == themeMode
+                                  ? const Icon(Icons.check)
+                                  : null,
+                              onTap: () => Navigator.pop(context, option),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                  if (mode != null && context.mounted) {
+                    ref.read(themeModeProvider.notifier).set(mode);
+                  }
+                },
               ),
             ],
           ),
@@ -242,7 +271,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               FxStitchSettingsTile(
                 icon: Icons.swap_horiz,
                 title: 'Switch company / demo',
-                subtitle: branchAsync.whenOrNull(
+                subtitle:
+                    branchAsync.whenOrNull(
                       data: (ctx) => ctx == null
                           ? 'Select real or DEMO workspace'
                           : '${ctx.companyCode} · ${ctx.branchCode}',
@@ -324,10 +354,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   String _themeLabel(ThemeMode mode) => switch (mode) {
-        ThemeMode.dark => 'Dark Mode',
-        ThemeMode.light => 'Light Mode',
-        ThemeMode.system => 'System',
-      };
+    ThemeMode.dark => 'Dark Mode',
+    ThemeMode.light => 'Light Mode',
+    ThemeMode.system => 'System',
+  };
 
   Future<void> _exportTrialBalance(BuildContext context, WidgetRef ref) async {
     try {
@@ -346,9 +376,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
   }

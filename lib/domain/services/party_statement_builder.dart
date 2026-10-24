@@ -6,7 +6,14 @@ import 'package:intl/intl.dart';
 
 /// Builds party statement lines with debit/credit and running balance from transactions.
 abstract final class PartyStatementBuilder {
-  static const _partyAccountCodes = {'1180', '1190', '2100', '2200', '2300'};
+  static const _partyAccountCodes = {
+    '1160',
+    '1180',
+    '1190',
+    '2100',
+    '2200',
+    '2300',
+  };
 
   static PartyStatementView build({
     required FxParty party,
@@ -138,12 +145,19 @@ abstract final class PartyStatementBuilder {
     FxParty party,
     FxTransaction tx,
   ) {
+    var debit = 0.0;
+    var credit = 0.0;
+    var matched = false;
     for (final line in tx.lines) {
       final code = line.accountCode;
-      if (code != null && _partyAccountCodes.contains(code)) {
-        return (line.debitPkr, line.creditPkr);
-      }
+      if (code == null || !_partyAccountCodes.contains(code)) continue;
+      final attrib = line.partyId ?? tx.partyId;
+      if (attrib != null && attrib != party.id) continue;
+      debit += line.debitPkr;
+      credit += line.creditPkr;
+      matched = true;
     }
+    if (matched) return (debit, credit);
     return _fallbackDebitCredit(party, tx);
   }
 

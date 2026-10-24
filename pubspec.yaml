@@ -83,8 +83,26 @@ flutter:
     - assets/branding/
 
   fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/manrope.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter.ttf
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/jetbrainsmono.ttf
     - family: Geist
       fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/manrope.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter.ttf
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/jetbrainsmono.ttf
         - asset: assets/fonts/Geist-Regular.ttf
           weight: 400
         - asset: assets/fonts/Geist-Medium.ttf
