@@ -17,10 +17,13 @@ class TransactionListScreen extends ConsumerStatefulWidget {
     super.key,
     this.inShell = false,
     this.embeddedInHub = false,
+    this.listBottomInset = 0,
   });
 
   final bool inShell;
   final bool embeddedInHub;
+  /// Extra scroll padding so the last row clears FAB + bottom nav.
+  final double listBottomInset;
 
   @override
   ConsumerState<TransactionListScreen> createState() =>
@@ -330,7 +333,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.only(bottom: widget.listBottomInset),
       itemCount: keys.length,
       itemBuilder: (context, gi) {
         final key = keys[gi];

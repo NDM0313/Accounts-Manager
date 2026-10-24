@@ -21,7 +21,7 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
   @override
   Widget build(BuildContext context) {
     final horizontal = context.fxHorizontalInset;
-    // Clearance for bottom nav + real FAB — not a full-width empty strip.
+    // Scroll clearance only — list paints behind FAB; no reserved full-width strip.
     final listBottomPad =
         MediaQuery.paddingOf(context).bottom +
         kBottomNavigationBarHeight +
@@ -36,6 +36,7 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
               foregroundColor: context.fx.onPrimary,
               elevation: 3,
               tooltip: 'New transaction',
+              heroTag: 'ledger_hub_new_transaction',
               child: const Icon(Icons.add),
             )
           : null,
@@ -54,15 +55,13 @@ class _LedgerHubScreenState extends State<LedgerHubScreen> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: listBottomPad),
-                child: _tab == LedgerHubTab.transactions
-                    ? const TransactionListScreen(
-                        inShell: true,
-                        embeddedInHub: true,
-                      )
-                    : const AccountStatementScreen(),
-              ),
+              child: _tab == LedgerHubTab.transactions
+                  ? TransactionListScreen(
+                      inShell: true,
+                      embeddedInHub: true,
+                      listBottomInset: listBottomPad,
+                    )
+                  : AccountStatementScreen(listBottomInset: listBottomPad),
             ),
           ],
         ),

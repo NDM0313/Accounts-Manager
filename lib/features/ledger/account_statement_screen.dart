@@ -12,7 +12,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 class AccountStatementScreen extends ConsumerWidget {
-  const AccountStatementScreen({super.key});
+  const AccountStatementScreen({super.key, this.listBottomInset = 0});
+
+  final double listBottomInset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -178,6 +180,7 @@ class AccountStatementScreen extends ConsumerWidget {
                     }
 
                     return ListView(
+                      padding: EdgeInsets.only(bottom: listBottomInset),
                       children: [
                         FxObsidianReportPanel(
                           child: Column(
