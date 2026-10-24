@@ -107,15 +107,20 @@ Browser-authenticated create via Flutter UI: **NOT RUN** this session (SQL RPC p
 
 ## 5. SHAs / deploy
 
-Filled at release time in the final report section below / git tags.
+| Layer | SHA / marker |
+|-------|----------------|
+| Start tip | `44bca1e` |
+| Local + origin commit | `a9e695d` (`a9e695dde1af8202b84bfe8daa0d7c15328699fa`) |
+| Deployed `fx_app_web/DEPLOY_SHA` | `a9e695d` |
+| Rollback dir | `/home/ndm313/fx_app_web_rollback_20261024T090332Z` |
+| SQL Y_ | applied earlier `APPLY_OK_20261024T083452Z` |
+| SQL Z_ | applied 2026-10-24 (void/auth/advance) |
 
-### SQL apply markers
+ERP / Dokploy / Cloudflare / non-AM DB: untouched.
 
-- Y_: `APPLY_OK_20261024T083452Z` (prior turn)
-- Z_: applied 2026-10-24 with this verification
+## Honest remaining (NOT RUN)
 
-## Honest remaining
-
-- Authenticated Flutter browser posting / viewport screenshot matrix
-- Full Figma node parity for deals/draft bodies
-- Global 1180 ceiling (party-tagged only) — agents without party-tagged advance lines still edge-case
+- Authenticated Flutter browser posting (SQL RPC E2E done under same uid)
+- Live screenshot matrix 390/834/1440 × light/dark (widget form tests at those sizes **did** pass)
+- Full Figma node parity for deals/draft bodies (Figma MCP unavailable)
+- Global (untagged) 1180 advance ceiling edge case
